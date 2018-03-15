@@ -8,7 +8,7 @@ import { CSVTable } from './csv/table.csv';
 export class EDEManager {
     private csvTable: CSVTable;
 
-    constructor () {
+    constructor (private config: any) {
         this.csvTable = new CSVTable();
     }
 
