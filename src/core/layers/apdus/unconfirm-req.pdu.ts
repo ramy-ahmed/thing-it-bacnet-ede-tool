@@ -20,7 +20,8 @@ import {
 import {
     IUnconfirmReq,
     IUnconfirmReqIAm,
-    IUnconfirmReqCOVNotification
+    IUnconfirmReqCOVNotification,
+    IUnconfirmReqWhoIs,
 } from '../../interfaces';
 
 export class UnconfirmReqPDU {
@@ -98,6 +99,22 @@ export class UnconfirmReqPDU {
         const mMeta = TyperUtil.setBitRange(0x00,
             BACnetServiceTypes.UnconfirmedReqPDU, 4, 4);
         writer.writeUInt8(mMeta);
+
+        return writer;
+    }
+
+    /**
+     * writeWhoIs - writes the message for whoIs service and returns the instance of
+     * the writer utility.
+     *
+     * @param  {IUnconfirmReqWhoIs} params - whoIs params
+     * @return {BACnetWriterUtil}
+     */
+    public writeWhoIs (params: IUnconfirmReqWhoIs): BACnetWriterUtil {
+        const writer = new BACnetWriterUtil();
+
+        // Write Service choice
+        writer.writeUInt8(BACnetUnconfirmedService.whoIs);
 
         return writer;
     }

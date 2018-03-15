@@ -51,6 +51,8 @@ export interface INPDULayerControl {
 
 export interface IUnconfirmReq {
 }
+export interface IUnconfirmReqWhoIs {
+}
 export interface IUnconfirmReqIAm {
     objType: number;
     objInst: number;
