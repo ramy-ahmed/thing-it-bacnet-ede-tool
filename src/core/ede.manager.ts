@@ -5,7 +5,7 @@ import * as Bluebird from 'bluebird';
 
 import { CSVTable } from './csv/table.csv';
 
-export class EDEManage {
+export class EDEManager {
     private csvTable: CSVTable;
 
     constructor () {
