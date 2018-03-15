@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "outDir": "build",
+
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+
+        "removeComments": false,
+        "noImplicitAny": false,
+        "allowJs": true,
+        "typeRoots": [
+            "./node_modules/@types"
+        ],
+        "lib": [ "es2016", "dom" ]
+    },
+}
