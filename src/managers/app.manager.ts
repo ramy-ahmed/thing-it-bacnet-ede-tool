@@ -2,7 +2,7 @@ import * as Bluebird from 'bluebird';
 
 import { InputSocket, OutputSocket, Server } from '../core/sockets';
 
-import { unconfirmReqService } from '../services';
+import { unconfirmedReqService } from '../services';
 
 import { mainRouter } from '../routes';
 
@@ -33,7 +33,7 @@ export class AppManager {
             .then((addrInfo: IBACnetAddressInfo) => {
                 // Generate Response instance
                 const outputSocket = this.server.genOutputSocket(addrInfo);
-                unconfirmReqService.whoIs(null, outputSocket);
+                unconfirmedReqService.whoIs(null, outputSocket);
             });
         ;
     }
