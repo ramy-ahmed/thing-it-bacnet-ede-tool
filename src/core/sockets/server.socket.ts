@@ -10,10 +10,12 @@ import { logger } from '../utils';
 
 import { InputSocket } from './input.socket';
 import { OutputSocket } from './output.socket';
+import { ServiceSocket } from './service.socket';
 
 export class Server {
     private className: string = 'Server';
     private sock: dgram.Socket;
+    private serviceSocket: ServiceSocket;
 
     /**
      * @constructor
@@ -21,6 +23,7 @@ export class Server {
      */
     constructor (private serverConfig: IServerConfig,
             private mainRouter: any) {
+        this.serviceSocket = new ServiceSocket();
     }
 
     /**
@@ -42,7 +45,7 @@ export class Server {
             const outputSoc = new OutputSocket(this.sock, rinfo.port, rinfo.address);
             // Handle request
             try {
-                this.mainRouter(inputSoc, outputSoc);
+                this.mainRouter(inputSoc, outputSoc, this.serviceSocket);
             } catch (error) {
                 logger.error(`App ${error}`);
             }
@@ -71,5 +74,9 @@ export class Server {
      */
     public genOutputSocket (rinfo: IBACnetAddressInfo): OutputSocket {
         return new OutputSocket(this.sock, rinfo.port, rinfo.address);
+    }
+
+    public registerService (serviceName: string, service: any) {
+        this.serviceSocket.addService(serviceName, service);
     }
 }
