@@ -12,7 +12,7 @@ export interface IBACnetObjectIdentifier {
     instance: number;
 }
 export interface IBACnetAddressInfo {
-    ip: string;
+    address: string;
     port: number;
 }
 
