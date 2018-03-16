@@ -5,6 +5,9 @@ import {
     IBACnetAddressInfo,
 } from './bacnet.interface';
 
+export interface IEDEOptions {
+    header: IEDEHeaderOptions;
+}
 export interface IEDEHeaderOptions {
     projectName: string;
     versionOfRefFile: number;
