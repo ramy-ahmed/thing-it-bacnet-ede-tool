@@ -4,10 +4,22 @@ import {
     OffsetUtil,
     TyperUtil,
     BACnetReaderUtil,
-    logger
+    BACnetWriterUtil,
+    logger,
 } from '../../utils';
 
-import { BACnetConfirmedService } from '../../enums';
+import {
+    IConfirmedReq,
+    IConfirmedReqReadProperty,
+} from '../../interfaces';
+
+import {
+    BACnetPropTypes,
+    BACnetTagTypes,
+    BACnetConfirmedService,
+    BACnetUnconfirmedService,
+    BACnetServiceTypes,
+} from '../../enums';
 
 export class ConfirmReqPDU {
     public className: string = 'ConfirmReqPDU';
@@ -134,6 +146,50 @@ export class ConfirmReqPDU {
         }
 
         return serviceMap;
+    }
+
+    /**
+     * writeReq - writes the massage for confirmed request (header).
+     *
+     * @param  {IConfirmedReq} params - ConfirmedReq params
+     * @return {BACnetWriterUtil}
+     */
+    public writeReq (params: IConfirmedReq): BACnetWriterUtil {
+        const writer = new BACnetWriterUtil();
+
+        // Write Service Type
+        const mMeta = TyperUtil.setBitRange(0x00,
+            BACnetServiceTypes.ConfirmedReqPDU, 4, 4);
+        writer.writeUInt8(mMeta);
+
+        // Write InvokeID
+        writer.writeUInt8(params.invokeId);
+
+        return writer;
+    }
+
+    /**
+     * writeReadProperty - writes the message for "readProperty" service and returns
+     * the instance of the writer utility.
+     *
+     * @param  {IConfirmedReqReadProperty} params - readProperty params
+     * @return {BACnetWriterUtil}
+     */
+    public writeReadProperty (params: IConfirmedReqReadProperty): BACnetWriterUtil {
+        const writer = new BACnetWriterUtil();
+
+        // Write Service choice
+        writer.writeUInt8(BACnetConfirmedService.ReadProperty);
+
+        // Write Object identifier
+        writer.writeTag(0, BACnetTagTypes.context, 4);
+        writer.writeObjectIdentifier(params.objType, params.objInst);
+
+        // Write Property ID
+        writer.writeTag(1, BACnetTagTypes.context, 1);
+        writer.writeUInt8(params.propId);
+
+        return writer;
     }
 }
 

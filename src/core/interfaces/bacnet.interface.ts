@@ -49,6 +49,18 @@ export interface INPDULayerControl {
     priority2?: number;
 }
 
+export interface IConfirmedReq {
+    invokeId: number;
+}
+export interface IConfirmedReqReadProperty {
+    objType: number;
+    objInst: number;
+    propId: number;
+}
+export interface IConfirmedReqReadPropertyOptions
+    extends IConfirmedReq, IConfirmedReqReadProperty {
+}
+
 export interface IUnconfirmReq {
 }
 export interface IUnconfirmReqWhoIs {
