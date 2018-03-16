@@ -7,6 +7,15 @@ import {
 } from '../enums';
 import { BACnetWriterUtil } from '../utils';
 
+export interface IBACnetObjectIdentifier {
+    type: number;
+    inst: number;
+}
+export interface IBACnetAddressInfo {
+    ip: string;
+    port: number;
+}
+
 export interface IBACnetDevice extends IBACnetObject {
     vendorId?: number;
     objects?: IBACnetObject[];
