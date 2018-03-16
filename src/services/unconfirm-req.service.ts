@@ -10,17 +10,18 @@ import { unconfirmReqPDU } from '../core/layers/apdus';
 import { blvc, npdu } from '../core/layers';
 
 import { BACnetWriterUtil } from '../core/utils';
+import { IUnconfirmReqWhoIsOptions } from '../core/interfaces';
 
 export class UnconfirmReqService {
 
     /**
      * whoIs - sends the "whoIs" request.
      *
-     * @param  {RequestSocket} req - request object (socket)
-     * @param  {OutputSocket} resp - response object (socket)
+     * @param  {IUnconfirmReqWhoIsOptions} opts - request options
+     * @param  {OutputSocket} output - output socket
      * @return {type}
      */
-    public whoIs (req: RequestSocket, output: OutputSocket) {
+    public whoIs (opts: IUnconfirmReqWhoIsOptions, output: OutputSocket) {
         // Generate APDU writer
         const writerUnconfirmReq = unconfirmReqPDU.writeReq({});
         const writerWhoIs = unconfirmReqPDU.writeWhoIs({});

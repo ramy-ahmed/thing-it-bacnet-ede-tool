@@ -74,6 +74,9 @@ export interface IUnconfirmReq {
 }
 export interface IUnconfirmReqWhoIs {
 }
+export interface IUnconfirmReqWhoIsOptions
+    extends IUnconfirmReq, IUnconfirmReqWhoIs {
+}
 export interface IUnconfirmReqIAm {
     objType: number;
     objInst: number;
