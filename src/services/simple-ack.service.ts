@@ -3,7 +3,7 @@ import {
     BLVCFunction,
 } from '../core/enums';
 
-import { RequestSocket, OutputSocket } from '../core/sockets';
+import { InputSocket, OutputSocket } from '../core/sockets';
 
 import { complexACKPDU, simpleACKPDU } from '../core/layers/apdus';
 import { blvc, npdu } from '../core/layers';

@@ -12,14 +12,14 @@ import {
     IConfirmedReqReadPropertyOptions,
 } from '../core/interfaces';
 
-import { RequestSocket, OutputSocket } from '../core/sockets';
+import { InputSocket, OutputSocket } from '../core/sockets';
 
 export class ConfirmReqService {
 
     /**
      * readProperty - sends the "readProperty" confirmed request.
      *
-     * @param  {RequestSocket} req - request object (socket)
+     * @param  {InputSocket} req - request object (socket)
      * @param  {OutputSocket} resp - response object (socket)
      * @return {type}
      */

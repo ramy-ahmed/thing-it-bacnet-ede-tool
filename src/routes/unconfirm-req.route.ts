@@ -4,18 +4,18 @@ import {
     BACnetUnconfirmedService,
 } from '../core/enums';
 
-import { unconfirmReqService } from '../services';
+import { confirmReqService } from '../services';
 
-import { RequestSocket, OutputSocket } from '../core/sockets';
+import { InputSocket, OutputSocket } from '../core/sockets';
 
-export function UnconfirmReqRouter (req: RequestSocket, output: OutputSocket) {
-    const apduMessage = req.apdu;
+export function UnconfirmReqRouter (inputSoc: InputSocket, outputSoc: OutputSocket) {
+    const apduMessage = inputSoc.apdu;
     const serviceChoice = apduMessage.get('serviceChoice');
 
     logger.debug(`MainRouter - Request Service: ${BACnetUnconfirmedService[serviceChoice]}`);
     switch (serviceChoice) {
-        case BACnetUnconfirmedService.whoIs:
-            return unconfirmReqService.iAm(req, resp);
+        case BACnetUnconfirmedService.iAm:
+            return confirmReqService.readProperty(null, outputSoc);
     }
     return;
 }

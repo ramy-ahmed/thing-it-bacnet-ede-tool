@@ -7,18 +7,18 @@ import {
 import { ConfirmReqRouter } from './confirm-req.route';
 import { UnconfirmReqRouter } from './unconfirm-req.route';
 
-import { RequestSocket, OutputSocket } from '../core/sockets';
+import { InputSocket, OutputSocket } from '../core/sockets';
 
-export function MainRouter (req: RequestSocket, output: OutputSocket) {
-    const apduReq = req.apdu;
+export function mainRouter (inputSoc: InputSocket, outputSoc: OutputSocket) {
+    const apduReq = inputSoc.apdu;
     const pduType = apduReq.get('type');
 
     logger.debug(`MainRouter - Request PDU: ${BACnetServiceTypes[pduType]}`);
     switch (pduType) {
         case BACnetServiceTypes.ConfirmedReqPDU:
-            return ConfirmReqRouter(req, resp);
+            return ConfirmReqRouter(inputSoc, outputSoc);
         case BACnetServiceTypes.UnconfirmedReqPDU:
-            return UnconfirmReqRouter(req, resp);
+            return UnconfirmReqRouter(inputSoc, outputSoc);
     }
     return;
 }

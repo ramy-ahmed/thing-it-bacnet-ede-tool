@@ -6,10 +6,10 @@ import {
 
 import { confirmReqService, simpleACKService, complexACKService } from '../services';
 
-import { RequestSocket, OutputSocket } from '../core/sockets';
+import { InputSocket, OutputSocket } from '../core/sockets';
 
-export function ConfirmReqRouter (req: RequestSocket, output: OutputSocket) {
-    const apduMessage = req.apdu;
+export function ConfirmReqRouter (inputSoc: InputSocket, outputSoc: OutputSocket) {
+    const apduMessage = inputSoc.apdu;
     const serviceChoice = apduMessage.get('serviceChoice');
 
     logger.debug(`MainRouter - Request Service: ${BACnetConfirmedService[serviceChoice]}`);
