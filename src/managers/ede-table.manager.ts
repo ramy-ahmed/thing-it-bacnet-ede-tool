@@ -3,12 +3,12 @@ import * as _ from 'lodash';
 import * as moment from 'moment';
 import * as Bluebird from 'bluebird';
 
-import { CSVTable } from './csv/table.csv';
-import { CSVRow } from './csv/row.csv';
+import { CSVTable } from '../core/csv/table.csv';
+import { CSVRow } from '../core/csv/row.csv';
 
 import {
     IEDEHeaderOptions,
-} from './interfaces';
+} from '../core/interfaces';
 
 export class EDETableManager {
     private csvTable: CSVTable;

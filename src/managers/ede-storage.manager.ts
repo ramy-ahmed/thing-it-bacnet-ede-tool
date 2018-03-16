@@ -11,7 +11,7 @@ import {
     IEDECommonObject,
     IEDEDevice,
     IEDEUnit,
-} from './interfaces';
+} from '../core/interfaces';
 
 export class EDEStorageManager {
     private devices: Map<string, IEDEDevice>;
