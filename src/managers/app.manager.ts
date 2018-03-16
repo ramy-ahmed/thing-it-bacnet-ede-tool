@@ -20,10 +20,12 @@ export class AppManager {
 
     constructor (private appConfig: IAppConfig) {
         this.server = new Server(this.appConfig.server, mainRouter);
+        this.initServices();
     }
 
-    public initServiceList () {
-        return ;
+    public initServices () {
+        const edeStorageManager = new EDEStorageManager(this.appConfig.ede);
+        this.server.registerService('edeStorage', edeStorageManager);
     }
 
     public start () {
