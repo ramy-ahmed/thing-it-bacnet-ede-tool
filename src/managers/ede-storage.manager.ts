@@ -5,6 +5,8 @@ import * as Bluebird from 'bluebird';
 
 import { EDETableManager } from './ede-table.manager';
 
+import { OutputSocket } from '../core/sockets';
+
 import {
     IEDEConfig,
     IBACnetAddressInfo,
@@ -44,11 +46,11 @@ export class EDEStorageManager {
      * @param  {IBACnetAddressInfo} remote
      * @return {void}
      */
-    public addDevice (deviceId: IBACnetObjectIdentifier, remote: IBACnetAddressInfo): void {
+    public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket): void {
         const id = this.getObjId(deviceId.type, deviceId.instance);
 
         this.devices.set(id, {
-            remote: remote,
+            outputSoc: outputSoc,
             props: {
                 objId: deviceId,
             },

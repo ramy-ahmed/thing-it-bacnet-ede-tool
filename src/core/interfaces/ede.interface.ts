@@ -1,4 +1,5 @@
 import { CSVRow } from '../csv/row.csv';
+import { OutputSocket } from '../sockets';
 
 import {
     IBACnetObjectIdentifier,
@@ -25,7 +26,7 @@ export interface IEDECommonProps {
 
 export interface IEDEDevice
         extends IEDECommonObject {
-    remote: IBACnetAddressInfo;
+    outputSoc: OutputSocket;
     props: IEDEDeviceProps;
 }
 export interface IEDEDeviceProps
