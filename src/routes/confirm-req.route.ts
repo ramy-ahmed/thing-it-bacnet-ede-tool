@@ -14,12 +14,6 @@ export function ConfirmReqRouter (req: RequestSocket, output: OutputSocket) {
 
     logger.debug(`MainRouter - Request Service: ${BACnetConfirmedService[serviceChoice]}`);
     switch (serviceChoice) {
-        case BACnetConfirmedService.ReadProperty:
-            return complexACKService.readProperty(req, resp);
-        case BACnetConfirmedService.WriteProperty:
-            return simpleACKService.writeProperty(req, resp);
-        case BACnetConfirmedService.SubscribeCOV:
-            return simpleACKService.subscribeCOV(req, resp);
     }
     return;
 }

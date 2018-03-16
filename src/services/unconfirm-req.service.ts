@@ -47,7 +47,7 @@ export class UnconfirmReqService {
 
         // Get and send BACnet message
         const msgBACnet = writerBACnet.getBuffer();
-        return resp.sendBroadcast(msgBACnet, 'whoIs');
+        return output.sendBroadcast(msgBACnet, 'whoIs');
     }
 }
 
