@@ -5,6 +5,7 @@ import { ApiError } from '../errors';
 import {
     BACnetPropIds,
     BACnetPropTypes,
+    BACnetTagTypes,
     getStringEncode,
 } from '../enums';
 
@@ -314,5 +315,28 @@ export class BACnetReaderUtil {
         typeMap.set('value', tagValue);
 
         return typeMap;
+    }
+
+
+    /**
+     * isOpeningTag - return true if tag is an opening tag
+     *
+     * @param  {Map<string,number>} tag - tag
+     * @return {boolean}
+     */
+    public isOpeningTag (tag: Map<string, number>): boolean {
+        return tag.get('class') === BACnetTagTypes.context
+            && tag.get('value') === 0x06;
+    }
+
+    /**
+     * isClosingTag - return true if tag is a closing tag
+     *
+     * @param  {Map<string,number>} tag - tag
+     * @return {boolean}
+     */
+    public isClosingTag (tag: Map<string, number>): boolean {
+        return tag.get('class') === BACnetTagTypes.context
+            && tag.get('value') === 0x07;
     }
 }
