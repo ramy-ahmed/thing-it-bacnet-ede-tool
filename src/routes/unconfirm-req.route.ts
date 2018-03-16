@@ -6,9 +6,9 @@ import {
 
 import { unconfirmReqService } from '../services';
 
-import { RequestSocket, ResponseSocket } from '../core/sockets';
+import { RequestSocket, OutputSocket } from '../core/sockets';
 
-export function UnconfirmReqRouter (req: RequestSocket, resp: ResponseSocket) {
+export function UnconfirmReqRouter (req: RequestSocket, output: OutputSocket) {
     const apduMessage = req.apdu;
     const serviceChoice = apduMessage.get('serviceChoice');
 

@@ -6,9 +6,9 @@ import {
 
 import { confirmReqService, simpleACKService, complexACKService } from '../services';
 
-import { RequestSocket, ResponseSocket } from '../core/sockets';
+import { RequestSocket, OutputSocket } from '../core/sockets';
 
-export function ConfirmReqRouter (req: RequestSocket, resp: ResponseSocket) {
+export function ConfirmReqRouter (req: RequestSocket, output: OutputSocket) {
     const apduMessage = req.apdu;
     const serviceChoice = apduMessage.get('serviceChoice');
 

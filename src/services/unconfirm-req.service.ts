@@ -20,7 +20,7 @@ export class UnconfirmReqService {
      * @param  {OutputSocket} resp - response object (socket)
      * @return {type}
      */
-    public whoIs (req: RequestSocket, resp: OutputSocket) {
+    public whoIs (req: RequestSocket, output: OutputSocket) {
         // Generate APDU writer
         const writerUnconfirmReq = unconfirmReqPDU.writeReq({});
         const writerWhoIs = unconfirmReqPDU.writeWhoIs({});

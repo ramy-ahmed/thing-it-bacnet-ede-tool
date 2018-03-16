@@ -7,9 +7,9 @@ import {
 import { ConfirmReqRouter } from './confirm-req.route';
 import { UnconfirmReqRouter } from './unconfirm-req.route';
 
-import { RequestSocket, ResponseSocket } from '../core/sockets';
+import { RequestSocket, OutputSocket } from '../core/sockets';
 
-export function MainRouter (req: RequestSocket, resp: ResponseSocket) {
+export function MainRouter (req: RequestSocket, output: OutputSocket) {
     const apduReq = req.apdu;
     const pduType = apduReq.get('type');
 
