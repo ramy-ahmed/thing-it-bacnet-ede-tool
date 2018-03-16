@@ -7,16 +7,18 @@ import { IBACnetModule } from './interfaces';
 import { ApiError } from './errors';
 import { logger } from './utils';
 
-import { RequestSocket, ResponseSocket } from './sockets';
+import { RequestSocket, OutputSocket } from './sockets';
 
 import { MainRouter } from '../routes';
 
-import { UnitManager } from '../units/unit.manager';
+import { EDEStorageManager } from './ede-storage.manager';
+
+import { unconfirmReqService } from '../services';
 
 export class Server {
     private className: string = 'Server';
     private port: number;
-    private unitManager: UnitManager;
+    private edeStorageManager: EDEStorageManager;
     private sock: dgram.Socket;
 
     static bootstrapServer (bacnetModule: IBACnetModule) {
@@ -29,7 +31,7 @@ export class Server {
      */
     constructor (bacnetModule: IBACnetModule) {
         this.port = bacnetModule.port;
-        this.unitManager = new UnitManager(bacnetModule);
+        this.edeStorageManager = new EDEStorageManager(bacnetModule);
         this.sock = dgram.createSocket('udp4');
         this.startServer();
     }
@@ -46,9 +48,9 @@ export class Server {
 
         this.sock.on('message', (msg: Buffer, rinfo: dgram.AddressInfo) => {
             // Generate Request instance
-            const req = new RequestSocket(msg, this.unitManager);
+            const req = new RequestSocket(msg, this.edeStorageManager);
             // Generate Response instance
-            const resp = new ResponseSocket(this.sock, rinfo.port, rinfo.address);
+            const resp = new OutputSocket(this.sock, rinfo.port, rinfo.address);
             // Handle request
             try {
                 MainRouter(req, resp);
