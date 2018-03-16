@@ -1,2 +1,2 @@
 export * from './request.socket';
-export * from './response.socket';
+export * from './output.socket';
