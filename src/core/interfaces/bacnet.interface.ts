@@ -9,7 +9,7 @@ import { BACnetWriterUtil } from '../utils';
 
 export interface IBACnetObjectIdentifier {
     type: number;
-    inst: number;
+    instance: number;
 }
 export interface IBACnetAddressInfo {
     ip: string;

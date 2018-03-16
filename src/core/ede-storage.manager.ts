@@ -44,7 +44,7 @@ export class EDEStorageManager {
      * @return {void}
      */
     public addDevice (deviceId: IBACnetObjectIdentifier, remote: IBACnetAddressInfo): void {
-        const id = this.getObjId(deviceId.type, deviceId.inst);
+        const id = this.getObjId(deviceId.type, deviceId.instance);
 
         this.devices.set(id, {
             remote: remote,
@@ -62,7 +62,7 @@ export class EDEStorageManager {
      * @return {void}
      */
     public addUnit (deviceId: IBACnetObjectIdentifier, unitId: IBACnetObjectIdentifier): void {
-        const id = this.getObjId(unitId.type, unitId.inst);
+        const id = this.getObjId(unitId.type, unitId.instance);
         const dataPointRow = this.edeTableManager.genDataPointRow();
 
         this.units.set(id, {
@@ -85,7 +85,7 @@ export class EDEStorageManager {
      */
     public setDeviceProp (deviceId: IBACnetObjectIdentifier,
             propName: string, propValue: any): void {
-        const id = this.getObjId(deviceId.type, deviceId.inst);
+        const id = this.getObjId(deviceId.type, deviceId.instance);
         const device = this.devices.get(id);
 
         const newDevice = this.setObjectProperty(device, propName, propValue)
@@ -104,7 +104,7 @@ export class EDEStorageManager {
      */
     public setUnitProp (unitId: IBACnetObjectIdentifier,
             propName: string, propValue: any): void {
-        const id = this.getObjId(unitId.type, unitId.inst);
+        const id = this.getObjId(unitId.type, unitId.instance);
         const unit = this.units.get(id);
 
         const newUnit = this.setObjectProperty(unit, propName, propValue)
