@@ -14,7 +14,7 @@ import {
 
 import { InputSocket, OutputSocket } from '../../core/sockets';
 
-export class ConfirmReqService {
+export class ConfirmedReqService {
 
     /**
      * readProperty - sends the "readProperty" confirmed request.
@@ -48,4 +48,4 @@ export class ConfirmReqService {
     }
 }
 
-export const confirmReqService: ConfirmReqService = new ConfirmReqService();
+export const confirmedReqService: ConfirmedReqService = new ConfirmedReqService();

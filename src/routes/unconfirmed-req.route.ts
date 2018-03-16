@@ -4,11 +4,11 @@ import {
     BACnetUnconfirmedService,
 } from '../core/enums';
 
-import { confirmReqService } from '../services';
+import { confirmedReqService } from '../services';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 
-export function UnconfirmReqRouter (
+export function UnconfirmedReqRouter (
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
     const apduMessage = inputSoc.apdu;
     const serviceChoice = apduMessage.get('serviceChoice');

@@ -4,8 +4,10 @@ import {
     BACnetServiceTypes,
 } from '../core/enums';
 
-import { ConfirmReqRouter } from './confirm-req.route';
-import { UnconfirmReqRouter } from './unconfirm-req.route';
+import { ConfirmedReqRouter } from './confirmed-req.route';
+import { UnconfirmedReqRouter } from './unconfirmed-req.route';
+import { SimpleACKRouter } from './simple-ack.route';
+import { ComplexACKRouter } from './complex-ack.route';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 
@@ -17,9 +19,13 @@ export function mainRouter (
     logger.debug(`MainRouter - Request PDU: ${BACnetServiceTypes[pduType]}`);
     switch (pduType) {
         case BACnetServiceTypes.ConfirmedReqPDU:
-            return ConfirmReqRouter(inputSoc, outputSoc, serviceSocket);
+            return ConfirmedReqRouter(inputSoc, outputSoc, serviceSocket);
         case BACnetServiceTypes.UnconfirmedReqPDU:
-            return UnconfirmReqRouter(inputSoc, outputSoc, serviceSocket);
+            return UnconfirmedReqRouter(inputSoc, outputSoc, serviceSocket);
+        case BACnetServiceTypes.SimpleACKPDU:
+            return SimpleACKRouter(inputSoc, outputSoc, serviceSocket);
+        case BACnetServiceTypes.ComplexACKPDU:
+            return ComplexACKRouter(inputSoc, outputSoc, serviceSocket);
     }
     return;
 }

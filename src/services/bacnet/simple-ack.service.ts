@@ -10,10 +10,7 @@ import { blvc, npdu } from '../../core/layers';
 
 import { BACnetWriterUtil } from '../../core/utils';
 
-import { unconfirmReqService } from './unconfirm-req.service';
-
 export class SimpleACKService {
-
 }
 
 export const simpleACKService: SimpleACKService = new SimpleACKService();

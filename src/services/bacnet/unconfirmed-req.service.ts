@@ -12,7 +12,7 @@ import { blvc, npdu } from '../../core/layers';
 import { BACnetWriterUtil } from '../../core/utils';
 import { IUnconfirmReqWhoIsOptions } from '../../core/interfaces';
 
-export class UnconfirmReqService {
+export class UnconfirmedReqService {
 
     /**
      * whoIs - sends the "whoIs" request.
@@ -52,4 +52,4 @@ export class UnconfirmReqService {
     }
 }
 
-export const unconfirmReqService: UnconfirmReqService = new UnconfirmReqService();
+export const unconfirmedReqService: UnconfirmedReqService = new UnconfirmedReqService();
