@@ -53,4 +53,16 @@ export class OutputSocket {
             logger.error(`${this.className} - ${sendMethodName} (${address}:${port}): ${error}`);
         }
     }
+
+    /**
+     * getAddressInfo - returns the address and port of the BACnet device.
+     *
+     * @return {IBACnetAddressInfo}
+     */
+    public getAddressInfo (): IBACnetAddressInfo {
+        return {
+            port: this.port,
+            address: this.address,
+        };
+    }
 }
