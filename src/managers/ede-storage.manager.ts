@@ -6,6 +6,7 @@ import * as Bluebird from 'bluebird';
 import { EDETableManager } from './ede-table.manager';
 
 import {
+    IEDEConfig,
     IBACnetAddressInfo,
     IBACnetObjectIdentifier,
     IEDECommonObject,
@@ -18,7 +19,7 @@ export class EDEStorageManager {
     private units: Map<string, IEDEUnit>;
     private edeTableManager: EDETableManager;
 
-    constructor (private config: any) {
+    constructor (private config: IEDEConfig) {
         this.devices = new Map();
         this.units = new Map();
         this.edeTableManager = new EDETableManager();
