@@ -4,25 +4,36 @@ import * as moment from 'moment';
 import * as Bluebird from 'bluebird';
 
 import { CSVTable } from './csv/table.csv';
+import { CSVRow } from './csv/row.csv';
 
-export class EDEManager {
+import {
+    IEDEHeaderOptions,
+} from './interfaces';
+
+export class EDETableManager {
     private csvTable: CSVTable;
 
-    constructor (private config: any) {
+    constructor () {
         this.csvTable = new CSVTable();
     }
 
-    private genHeader () {
+    /**
+     * genHeader - generates the EDE header in the CSV format.
+     *
+     * @param  {IEDEHeaderOptions} opts - EDE header options
+     * @return {void}
+     */
+    public genHeader (opts: IEDEHeaderOptions): void {
         const fileType = this.csvTable.addRow();
         fileType.setCellValue(0, '# Proposal_Engineering-Data-Exchange - B.I.G.-EU');
 
         const projectName = this.csvTable.addRow();
         projectName.setCellValue(0, 'Project_Name');
-        projectName.setCellValue(1, 'ANY NAME'); // TODO: From config
+        projectName.setCellValue(1, opts.projectName);
 
         const versionOfRefFile = this.csvTable.addRow();
         versionOfRefFile.setCellValue(0, 'VERSION_OF_REFERENCEFILE');
-        versionOfRefFile.setCellValue(1, 'ANY VERSION'); // TODO: From config
+        versionOfRefFile.setCellValue(1, opts.versionOfRefFile);
 
         const tsOfLastChange = this.csvTable.addRow();
         tsOfLastChange.setCellValue(0, 'TIMESTAMP_OF_LAST_CHANGE');
@@ -30,11 +41,11 @@ export class EDEManager {
 
         const authorOfLastChange = this.csvTable.addRow();
         authorOfLastChange.setCellValue(0, 'AUTHOR_OF_LAST_CHANGE');
-        authorOfLastChange.setCellValue(1, 'ANY AUTHOR'); // TODO: From config
+        authorOfLastChange.setCellValue(1, opts.authorOfLastChange);
 
         const versionOfLayout = this.csvTable.addRow();
         versionOfLayout.setCellValue(0, 'VERSION_OF_LAYOUT');
-        versionOfLayout.setCellValue(1, '2'); // TODO: From config
+        versionOfLayout.setCellValue(1, opts.versionOfLayout);
 
         const hints = this.genDataPointRow();
         hints.setCellValue('keyname', '# mandatory');
@@ -73,7 +84,12 @@ export class EDEManager {
         titles.setCellValue('vendor-specific-address', 'vendor-specific-address');
     }
 
-    private genDataPointRow () {
+    /**
+     * genDataPointRow - creates the CSVRow instance and sets aliases for row cells.
+     *
+     * @return {CSVRow}
+     */
+    public genDataPointRow (): CSVRow {
         const dataPointRow = this.csvTable.addRow();
         dataPointRow.setCellAlias(0, 'keyname');
         dataPointRow.setCellAlias(1, 'device-object-instance');
