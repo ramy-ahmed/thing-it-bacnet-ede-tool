@@ -42,7 +42,9 @@ export class Server {
             // Generate Request instance
             const inputSoc = new InputSocket(msg);
             // Generate Response instance
-            const outputSoc = new OutputSocket(this.sock, rinfo.port, rinfo.address);
+            const outputSoc = this.genOutputSocket({
+                port: rinfo.port, address: rinfo.address,
+            });
             // Handle request
             try {
                 this.mainRouter(inputSoc, outputSoc, this.serviceSocket);
