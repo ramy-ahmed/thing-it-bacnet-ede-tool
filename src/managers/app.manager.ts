@@ -11,14 +11,15 @@ import {
 } from './ede-storage.manager';
 
 import {
+    IAppConfig,
     IBACnetAddressInfo,
 } from '../core/interfaces';
 
 export class AppManager {
     private server: Server;
 
-    constructor (private moduleConfig: any) {
-        this.server = new Server(this.moduleConfig, mainRouter);
+    constructor (private appConfig: IAppConfig) {
+        this.server = new Server(this.appConfig.server, mainRouter);
     }
 
     public initServiceList () {

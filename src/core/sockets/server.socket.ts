@@ -3,7 +3,7 @@ import * as dgram from 'dgram';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
-import { IBACnetModule, IBACnetAddressInfo } from '../interfaces';
+import { IServerConfig, IBACnetAddressInfo } from '../interfaces';
 
 import { ApiError } from '../errors';
 import { logger } from '../utils';
@@ -19,7 +19,7 @@ export class Server {
      * @constructor
      * @param {IBACnetModule} bacnetModule - module configuration
      */
-    constructor (private moduleConfig: IBACnetModule,
+    constructor (private serverConfig: IServerConfig,
             private mainRouter: any) {
     }
 
@@ -56,10 +56,10 @@ export class Server {
             });
         })
 
-        if (!this.moduleConfig.port) {
+        if (!this.serverConfig.port) {
             throw new ApiError(`${this.className} - startServer: Port is required!`);
         }
-        this.sock.bind(this.moduleConfig.port);
+        this.sock.bind(this.serverConfig.port);
         return startPromise;
     }
 

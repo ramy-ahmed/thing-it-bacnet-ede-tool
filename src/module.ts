@@ -3,7 +3,9 @@ import {
 } from './core/interfaces';
 
 export const appConfig: IAppConfig = {
-    port: 1235,
+    server: {
+        port: 1235,
+    },
     ede: {
         header: {
             projectName: 'Thing-it',
