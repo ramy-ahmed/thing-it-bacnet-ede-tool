@@ -194,102 +194,176 @@ export class BACnetReaderUtil {
     }
 
     /**
-     * readValue - reads the param value from internal buffer.
+     * readParamValue - reads the param value from internal buffer.
      *
      * @return {Map<string, any>}
      */
     public readParamValue (): Map<string, any> {
-        const paramValueMap: Map<string, any> = new Map();
+        const paramValuesMap: Map<string, any> = new Map();
 
         // Context Number - Context tag - "Opening" Tag
         const openTag = this.readTag();
 
-        // Value Type - Application tag - any
-        const paramValueTag = this.readTag();
-        paramValueMap.set('tag', paramValueTag);
+        const values: Map<string, any>[] = [];
+        while (true) {
+            const tag = this.readTag();
 
-        const paramValueType: BACnetPropTypes = paramValueTag.get('number');
-
-        let paramValue: any;
-        switch (paramValueType) {
-            case BACnetPropTypes.boolean: {
-                paramValue = {
-                    value: !!paramValueTag.get('value'),
-                };
+            if (this.isClosingTag(tag)) {
+                // Context Number - Context tag - "Closing" Tag
                 break;
             }
-            case BACnetPropTypes.unsignedInt: {
-                paramValue = {
-                    value: this.readUInt8(),
-                };
-                break;
-            }
-            case BACnetPropTypes.real: {
-                paramValue = {
-                    value: this.readFloatBE(),
-                };
-                break;
-            }
-            case BACnetPropTypes.characterString: {
-                const strLen = this.readUInt8();
-                const charSet = this.readUInt8();
 
-                // Get the character encoding
-                const charEncode = getStringEncode(charSet);
-                paramValueMap.set('encoding', charEncode);
+            const paramValueMap: Map<string, any> = new Map();
 
-                paramValue = {
-                    encoding: charEncode,
-                    value: this.readString(charEncode, strLen),
-                };
-                break;
+            // Value Type - Application tag - any
+            paramValueMap.set('tag', tag);
+
+            const paramValueType: BACnetPropTypes = tag.get('number');
+
+            let paramValue: any;
+            switch (paramValueType) {
+                case BACnetPropTypes.boolean:
+                    paramValue = this.readParamValueBoolean(tag);
+                    break;
+                case BACnetPropTypes.unsignedInt:
+                    paramValue = this.readParamValueUnsignedInt(tag);
+                    break;
+                case BACnetPropTypes.real:
+                    paramValue = this.readParamValueReal(tag);
+                    break;
+                case BACnetPropTypes.characterString:
+                    paramValue = this.readParamValueCharacterString(tag);
+                    break;
+                case BACnetPropTypes.bitString:
+                    paramValue = this.readParamValueBitString(tag);
+                    break;
+                case BACnetPropTypes.enumerated:
+                    paramValue = this.readParamValueEnumerated(tag);
+                    break;
+                case BACnetPropTypes.objectIdentifier:
+                    paramValue = this.readParamValueObjectIdentifier(tag);
+                    break;
             }
-            case BACnetPropTypes.bitString: {
-                // Read the bitString as status flag
-                // Unused byte - show the mask of unused bites
-                const unusedBits = this.readUInt8();
-                // Contains the status bits
-                const statusByte = this.readUInt8();
-                const statusMap: Map<string, boolean> = new Map();
 
-                const inAlarm = TyperUtil.getBit(statusByte, 7);
-                const fault = TyperUtil.getBit(statusByte, 6);
-                const overridden = TyperUtil.getBit(statusByte, 5);
-                const outOfService = TyperUtil.getBit(statusByte, 4);
-
-                paramValue = {
-                    inAlarm: !!inAlarm,
-                    fault: !!fault,
-                    overridden: !!overridden,
-                    outOfService: !!outOfService
-                };
-                break;
-            }
-            case BACnetPropTypes.enumerated: {
-                paramValue = {
-                    value: this.readUInt8(),
-                };
-                break;
-            }
-            case BACnetPropTypes.objectIdentifier: {
-                const objIdent = this.readUInt32BE();
-
-                const objMap: Map<string, any> =
-                    this.decodeObjectIdentifier(objIdent);
-
-                paramValue = {
-                    type: objMap.get('type'),
-                    instance: objMap.get('instance'),
-                };
-                break;
-            }
+            paramValueMap.set('value', paramValue);
+            values.push(paramValueMap);
         }
-        paramValueMap.set('value', paramValue);
 
-        // Context Number - Context tag - "Closing" Tag
-        const closeTag = this.readTag();
+        paramValuesMap.set('values', values);
 
-        return paramValueMap;
+        return paramValuesMap;
+    }
+
+    /**
+     * readParamValueBoolean - reads the boolean param value from internal buffer.
+     *
+     * @param  {Map<string, number>} tag - param tag
+     * @return {Map<string, any>}
+     */
+    public readParamValueBoolean (tag: Map<string, number>) {
+        return {
+            value: !!tag.get('value'),
+        };
+    }
+
+    /**
+     * readParamValueUnsignedInt - reads the unsigned int param value from internal buffer.
+     *
+     * @param  {Map<string, number>} tag - param tag
+     * @return {Map<string, any>}
+     */
+    public readParamValueUnsignedInt (tag: Map<string, number>) {
+        return {
+            value: this.readUInt8(),
+        };
+    }
+
+    /**
+     * readParamValueReal - reads the real param value from internal buffer.
+     *
+     * @param  {Map<string, number>} tag - param tag
+     * @return {Map<string, any>}
+     */
+    public readParamValueReal (tag: Map<string, number>) {
+        return {
+            value: this.readFloatBE(),
+        };
+    }
+
+    /**
+     * readParamValueCharacterString - reads the char string value from internal buffer.
+     *
+     * @param  {Map<string, number>} tag - param tag
+     * @return {Map<string, any>}
+     */
+    public readParamValueCharacterString (tag: Map<string, number>) {
+        const strLen = this.readUInt8();
+        const charSet = this.readUInt8();
+
+        // Get the character encoding
+        const charEncode = getStringEncode(charSet);
+
+        return {
+            encoding: charEncode,
+            value: this.readString(charEncode, strLen),
+        };
+    }
+
+    /**
+     * readParamValueBitString - reads the bit string value from internal buffer.
+     *
+     * @param  {Map<string, number>} tag - param tag
+     * @return {Map<string, any>}
+     */
+    public readParamValueBitString (tag: Map<string, number>) {
+        // Read the bitString as status flag
+        // Unused byte - show the mask of unused bites
+        const unusedBits = this.readUInt8();
+        // Contains the status bits
+        const statusByte = this.readUInt8();
+        const statusMap: Map<string, boolean> = new Map();
+
+        const inAlarm = TyperUtil.getBit(statusByte, 7);
+        const fault = TyperUtil.getBit(statusByte, 6);
+        const overridden = TyperUtil.getBit(statusByte, 5);
+        const outOfService = TyperUtil.getBit(statusByte, 4);
+
+        return {
+            inAlarm: !!inAlarm,
+            fault: !!fault,
+            overridden: !!overridden,
+            outOfService: !!outOfService
+        };
+    }
+
+    /**
+     * readParamValueEnumerated - reads the enumerated value from internal buffer.
+     *
+     * @param  {Map<string, number>} tag - param tag
+     * @return {Map<string, any>}
+     */
+    public readParamValueEnumerated (tag: Map<string, number>) {
+        return {
+            value: this.readUInt8(),
+        };
+    }
+
+    /**
+     * readParamValueObjectIdentifier - reads the object identifier value from internal buffer.
+     *
+     * @param  {Map<string, number>} tag - param tag
+     * @return {Map<string, any>}
+     */
+    public readParamValueObjectIdentifier (tag: Map<string, number>) {
+        const objIdent = this.readUInt32BE();
+
+        const objMap: Map<string, any> =
+        this.decodeObjectIdentifier(objIdent);
+
+        return {
+            type: objMap.get('type'),
+            instance: objMap.get('instance'),
+        };
     }
 
     /**
