@@ -1,5 +1,6 @@
 import { CSVRow } from '../csv/row.csv';
 import { OutputSocket } from '../sockets';
+import { IBACnetTypeCharString } from './unit.interface';
 
 import {
     IBACnetObjectIdentifier,
@@ -31,6 +32,6 @@ export interface IEDEUnit {
 export interface IEDEUnitProps {
     objId: IBACnetObjectIdentifier;
     deviceId: IBACnetObjectIdentifier;
-    objectName?: string;
-    description?: string;
+    objectName?: IBACnetTypeCharString;
+    description?: IBACnetTypeCharString;
 }
