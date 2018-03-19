@@ -109,7 +109,7 @@ export class EDEService {
 
         // Get prop identifier
         const propIdent = apduService.get('propIdent');
-        const propIdentValue = objIdent.get('value');
+        const propIdentValue = propIdent.get('value');
 
         // Get prop value
         const propValue = apduService.get('propValue');
