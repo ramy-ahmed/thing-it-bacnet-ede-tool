@@ -1,0 +1,34 @@
+// Import all chai for type matching with "chai-as-promised" lib
+import * as chai from 'chai';
+
+import { expect } from 'chai';
+import { spy, SinonSpy } from 'sinon';
+
+import { ApiError } from '../errors';
+
+import { InputSocket } from './input.socket';
+
+/* Interfaces */
+
+class APDUMock {
+    public getFromBuffer() {
+        return null;
+    }
+}
+
+describe('NPDU', () => {
+    describe('getFromBuffer', () => {
+
+        beforeEach(() => {
+        });
+
+        it('should return metadata with dest and src mac address', () => {
+            const buf = Buffer.from([0x81, 0x0a, 0x00, 0x33, 0x01, 0x00, 0x30, 0x01, 0x0c, 0x0c,
+                0x02, 0x1e, 0x13, 0x87, 0x19, 0x4d, 0x3e, 0x75, 0x1f, 0x05, 0x45, 0x69,
+                0x6e, 0x7a, 0x65, 0x6c, 0x72, 0x61, 0x75, 0x6d, 0x72, 0x65, 0x67, 0x65,
+                0x6c, 0x75, 0x6e, 0x67, 0x5f, 0x43, 0x75, 0x62, 0x65, 0x5f, 0x30, 0x32,
+                0x5f, 0x31, 0x32, 0x33, 0x3f ]);
+            const input = new InputSocket(buf);
+        });
+    });
+});
