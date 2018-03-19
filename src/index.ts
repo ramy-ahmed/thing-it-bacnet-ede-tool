@@ -1,6 +1,6 @@
 import { AppManager } from './managers/app.manager';
 
-import { BACnetModule } from './module';
+import { appConfig } from './module';
 
-const appManager = new AppManager(BACnetModule);
+const appManager = new AppManager(appConfig);
 appManager.start();
