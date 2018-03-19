@@ -162,6 +162,9 @@ export class ConfirmReqPDU {
             BACnetServiceTypes.ConfirmedReqPDU, 4, 4);
         writer.writeUInt8(mMeta);
 
+        // Write max response size
+        writer.writeUInt8(0x05);
+
         // Write InvokeID
         writer.writeUInt8(params.invokeId);
 
