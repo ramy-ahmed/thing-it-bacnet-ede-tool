@@ -12,6 +12,7 @@ export interface IEDEConfig {
 }
 export interface IEDEFileConfig {
     path: string;
+    name: string;
     timeout: number;
 }
 export interface IEDEHeaderOptions {
