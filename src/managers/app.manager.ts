@@ -1,6 +1,7 @@
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
+import { argv } from 'yargs';
 
 import { InputSocket, OutputSocket, Server } from '../core/sockets';
 
@@ -37,15 +38,20 @@ export class AppManager {
     }
 
     public handleArgs () {
-        if (!_.isArray(process.argv) || process.argv.length < 3) {
-            return;
+        if (argv.filePath) {
+            if (!path.isAbsolute(argv.filePath)) {
+                throw new ApiError('AppManager - handleArgs: Path must be absolute!');
+            }
+            this.appConfig.ede.file.path = argv.filePath;
         }
 
-        const edePath = process.argv[2];
-        if (!path.isAbsolute(edePath)) {
-            throw new ApiError('AppManager - handleArgs: Path must be absolute!');
+        if (argv.fileName) {
+            this.appConfig.ede.file.name = argv.fileName;
         }
-        this.appConfig.ede.file.path = edePath;
+
+        if (argv.port) {
+            this.appConfig.server.port = argv.port;
+        }
     }
 
     public initServices () {
