@@ -305,7 +305,7 @@ export class BACnetReaderUtil {
 
         return {
             encoding: charEncode,
-            value: this.readString(charEncode, strLen),
+            value: this.readString(charEncode, strLen - 1),
         };
     }
 
