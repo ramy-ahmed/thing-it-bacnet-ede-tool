@@ -7,6 +7,9 @@ export const appConfig: IAppConfig = {
         port: 1235,
     },
     ede: {
+        file: {
+            path: `${__dirname}/../auto-ede.csv`,
+        },
         header: {
             projectName: 'Thing-it',
             authorOfLastChange: 'Andrey',
