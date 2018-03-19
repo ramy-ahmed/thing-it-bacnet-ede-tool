@@ -23,7 +23,7 @@ export class EDETableManager {
      * @param  {IEDEHeaderOptions} opts - EDE header options
      * @return {void}
      */
-    public genHeader (opts: IEDEHeaderOptions): void {
+    public addHeader (opts: IEDEHeaderOptions): void {
         const fileType = this.csvTable.addRow();
         fileType.setCellValue(0, '# Proposal_Engineering-Data-Exchange - B.I.G.-EU');
 
@@ -47,7 +47,7 @@ export class EDETableManager {
         versionOfLayout.setCellValue(0, 'VERSION_OF_LAYOUT');
         versionOfLayout.setCellValue(1, opts.versionOfLayout);
 
-        const hints = this.genDataPointRow();
+        const hints = this.addDataPointRow();
         hints.setCellValue('keyname', '# mandatory');
         hints.setCellValue('device-object-instance', 'mandatory');
         hints.setCellValue('object-name', 'mandatory');
@@ -65,7 +65,7 @@ export class EDETableManager {
         hints.setCellValue('unit-code', 'optional');
         hints.setCellValue('vendor-specific-address', 'optional');
 
-        const titles = this.genDataPointRow();
+        const titles = this.addDataPointRow();
         titles.setCellValue('keyname', '# keyname');
         titles.setCellValue('device-object-instance', 'device obj.-instance');
         titles.setCellValue('object-name', 'object-name');
@@ -89,7 +89,7 @@ export class EDETableManager {
      *
      * @return {CSVRow}
      */
-    public genDataPointRow (): CSVRow {
+    public addDataPointRow (): CSVRow {
         const dataPointRow = this.csvTable.addRow();
         dataPointRow.setCellAlias(0, 'keyname');
         dataPointRow.setCellAlias(1, 'device-object-instance');
