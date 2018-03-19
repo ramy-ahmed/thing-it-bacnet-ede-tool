@@ -17,6 +17,7 @@ import {
 
 export class AppManager {
     private server: Server;
+    private edeStorageManager: EDEStorageManager;
 
     constructor (private appConfig: IAppConfig) {
         this.server = new Server(this.appConfig.server, mainRouter);
@@ -24,17 +25,24 @@ export class AppManager {
     }
 
     public initServices () {
-        const edeStorageManager = new EDEStorageManager(this.appConfig.ede);
-        this.server.registerService('edeStorage', edeStorageManager);
+        this.edeStorageManager = new EDEStorageManager(this.appConfig.ede);
+        this.server.registerService('edeStorage', this.edeStorageManager);
     }
 
     public start () {
         this.server.startServer()
             .then((addrInfo: IBACnetAddressInfo) => {
-                // Generate Response instance
+                // Generate OutputSocket instance
                 const outputSocket = this.server.genOutputSocket(addrInfo);
-                unconfirmedReqService.whoIs(null, outputSocket);
-            });
-        ;
+                return unconfirmedReqService.whoIs(null, outputSocket);
+            })
+            .then(() => this.startNetworkMonitoring());
+    }
+
+    public startNetworkMonitoring () {
+        setTimeout(() => {
+            this.server.destroy();
+            this.edeStorageManager.saveEDEStorage();
+        }, this.appConfig.ede.file.timeout || 10000);
     }
 }
