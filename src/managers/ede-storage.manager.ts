@@ -11,7 +11,6 @@ import {
     IEDEConfig,
     IBACnetAddressInfo,
     IBACnetObjectIdentifier,
-    IEDECommonObject,
     IEDEDevice,
     IEDEUnit,
 } from '../core/interfaces';
@@ -73,25 +72,6 @@ export class EDEStorageManager {
     }
 
     /**
-     * setDeviceProp - sets the BACnet property for the EDE device in internal
-     * devices storage.
-     *
-     * @param  {IBACnetObjectIdentifier} deviceId - BACnet device identifier
-     * @param  {string} propName - BACnet property name
-     * @param  {any} propValue - BACnet property value
-     * @return {void}
-     */
-    public setDeviceProp (deviceId: IBACnetObjectIdentifier,
-            propName: string, propValue: any): void {
-        const id = this.getObjId(deviceId.type, deviceId.instance);
-        const device = this.devices.get(id);
-
-        const newDevice = this.setObjectProperty(device, propName, propValue)
-
-        this.devices.set(id, newDevice);
-    }
-
-    /**
      * setUnitProp - sets the BACnet property for the EDE unit in internal
      * units storage.
      *
@@ -118,12 +98,12 @@ export class EDEStorageManager {
      * @param  {any} propValue - BACnet property value
      * @return {T}
      */
-    private setObjectProperty <T extends IEDECommonObject> (edeObj: T,
-            propName: string, propValue: any): T {
+    private setObjectProperty (edeObj: IEDEUnit,
+            propName: string, propValue: any): IEDEUnit {
         const newProps = _.assign({}, edeObj.props, {
             [propName]: propValue,
         });
-        const newEDEObj: T = _.assign({}, edeObj, {
+        const newEDEObj: IEDEUnit = _.assign({}, edeObj, {
             props: newProps,
         });
         return newEDEObj;
