@@ -74,15 +74,15 @@ export class EDEService {
 
             return confirmedReqService.readProperty({
                 invokeId: 1,
-                objType: objType,
-                objInst: objInst,
+                objType: value.type,
+                objInst: value.instance,
                 propId: BACnetPropIds.objectName,
             }, outputSoc)
                 .then(() => {
                     return confirmedReqService.readProperty({
                         invokeId: 1,
-                        objType: objType,
-                        objInst: objInst,
+                        objType: value.type,
+                        objInst: value.instance,
                         propId: BACnetPropIds.description,
                     }, outputSoc);
                 });
