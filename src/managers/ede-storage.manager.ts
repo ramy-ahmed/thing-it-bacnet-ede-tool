@@ -51,9 +51,6 @@ export class EDEStorageManager {
 
         this.devices.set(id, {
             outputSoc: outputSoc,
-            props: {
-                objId: deviceId,
-            },
         });
     }
 
@@ -66,10 +63,8 @@ export class EDEStorageManager {
      */
     public addUnit (deviceId: IBACnetObjectIdentifier, unitId: IBACnetObjectIdentifier): void {
         const id = this.getObjId(unitId.type, unitId.instance);
-        const dataPointRow = this.edeTableManager.genDataPointRow();
 
         this.units.set(id, {
-            row: dataPointRow,
             props: {
                 deviceId: deviceId,
                 objId: unitId,
