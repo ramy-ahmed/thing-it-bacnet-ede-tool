@@ -15,6 +15,10 @@ import {
     IEDEUnit,
 } from '../core/interfaces';
 
+import {
+    logger,
+} from '../core/utils';
+
 export class EDEStorageManager {
     private devices: Map<string, IEDEDevice>;
     private units: Map<string, IEDEUnit>;
@@ -107,5 +111,28 @@ export class EDEStorageManager {
             props: newProps,
         });
         return newEDEObj;
+    }
+
+    /**
+     * saveEDEStorage - saves the EDE data to a CSV file.
+     *
+     * @return {void}
+     */
+    private saveEDEStorage (): Bluebird<any> {
+        this.edeTableManager.clear();
+        this.edeTableManager.addHeader(this.config.header);
+
+        this.units.forEach((unit) => {
+            try {
+                const unitRow = this.edeTableManager.addDataPointRow();
+                const deviceId = this.getObjId(unit.props.deviceId.type, unit.props.deviceId.instance);
+                const device = this.units.get(deviceId);
+                this.edeTableManager.setDataPointRow(unitRow, device.props, unit.props);
+            } catch (error) {
+                logger.error(`EDEStorageManager - saveEDEStorage: ${error}`);
+            }
+        });
+
+        return this.edeTableManager.genCSVFile(this.config.file);
     }
 }
