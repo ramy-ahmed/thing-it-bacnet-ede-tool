@@ -20,6 +20,18 @@ export class CSVTable {
     }
 
     /**
+     * clear - clears the array with rows.
+     *
+     * @return {void}
+     */
+    public clear (): void {
+        _.map(this.rows, (row) => {
+            row.destroy();
+        })
+        this.rows = [];
+    }
+
+    /**
      * addRow - creates and returns the instance of CSVRow class.
      *
      * @return {CSVRow}
