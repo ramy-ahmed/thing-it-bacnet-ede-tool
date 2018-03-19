@@ -20,29 +20,15 @@ export interface IEDEHeaderOptions {
     versionOfLayout: number;
 }
 
-export interface IEDECommonObject {
-    props: IEDECommonProps;
-}
-export interface IEDECommonProps {
-    objId: IBACnetObjectIdentifier;
-    objectName?: string;
-}
-
-export interface IEDEDevice
-        extends IEDECommonObject {
+export interface IEDEDevice {
     outputSoc: OutputSocket;
-    props: IEDEDeviceProps;
 }
-export interface IEDEDeviceProps
-        extends IEDECommonProps {
-}
-
-export interface IEDEUnit
-        extends IEDECommonObject {
-    row: CSVRow;
+export interface IEDEUnit {
     props: IEDEUnitProps;
 }
-export interface IEDEUnitProps
-        extends IEDECommonProps {
+export interface IEDEUnitProps {
+    objId: IBACnetObjectIdentifier;
     deviceId: IBACnetObjectIdentifier;
+    objectName?: string;
+    description?: string;
 }
