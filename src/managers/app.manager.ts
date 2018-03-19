@@ -1,4 +1,6 @@
 import * as Bluebird from 'bluebird';
+import * as _ from 'lodash';
+import * as path from 'path';
 
 import { InputSocket, OutputSocket, Server } from '../core/sockets';
 
@@ -9,6 +11,10 @@ import { mainRouter } from '../routes';
 import {
     EDEStorageManager,
 } from './ede-storage.manager';
+
+import {
+    ApiError,
+} from '../core/errors';
 
 import {
     IAppConfig,
@@ -25,8 +31,21 @@ export class AppManager {
     private edeStorageManager: EDEStorageManager;
 
     constructor (private appConfig: IAppConfig) {
+        this.handleArgs();
         this.server = new Server(this.appConfig.server, mainRouter);
         this.initServices();
+    }
+
+    public handleArgs () {
+        if (!_.isArray(process.argv) || process.argv.length < 3) {
+            return;
+        }
+
+        const edePath = process.argv[2];
+        if (!path.isAbsolute(edePath)) {
+            throw new ApiError('AppManager - handleArgs: Path must be absolute!');
+        }
+        this.appConfig.ede.file.path = edePath;
     }
 
     public initServices () {
@@ -45,14 +64,14 @@ export class AppManager {
     }
 
     public startNetworkMonitoring () {
-        logger.info('AppManager - startNetworkMonitoring: start the monitoring');
+        logger.info('AppManager - startNetworkMonitoring: Start the monitoring');
         return AsyncUtil.setTimeout(this.appConfig.ede.file.timeout || 10000)
             .then(() => {
-                logger.info('AppManager - startNetworkMonitoring: close the socket connection');
+                logger.info('AppManager - startNetworkMonitoring: Close the socket connection');
                 this.server.destroy();
             })
             .then(() => {
-                logger.info('AppManager - startNetworkMonitoring: save EDE storage');
+                logger.info('AppManager - startNetworkMonitoring: Save EDE storage');
                 this.edeStorageManager.saveEDEStorage();
             });
     }
