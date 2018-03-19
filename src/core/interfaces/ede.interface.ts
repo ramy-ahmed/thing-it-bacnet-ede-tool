@@ -7,7 +7,11 @@ import {
 } from './bacnet.interface';
 
 export interface IEDEConfig {
+    file: IEDEFileConfig;
     header: IEDEHeaderOptions;
+}
+export interface IEDEFileConfig {
+    path: string;
 }
 export interface IEDEHeaderOptions {
     projectName: string;
