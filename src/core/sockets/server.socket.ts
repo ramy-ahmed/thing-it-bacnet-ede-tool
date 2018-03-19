@@ -29,10 +29,12 @@ export class Server {
     /**
      * destroy - destroys the socket connection.
      *
-     * @return {void}
+     * @return {Bluebird<any>}
      */
-    public destroy () {
-        this.sock.close();
+    public destroy (): Bluebird<any> {
+        return new Bluebird((resolve, reject) => {
+            this.sock.close(() => { resolve(); });
+        });
     }
 
     /**
