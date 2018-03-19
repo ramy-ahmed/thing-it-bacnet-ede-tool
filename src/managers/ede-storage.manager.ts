@@ -118,7 +118,7 @@ export class EDEStorageManager {
      *
      * @return {void}
      */
-    private saveEDEStorage (): Bluebird<any> {
+    public saveEDEStorage (): Bluebird<any> {
         this.edeTableManager.clear();
         this.edeTableManager.addHeader(this.config.header);
 
