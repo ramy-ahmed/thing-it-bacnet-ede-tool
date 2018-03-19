@@ -12,6 +12,14 @@ export class CSVTable {
     }
 
     /**
+     * destroy - destroys the internal buffers.
+     *
+     * @return {void}
+     */
+    public destroy (): void {
+    }
+
+    /**
      * addRow - creates and returns the instance of CSVRow class.
      *
      * @return {CSVRow}

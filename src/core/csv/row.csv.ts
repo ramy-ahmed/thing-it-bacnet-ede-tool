@@ -12,6 +12,17 @@ export class CSVRow {
     }
 
     /**
+     * destroy - destroys the internal buffers.
+     *
+     * @return {void}
+     */
+    public destroy (): void {
+        this.aliases.clear();
+        this.aliases = null;
+        this.cells = null;
+    }
+
+    /**
      * setCellAlias - sets the alias to the specific cell.
      *
      * @param  {number} cellNumber - cell ID
