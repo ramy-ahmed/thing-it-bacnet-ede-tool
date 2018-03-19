@@ -7,7 +7,10 @@ import { CSVTable } from '../core/csv/table.csv';
 import { CSVRow } from '../core/csv/row.csv';
 
 import {
+    IEDEFileConfig,
     IEDEHeaderOptions,
+    IEDEUnitProps,
+    IEDEUnit,
 } from '../core/interfaces';
 
 export class EDETableManager {
@@ -110,10 +113,49 @@ export class EDETableManager {
         return dataPointRow;
     }
 
-    public genCSVFile () {
+    /**
+     * setDataPointRow - sets the values in the CSVRow.
+     *
+     * @param  {CSVRow} dataPointRow - CSVRow instance
+     * @param  {IEDEUnitProps} deviceProps - properties of the device
+     * @param  {IEDEUnitProps} unitProps - properties of the unit
+     * @return {void}
+     */
+    public setDataPointRow (dataPointRow: CSVRow,
+            deviceProps: IEDEUnitProps, unitProps: IEDEUnitProps): void {
+        dataPointRow.setCellValue('keyname',
+            `${deviceProps.objId.instance}_${deviceProps.objectName}_${unitProps.objectName}`);
+        dataPointRow.setCellValue('device-object-instance',
+            deviceProps.objId   .instance);
+        dataPointRow.setCellValue('object-name',
+            unitProps.objectName);
+        dataPointRow.setCellValue('object-type',
+            unitProps.objId.type);
+        dataPointRow.setCellValue('object-instance',
+            unitProps.objId.instance);
+        dataPointRow.setCellValue('description',
+            unitProps.description);
+    }
+
+    /**
+     * clear - removes all rows from CSV table.
+     *
+     * @return {void}
+     */
+    public clear (): void {
+        this.csvTable.clear();
+    }
+
+    /**
+     * genCSVFile - generates the EDE string for the CSV file.
+     *
+     * @return {Bluebird<any>}
+     */
+    public genCSVFile (config: IEDEFileConfig): Bluebird<any> {
         const csvFileData = this.csvTable.toString();
+
         return new Bluebird((resolve, reject) => {
-            fs.writeFile(`${__dirname}`, csvFileData, (error) => {
+            fs.writeFile(config.path, csvFileData, (error) => {
                 if (error) { return reject(error); }
                 resolve();
             });
