@@ -15,6 +15,11 @@ import {
     IBACnetAddressInfo,
 } from '../core/interfaces';
 
+import {
+    logger,
+    AsyncUtil,
+} from '../core/utils';
+
 export class AppManager {
     private server: Server;
     private edeStorageManager: EDEStorageManager;
@@ -40,9 +45,15 @@ export class AppManager {
     }
 
     public startNetworkMonitoring () {
-        setTimeout(() => {
-            this.server.destroy();
-            this.edeStorageManager.saveEDEStorage();
-        }, this.appConfig.ede.file.timeout || 10000);
+        logger.info('AppManager - startNetworkMonitoring: start the monitoring');
+        return AsyncUtil.setTimeout(this.appConfig.ede.file.timeout || 10000)
+            .then(() => {
+                logger.info('AppManager - startNetworkMonitoring: close the socket connection');
+                this.server.destroy();
+            })
+            .then(() => {
+                logger.info('AppManager - startNetworkMonitoring: save EDE storage');
+                this.edeStorageManager.saveEDEStorage();
+            });
     }
 }
