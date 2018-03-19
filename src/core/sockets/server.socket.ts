@@ -27,6 +27,15 @@ export class Server {
     }
 
     /**
+     * destroy - destroys the socket connection.
+     *
+     * @return {void}
+     */
+    public destroy () {
+        this.sock.close();
+    }
+
+    /**
      * startServer - starts the server.
      *
      * @return {void}
