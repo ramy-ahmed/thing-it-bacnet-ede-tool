@@ -52,6 +52,10 @@ export class AppManager {
         if (argv.port) {
             this.appConfig.server.port = argv.port;
         }
+
+        if (argv.timeout) {
+            this.appConfig.ede.file.timeout = +argv.timeout;
+        }
     }
 
     public initServices () {
