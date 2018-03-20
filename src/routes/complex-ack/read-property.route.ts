@@ -17,11 +17,12 @@ export function ReadPropertyRouter (
     const propId = serviceMap.get('propIdent');
     const propIdValue = propId.get('value');
 
-    const propArrayIndex = serviceMap.get('propArrayIndex');
-    const propArrayIndexValue = propArrayIndex.get('value');
 
     switch (propIdValue) {
         case BACnetPropIds.objectList: {
+            const propArrayIndex = serviceMap.get('propArrayIndex');
+            const propArrayIndexValue = propArrayIndex.get('value');
+
             switch (propArrayIndexValue) {
                 case 0:
                     return edeService.readPropertyObjectListLenght(inputSoc, outputSoc, serviceSocket);
