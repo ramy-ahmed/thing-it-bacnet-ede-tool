@@ -76,7 +76,7 @@ export class SequenceManager {
             logger.error(`SequenceManager - updateQueue: ${error}`);
         }
 
-        Bluebird.resolve(endPromise).then(() => {
+        Bluebird.resolve(endPromise).delay(this.seqConfig.delay).then(() => {
             this.busyFlows.set(flow.id, busyFlows);
         });
     }
