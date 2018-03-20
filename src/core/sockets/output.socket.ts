@@ -2,16 +2,18 @@ import * as dgram from 'dgram';
 import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
 
+import { Subject } from 'rxjs';
+
 import { logger } from '../utils';
 
-import { IBACnetAddressInfo } from '../interfaces';
+import { IBACnetAddressInfo, ISequenceFlow } from '../interfaces';
 
 export class OutputSocket {
     public className: string = 'OutputSocket';
 
     constructor (private app: dgram.Socket,
-        private port: number,
-        private address: string) {
+        private rinfo: IBACnetAddressInfo,
+        private reqFlow: Subject<ISequenceFlow>) {
     }
 
     /**

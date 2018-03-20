@@ -94,7 +94,7 @@ export class Server {
      * @return {OutputSocket}
      */
     public genOutputSocket (rinfo: IBACnetAddressInfo): OutputSocket {
-        return new OutputSocket(this.sock, rinfo.port, rinfo.address);
+        return new OutputSocket(this.sock, rinfo, this.reqFlow);
     }
 
     public registerService (serviceName: string, service: any) {
