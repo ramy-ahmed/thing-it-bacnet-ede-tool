@@ -3,7 +3,9 @@ import * as dgram from 'dgram';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
-import { IServerConfig, IBACnetAddressInfo } from '../interfaces';
+import { Subject } from 'rxjs';
+
+import { IServerConfig, IBACnetAddressInfo, ISequenceFlow } from '../interfaces';
 
 import { ApiError } from '../errors';
 import { logger } from '../utils';
@@ -12,10 +14,14 @@ import { InputSocket } from './input.socket';
 import { OutputSocket } from './output.socket';
 import { ServiceSocket } from './service.socket';
 
+import { SequenceManager } from '../../managers/sequence.manager';
+
 export class Server {
     private className: string = 'Server';
     private sock: dgram.Socket;
     private serviceSocket: ServiceSocket;
+    private sequenceManager: SequenceManager;
+    private reqFlow: Subject<ISequenceFlow>;
 
     /**
      * @constructor
@@ -23,7 +29,9 @@ export class Server {
      */
     constructor (private serverConfig: IServerConfig,
             private mainRouter: any) {
+        this.reqFlow = new Subject();
         this.serviceSocket = new ServiceSocket();
+        this.sequenceManager = new SequenceManager(this.serverConfig.outputSequence, this.reqFlow);
     }
 
     /**
