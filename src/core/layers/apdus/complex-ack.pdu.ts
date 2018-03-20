@@ -80,6 +80,14 @@ export class ComplexACKPDU {
             const propIdent = reader.readProperty();
             serviceMap.set('propIdent', propIdent);
 
+            const optTag = reader.readTag(false);
+            const optTagNumber = optTag.get('number');
+
+            if (optTagNumber === 2) {
+                const propArrayIndex = reader.readParam();
+                serviceMap.set('propArrayIndex', propArrayIndex);
+            }
+
             const propValue = reader.readParamValue();
             serviceMap.set('propValue', propValue);
         } catch (error) {
