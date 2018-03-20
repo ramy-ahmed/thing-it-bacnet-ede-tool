@@ -22,7 +22,7 @@ export class SequenceManager {
     private freeFlows: Map<TObjectID, ISequenceFlow[]>;
     private busyFlows: Map<TObjectID, number>;
 
-    constructor (private outputConfig: ISequenceConfig,
+    constructor (private seqConfig: ISequenceConfig,
         dataFlow: Subject<ISequenceFlow>) {
         this.freeFlows = new Map();
         this.busyFlows = new Map();
@@ -62,7 +62,7 @@ export class SequenceManager {
         const busyFlows = this.busyFlows.get(flow.id);
         const freeFlows = this.freeFlows.get(flow.id);
 
-        if (busyFlows >= this.outputConfig.size || !freeFlows.length) {
+        if (busyFlows >= this.seqConfig.size || !freeFlows.length) {
             return;
         }
         this.busyFlows.set(flow.id, busyFlows + 1);
