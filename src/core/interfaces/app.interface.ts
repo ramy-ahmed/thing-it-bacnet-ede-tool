@@ -7,4 +7,16 @@ export interface IAppConfig {
 
 export interface IServerConfig {
     port: number;
+    outputSequence: ISequenceConfig;
+}
+export interface ISequenceConfig {
+    size: number;
+    delay: number;
+}
+
+export interface ISequenceFlow {
+    id: string;
+    object: any;
+    method: any;
+    params: any[];
 }
