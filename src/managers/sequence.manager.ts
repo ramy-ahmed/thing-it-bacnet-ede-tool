@@ -78,6 +78,7 @@ export class SequenceManager {
 
         Bluebird.resolve(endPromise).delay(this.seqConfig.delay).then(() => {
             this.busyFlows.set(flow.id, busyFlows);
+            this.updateQueue(flow);
         });
     }
 }
