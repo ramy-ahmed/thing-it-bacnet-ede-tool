@@ -164,4 +164,20 @@ export class EDETableManager {
             });
         });
     }
+
+    /**
+     * genCSVFile - generates the EDE string for the CSV file.
+     *
+     * @return {Bluebird<any>}
+     */
+    public genCSVFile2 (deviceInst: string, config: IEDEFileConfig): Bluebird<any> {
+        const csvFileData = this.csvTable.toString();
+
+        return new Bluebird((resolve, reject) => {
+            fs.writeFile(`${config.path}/${deviceInst}-${config.name}`, csvFileData, (error) => {
+                if (error) { return reject(error); }
+                resolve();
+            });
+        });
+    }
 }
