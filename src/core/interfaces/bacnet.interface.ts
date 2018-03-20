@@ -59,6 +59,7 @@ export interface INPDULayerControl {
 }
 
 export interface IConfirmedReq {
+    segAccepted?: boolean;
     invokeId: number;
 }
 export interface IConfirmedReqReadProperty {
