@@ -84,12 +84,13 @@ export class EDEService {
     }
 
     /**
+     * readPropertyObjectListItem - sends the requests to get the EDE information.
      *
      * @param  {IUnconfirmReqWhoIsOptions} opts - request options
      * @param  {OutputSocket} output - output socket
      * @return {type}
      */
-    public readPropertyObjectList (
+    public readPropertyObjectListItem (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
         const apduService = inputSoc.apdu.get('service');
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
@@ -102,32 +103,29 @@ export class EDEService {
 
         const propValue = apduService.get('propValue');
         const propValueValues: Map<string, any>[] = propValue.get('values');
+        const value = propValueValues[0].get('value');
 
-        Bluebird.map(propValueValues, (propValueValue) => {
-            const value = propValueValue.get('value');
-            edeStorage.addUnit({ type: objType, instance: objInst }, value);
+        edeStorage.addUnit({ type: objType, instance: objInst }, value);
 
-            return confirmedReqService.readProperty({
-                invokeId: 1,
-                objType: value.type,
-                objInst: value.instance,
-                propId: BACnetPropIds.objectName,
-            }, outputSoc)
-                .delay(100)
-                .then(() => {
-                    return confirmedReqService.readProperty({
-                        invokeId: 1,
-                        objType: value.type,
-                        objInst: value.instance,
-                        propId: BACnetPropIds.description,
-                    }, outputSoc);
-                })
-                .delay(100);
-        }, { concurrency: 5 });
+        confirmedReqService.readProperty({
+            invokeId: 1,
+            objType: value.type,
+            objInst: value.instance,
+            propId: BACnetPropIds.objectName,
+        }, outputSoc);
+
+        confirmedReqService.readProperty({
+            invokeId: 1,
+            objType: value.type,
+            objInst: value.instance,
+            propId: BACnetPropIds.description,
+        }, outputSoc);
+
+        return Bluebird.resolve();
     }
 
     /**
-     * whoIs - sends the "whoIs" request.
+     * readPropertyAll - handles the "readProperty" requests.
      *
      * @param  {IUnconfirmReqWhoIsOptions} opts - request options
      * @param  {OutputSocket} output - output socket
