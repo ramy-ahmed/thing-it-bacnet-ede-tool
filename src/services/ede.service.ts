@@ -50,7 +50,40 @@ export class EDEService {
     }
 
     /**
-     * whoIs - sends the "whoIs" request.
+     * readPropertyObjectListLenght - sends the request to get the BACnet objects.
+     *
+     * @param  {IUnconfirmReqWhoIsOptions} opts - request options
+     * @param  {OutputSocket} output - output socket
+     * @return {type}
+     */
+    public readPropertyObjectListLenght (
+            inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
+        const apduService = inputSoc.apdu.get('service');
+
+        // Get object identifier
+        const objIdent = apduService.get('objIdent');
+        const objIdentValue = objIdent.get('value');
+        const objType = objIdentValue.get('type');
+        const objInst = objIdentValue.get('instance');
+
+        const propId = apduService.get('propIdent');
+        const propIdValue = propId.get('value');
+
+        for (let itemIndex = 1; itemIndex <= propIdValue; itemIndex++) {
+            confirmedReqService.readProperty({
+                segAccepted: true,
+                invokeId: 1,
+                objType: objType,
+                objInst: objInst,
+                propId: BACnetPropIds.objectList,
+                propArrayIndex: itemIndex,
+            }, outputSoc);
+        }
+
+        return Bluebird.resolve();
+    }
+
+    /**
      *
      * @param  {IUnconfirmReqWhoIsOptions} opts - request options
      * @param  {OutputSocket} output - output socket
