@@ -45,6 +45,7 @@ export class EDEService {
             objType: objType,
             objInst: objInst,
             propId: BACnetPropIds.objectList,
+            propArrayIndex: 0,
         }, outputSoc);
     }
 
