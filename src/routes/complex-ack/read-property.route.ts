@@ -18,7 +18,7 @@ export function ReadPropertyRouter (
     const propIdValue = propId.get('value');
 
     const propArrayIndex = serviceMap.get('propArrayIndex');
-    const propArrayIndexValue = propId.get('value');
+    const propArrayIndexValue = propArrayIndex.get('value');
 
     switch (propIdValue) {
         case BACnetPropIds.objectList: {
