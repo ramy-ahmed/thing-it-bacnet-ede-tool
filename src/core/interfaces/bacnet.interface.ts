@@ -66,6 +66,7 @@ export interface IConfirmedReqReadProperty {
     objType: number;
     objInst: number;
     propId: number;
+    propArrayIndex?: number;
 }
 export interface IConfirmedReqReadPropertyOptions
     extends IConfirmedReq, IConfirmedReqReadProperty {

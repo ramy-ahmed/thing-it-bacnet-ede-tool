@@ -192,6 +192,13 @@ export class ConfirmReqPDU {
         // Write Property ID
         writer.writeTag(1, BACnetTagTypes.context, 1);
         writer.writeUInt8(params.propId);
+        writer.writeObjectIdentifier(params.objType, params.objInst);
+
+        if (params.propArrayIndex) {
+            // Write Property Array Index
+            writer.writeTag(2, BACnetTagTypes.context, 1);
+            writer.writeUInt8(params.propArrayIndex);
+        }
 
         return writer;
     }
