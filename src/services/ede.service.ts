@@ -12,7 +12,7 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 import { complexACKPDU, simpleACKPDU } from '../core/layers/apdus';
 import { blvc, npdu } from '../core/layers';
 
-import { BACnetWriterUtil } from '../core/utils';
+import { BACnetWriterUtil, logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
 import { confirmedReqService } from './bacnet';
@@ -20,7 +20,7 @@ import { confirmedReqService } from './bacnet';
 export class EDEService {
 
     /**
-     * whoIs - sends the "whoIs" request.
+     * iAm - handles the "iAm" response.
      *
      * @param  {IUnconfirmReqWhoIsOptions} opts - request options
      * @param  {OutputSocket} output - output socket
@@ -39,6 +39,7 @@ export class EDEService {
 
         edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc);
 
+        logger.info(`EDEService - iAm: Object Type ${objType}, Object Instance ${objInst}`);
         return confirmedReqService.readProperty({
             segAccepted: true,
             invokeId: 1,
@@ -69,6 +70,7 @@ export class EDEService {
         const propId = apduService.get('propIdent');
         const propIdValue = propId.get('value');
 
+        logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propIdValue}`);
         for (let itemIndex = 1; itemIndex <= propIdValue; itemIndex++) {
             confirmedReqService.readProperty({
                 segAccepted: true,
@@ -107,6 +109,7 @@ export class EDEService {
 
         edeStorage.addUnit({ type: objType, instance: objInst }, value);
 
+        logger.info(`EDEService - readPropertyObjectListItem: Device ${objType}:${objInst}, Unit ${value.type}:${value.instance}`);
         confirmedReqService.readProperty({
             invokeId: 1,
             objType: value.type,
@@ -151,6 +154,7 @@ export class EDEService {
         const propValueValues: Map<string, any>[] = propValue.get('values');
         const value = propValueValues[0].get('value');
 
+        logger.info(`EDEService - readPropertyAll: ${objType}:${objInst}, Property ID ${propIdentValue}`);
         edeStorage.setUnitProp({ type: objType, instance: objInst },
             BACnetPropIds[propIdentValue], value);
 
