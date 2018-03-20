@@ -40,6 +40,7 @@ export class EDEService {
         edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc);
 
         return confirmedReqService.readProperty({
+            segAccepted: true,
             invokeId: 1,
             objType: objType,
             objInst: objInst,
