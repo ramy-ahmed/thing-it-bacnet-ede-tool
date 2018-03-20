@@ -109,8 +109,8 @@ export class CSVRow {
      * @return {string}
      */
     public escapeString (str: string): string {
-        const escapedString = _.replace(str, '"', '""');
-        return /(;|,|\n)/.test(escapedString)
+        const escapedString = _.replace(str, /"/g, '""');
+        return /(;|,|\n|\")/.test(escapedString)
             ? `"${escapedString}"` : escapedString;
     }
 }
