@@ -68,7 +68,7 @@ export class EDEService {
         const propValue = apduService.get('propValue');
         const propValueValues: Map<string, any>[] = propValue.get('values');
 
-        _.map(propValueValues, (propValueValue) => {
+        Bluebird.map(propValueValues, (propValueValue) => {
             const value = propValueValue.get('value');
             edeStorage.addUnit({ type: objType, instance: objInst }, value);
 
@@ -78,6 +78,7 @@ export class EDEService {
                 objInst: value.instance,
                 propId: BACnetPropIds.objectName,
             }, outputSoc)
+                .delay(100)
                 .then(() => {
                     return confirmedReqService.readProperty({
                         invokeId: 1,
@@ -85,8 +86,9 @@ export class EDEService {
                         objInst: value.instance,
                         propId: BACnetPropIds.description,
                     }, outputSoc);
-                });
-        });
+                })
+                .delay(100);
+        }, { concurrency: 5 });
     }
 
     /**
