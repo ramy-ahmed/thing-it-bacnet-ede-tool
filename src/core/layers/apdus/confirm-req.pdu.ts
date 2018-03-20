@@ -160,7 +160,7 @@ export class ConfirmReqPDU {
         // Write Service Type
         let mMeta = TyperUtil.setBitRange(0x00,
             BACnetServiceTypes.ConfirmedReqPDU, 4, 4);
-        mMeta = TyperUtil.setBit(mMeta, 1, params.segAccepted && false);
+        mMeta = TyperUtil.setBit(mMeta, 1, params.segAccepted || false);
         writer.writeUInt8(mMeta);
 
         // Write max response size
