@@ -91,7 +91,7 @@ export class ComplexACKPDU {
             propId = reader.readParam();
 
             const optTag = reader.readTag(false);
-            const optTagNumber = optTag.get('number');
+            const optTagNumber = optTag.num;
 
             if (optTagNumber === 2) {
                 propArrayIndex = reader.readParam();
