@@ -4,17 +4,17 @@ import {
 
 export const appConfig: IAppConfig = {
     server: {
-        port: 1235,
+        port: 47808,
         outputSequence: {
-            thread: 5,
-            delay: 100,
+            thread: 1,
+            delay: 20,
         },
     },
     ede: {
         file: {
             path: `${__dirname}/..`,
             name: `auto-ede.csv`,
-            timeout: 10000,
+            timeout: 15000,
         },
         header: {
             projectName: 'Thing-it',
