@@ -11,6 +11,7 @@ import {
 import { npdu, NPDU } from './npdu.layer';
 
 import {
+    IBLVCReqLayer,
     IBLVCLayer,
     INPDULayer,
 } from '../interfaces';
@@ -59,7 +60,7 @@ export class BLVC {
      * @param  {IBLVCLayer} params - BLVC layer params
      * @return {BACnetWriterUtil}
      */
-    public writeBLVCLayer (params: IBLVCLayer): BACnetWriterUtil {
+    public writeBLVCLayer (params: IBLVCReqLayer): BACnetWriterUtil {
         let writer = new BACnetWriterUtil();
 
         // Write BLVC type
