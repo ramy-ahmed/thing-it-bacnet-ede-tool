@@ -80,7 +80,7 @@ export interface IConfirmedReqLayer {
     service: IConfirmedReqService;
 }
 
-type IConfirmedReqService = IConfirmedReqReadPropertyService
+export type IConfirmedReqService = IConfirmedReqReadPropertyService
     | IConfirmedReqSubscribeCOVService
     | IConfirmedReqWritePropertyService;
 
@@ -112,7 +112,7 @@ export interface IUnconfirmedReqLayer {
     service: IUnconfirmedReqService;
 }
 
-type IUnconfirmedReqService = IUnconfirmedReqIAmService
+export type IUnconfirmedReqService = IUnconfirmedReqIAmService
     | IUnconfirmedReqWhoIsService;
 
 export interface IUnconfirmedReqIAmService {
@@ -139,7 +139,7 @@ export interface IComplexACKLayer {
     service: IComplexACKService;
 }
 
-type IComplexACKService = IComplexACKReadPropertyService;
+export type IComplexACKService = IComplexACKReadPropertyService;
 
 export interface IComplexACKReadPropertyService {
     objId: IBACnetTypeObjectId;
@@ -158,7 +158,7 @@ export interface ISimpleACKLayer {
     service: ISimpleACKService;
 }
 
-type ISimpleACKService = ISimpleACKSubscribeCOVService
+export type ISimpleACKService = ISimpleACKSubscribeCOVService
     | ISimpleACKWritePropertyService;
 
 export interface ISimpleACKSubscribeCOVService {
