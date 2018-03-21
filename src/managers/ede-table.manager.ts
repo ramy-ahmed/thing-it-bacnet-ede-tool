@@ -154,23 +154,7 @@ export class EDETableManager {
      *
      * @return {Bluebird<any>}
      */
-    public genCSVFile (config: IEDEFileConfig): Bluebird<any> {
-        const csvFileData = this.csvTable.toString();
-
-        return new Bluebird((resolve, reject) => {
-            fs.writeFile(`${config.path}/${config.name}`, csvFileData, (error) => {
-                if (error) { return reject(error); }
-                resolve();
-            });
-        });
-    }
-
-    /**
-     * genCSVFile - generates the EDE string for the CSV file.
-     *
-     * @return {Bluebird<any>}
-     */
-    public genCSVFile2 (deviceInst: string, config: IEDEFileConfig): Bluebird<any> {
+    public genCSVFile (deviceInst: string, config: IEDEFileConfig): Bluebird<any> {
         const csvFileData = this.csvTable.toString();
 
         return new Bluebird((resolve, reject) => {

@@ -114,34 +114,11 @@ export class EDEStorageManager {
     }
 
     /**
-     * saveEDEStorage - saves the EDE data to a CSV file.
-     *
-     * @return {void}
-     */
-    public saveEDEStorage (): Bluebird<any> {
-        this.edeTableManager.clear();
-        this.edeTableManager.addHeader(this.config.header);
-
-        this.units.forEach((unit) => {
-            try {
-                const unitRow = this.edeTableManager.addDataPointRow();
-                const deviceId = this.getObjId(unit.props.deviceId.type, unit.props.deviceId.instance);
-                const device = this.units.get(deviceId);
-                this.edeTableManager.setDataPointRow(unitRow, device.props, unit.props);
-            } catch (error) {
-                logger.error(`EDEStorageManager - saveEDEStorage: ${error}`);
-            }
-        });
-
-        return this.edeTableManager.genCSVFile(this.config.file);
-    }
-
-    /**
      * saveEDEStorage2 - saves the EDE data to a separete CSV file for each BACnet device.
      *
      * @return {void}
      */
-    public saveEDEStorage2 (): Bluebird<any> {
+    public saveEDEStorage (): Bluebird<any> {
         const groupedUnits: Map<string, IEDEUnit[]> = new Map();
         this.units.forEach((unit) => {
             const deviceId = this.getObjId(unit.props.deviceId.type, unit.props.deviceId.instance);
@@ -169,7 +146,7 @@ export class EDEStorageManager {
                 }
             });
 
-            this.edeTableManager.genCSVFile2(deviceId, this.config.file);
+            this.edeTableManager.genCSVFile(deviceId, this.config.file);
         })
 
         return Bluebird.resolve();
