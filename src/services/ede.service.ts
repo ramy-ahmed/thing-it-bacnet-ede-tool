@@ -67,11 +67,12 @@ export class EDEService {
         const objType = objIdentValue.get('type');
         const objInst = objIdentValue.get('instance');
 
-        const propId = apduService.get('propIdent');
-        const propIdValue = propId.get('value');
+        const propValue = apduService.get('propValue');
+        const propValueValues: Map<string, any>[] = propValue.get('values');
+        const value = propValueValues[0].get('value');
 
-        logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propIdValue}`);
-        for (let itemIndex = 1; itemIndex <= propIdValue; itemIndex++) {
+        logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${value.value}`);
+        for (let itemIndex = 1; itemIndex <= value.value; itemIndex++) {
             confirmedReqService.readProperty({
                 segAccepted: true,
                 invokeId: 1,
