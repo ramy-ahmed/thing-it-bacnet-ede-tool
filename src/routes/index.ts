@@ -14,7 +14,7 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 export function mainRouter (
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
     const apduReq = inputSoc.apdu;
-    const pduType = apduReq.get('type');
+    const pduType = apduReq.type;
 
     logger.debug(`MainRouter - Request PDU: ${BACnetServiceTypes[pduType]}`);
     switch (pduType) {
