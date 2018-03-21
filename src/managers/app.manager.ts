@@ -56,6 +56,14 @@ export class AppManager {
         if (argv.timeout) {
             this.appConfig.ede.file.timeout = +argv.timeout;
         }
+
+        if (argv.reqDelay) {
+            this.appConfig.server.outputSequence.delay = +argv.reqDelay;
+        }
+
+        if (argv.reqThread) {
+            this.appConfig.server.outputSequence.thread = +argv.reqThread;
+        }
     }
 
     public initServices () {
