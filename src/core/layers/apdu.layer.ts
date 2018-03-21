@@ -16,13 +16,17 @@ import {
 
 import { BACnetServiceTypes } from '../enums';
 
+import {
+    IAPDULayer,
+} from '../interfaces';
+
 export class APDU {
     public className: string = 'APDU';
 
-    public getFromBuffer (buf: Buffer): Map<string, any> {
+    public getFromBuffer (buf: Buffer): IAPDULayer {
         const reader = new BACnetReaderUtil(buf);
 
-        let APDUMessage = new Map();
+        let APDUMessage: IAPDULayer;
         try {
             const mType = reader.readUInt8();
             const pduType = (mType >> 4) & 0x0F

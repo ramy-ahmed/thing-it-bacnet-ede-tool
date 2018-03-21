@@ -12,6 +12,7 @@ import { npdu, NPDU } from './npdu.layer';
 
 import {
     IBLVCLayer,
+    INPDULayer,
 } from '../interfaces';
 
 export class BLVC {
@@ -22,29 +23,31 @@ export class BLVC {
         this.npdu = npduInst;
     }
 
-    public getFromBuffer (buf: Buffer): Map<string, any> {
+    public getFromBuffer (buf: Buffer): IBLVCLayer {
         const readerUtil = new BACnetReaderUtil(buf);
 
-        const BLVCMessage: Map<string, any> = new Map();
+        let mType: number, mFunction: number, mLenght: number;
+        let NPDUMessage: INPDULayer;
 
         try {
-            const mType = readerUtil.readUInt8();
-            BLVCMessage.set('type', mType);
-
-            const mFunction = readerUtil.readUInt8();
-            BLVCMessage.set('function', mFunction);
-
-            const mLenght = readerUtil.readUInt16BE();
-            BLVCMessage.set('lenght', mLenght);
+            mType = readerUtil.readUInt8();
+            mFunction = readerUtil.readUInt8();
+            mLenght = readerUtil.readUInt16BE();
 
             const NPDUstart = readerUtil.offset.getVaule();
             const NPDUbuffer = readerUtil.getRange(NPDUstart, mLenght);
 
-            const NPDUMessage: Map<string, any> = this.npdu.getFromBuffer(NPDUbuffer);
-            BLVCMessage.set('npdu', NPDUMessage);
+            NPDUMessage = this.npdu.getFromBuffer(NPDUbuffer);
         } catch (error) {
             logger.error(`${this.className} - getFromBuffer: Parse - ${error}`);
         }
+
+        const BLVCMessage: IBLVCLayer = {
+            type: mType,
+            func: mFunction,
+            length: mLenght,
+            npdu: NPDUMessage,
+        };
 
         return BLVCMessage;
     }

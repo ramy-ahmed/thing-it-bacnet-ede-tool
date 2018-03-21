@@ -11,7 +11,13 @@ import {
 import { apdu, APDU } from './apdu.layer';
 
 import {
+    IAPDULayer,
     INPDULayer,
+    INPDUControl,
+    INPDUDestNetwork,
+    INPDUSrcNetwork,
+
+    INPDUReqLayer,
     INPDULayerControl,
 } from '../interfaces';
 
@@ -23,88 +29,103 @@ export class NPDU {
         this.apdu = apduInst;
     }
 
-    public getControlFlags (mControl: number): Map<string, any> {
-        const mControlMap: Map<string, any> = new Map();
-
+    public getControlFlags (mControl: number): INPDUControl {
         const noApduMessageType = !!TyperUtil.getBit(mControl, 7);
-        mControlMap.set('noApduMessageType', noApduMessageType);
 
         const reserved1 = TyperUtil.getBit(mControl, 6);
-        mControlMap.set('reserved1', reserved1);
 
         const destSpecifier = !!TyperUtil.getBit(mControl, 5);
-        mControlMap.set('destSpecifier', destSpecifier);
 
         const reserved2 = TyperUtil.getBit(mControl, 4);
-        mControlMap.set('reserved2', reserved2);
 
         const srcSpecifier = !!TyperUtil.getBit(mControl, 3);
-        mControlMap.set('srcSpecifier', srcSpecifier);
 
         const expectingReply = !!TyperUtil.getBit(mControl, 2);
-        mControlMap.set('expectingReply', expectingReply);
 
         const priority1 = TyperUtil.getBit(mControl, 1);
-        mControlMap.set('priority1', priority1);
 
         const priority2 = TyperUtil.getBit(mControl, 0);
-        mControlMap.set('priority2', priority2);
+
+        const mControlMap: INPDUControl = {
+            noApduMessageType: noApduMessageType,
+            reserved1: reserved1,
+            destSpecifier: destSpecifier,
+            reserved2: reserved2,
+            srcSpecifier: srcSpecifier,
+            expectingReply: expectingReply,
+            priority1: priority1,
+            priority2: priority2,
+        };
 
         return mControlMap;
     }
 
-    public getFromBuffer (buf: Buffer): Map<string, any> {
+    public getFromBuffer (buf: Buffer): INPDULayer {
         const readerUtil = new BACnetReaderUtil(buf);
 
-        const NPDUMessage: Map<string, any> = new Map();
+        let mVersion: number, mControl: INPDUControl;
+        let destNetwork: INPDUDestNetwork,
+            srcNetwork: INPDUSrcNetwork;
+        let APDUMessage: IAPDULayer;
 
         try {
-            const mVersion = readerUtil.readUInt8();
-            NPDUMessage.set('version', mVersion);
+            mVersion = readerUtil.readUInt8();
 
-            const mControl = readerUtil.readUInt8();
-            const mControlMap = this.getControlFlags(mControl);
-            NPDUMessage.set('control', mControlMap);
+            const mControlByte = readerUtil.readUInt8();
+            mControl = this.getControlFlags(mControlByte);
 
-            if (mControlMap.get('destSpecifier')) {
+            if (mControl.destSpecifier) {
                 const mNetworkAddress = readerUtil.readUInt16BE();
-                NPDUMessage.set('destNetworkAddress', mNetworkAddress);
 
                 const mMacAddressLen = readerUtil.readUInt8();
-                NPDUMessage.set('destMacAddressLen', mMacAddressLen);
+
+                destNetwork = {
+                    networkAddress: mNetworkAddress,
+                    macAddressLen: mMacAddressLen,
+                };
 
                 if (mMacAddressLen) {
                     const mMacAddress = readerUtil.readString('hex', mMacAddressLen);
-                    NPDUMessage.set('destMacAddress', mMacAddress);
+                    destNetwork.macAddress = mMacAddress;
                 }
             }
 
-            if (mControlMap.get('srcSpecifier')) {
+            if (mControl.srcSpecifier) {
                 const mNetworkAddress = readerUtil.readUInt16BE();
-                NPDUMessage.set('srcNetworkAddress', mNetworkAddress);
 
                 const mMacAddressLen = readerUtil.readUInt8();
-                NPDUMessage.set('srcMacAddressLen', mMacAddressLen);
+
+                srcNetwork = {
+                    networkAddress: mNetworkAddress,
+                    macAddressLen: mMacAddressLen,
+                };
 
                 if (mMacAddressLen) {
                     const mMacAddress = readerUtil.readString('hex', mMacAddressLen);
-                    NPDUMessage.set('srcMacAddress', mMacAddress);
+                    srcNetwork.macAddress = mMacAddress;
                 }
             }
 
-            if (mControlMap.get('destSpecifier')) {
+            if (mControl.destSpecifier) {
                 const mHopCount = readerUtil.readUInt8();
-                NPDUMessage.set('hopCount', mHopCount);
+                destNetwork.hopCount = mHopCount;
             }
 
             const APDUstart = readerUtil.offset.getVaule();
             const APDUbuffer = readerUtil.getRange(APDUstart);
 
-            const APDUMessage: Map<string, any> = this.apdu.getFromBuffer(APDUbuffer);
-            NPDUMessage.set('apdu', APDUMessage);
+            APDUMessage = this.apdu.getFromBuffer(APDUbuffer);
         } catch (error) {
             logger.error(`${this.className} - getFromBuffer: Parse - ${error}`);
         }
+
+        const NPDUMessage: INPDULayer = {
+            version: mVersion,
+            control: mControl,
+            dest: destNetwork,
+            src: srcNetwork,
+            apdu: APDUMessage,
+        };
 
         return NPDUMessage;
     }
@@ -116,7 +137,7 @@ export class NPDU {
      * @param  {INPDULayer} params - NPDU layer params
      * @return {BACnetWriterUtil}
      */
-    public writeNPDULayer (params: INPDULayer): BACnetWriterUtil {
+    public writeNPDULayer (params: INPDUReqLayer): BACnetWriterUtil {
         let writer = new BACnetWriterUtil();
 
         // Write NPDU version

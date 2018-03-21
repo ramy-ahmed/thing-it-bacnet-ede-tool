@@ -9,6 +9,13 @@ import {
 } from '../../utils';
 
 import {
+    ISimpleACKLayer,
+    ISimpleACKService,
+    ISimpleACKSubscribeCOVService,
+    ISimpleACKWritePropertyService,
+} from '../../interfaces';
+
+import {
     BACnetPropTypes,
     BACnetTagTypes,
     BACnetConfirmedService,
@@ -25,49 +32,54 @@ import {
 export class SimpleACKPDU {
     public className: string = 'SimpleACKPDU';
 
-    public getFromBuffer (buf: Buffer): Map<string, any> {
+    public getFromBuffer (buf: Buffer): ISimpleACKLayer {
         const reader = new BACnetReaderUtil(buf);
-        const reqMap: Map<string, any> = new Map();
+
+        let reqMap: ISimpleACKLayer;
+        let serviceChoice: BACnetConfirmedService, serviceData: ISimpleACKService;
+        let pduType: number, invokeId: number;
 
         try {
             // --- Read meta byte
             const mMeta = reader.readUInt8();
 
-            const pduType = TyperUtil.getBitRange(mMeta, 4, 4);
-            reqMap.set('type', pduType);
+            pduType = TyperUtil.getBitRange(mMeta, 4, 4);
 
             // --- Read InvokeID byte
-            const invokeId = reader.readUInt8();
-            reqMap.set('invokeId', invokeId);
+            invokeId = reader.readUInt8();
 
-            const serviceChoice = reader.readUInt8();
-            reqMap.set('serviceChoice', serviceChoice);
+            serviceChoice = reader.readUInt8();
 
-            let serviceMap;
             switch (serviceChoice) {
                 case BACnetConfirmedService.SubscribeCOV:
-                    serviceMap = this.getSubscribeCOV(reader);
+                    serviceData = this.getSubscribeCOV(reader);
                     break;
                 case BACnetConfirmedService.WriteProperty:
-                    serviceMap = this.getWriteProperty(reader);
+                    serviceData = this.getWriteProperty(reader);
                     break;
             }
-            reqMap.set('service', serviceMap);
         } catch (error) {
             logger.error(`${this.className} - getFromBuffer: Parse - ${error}`);
         }
 
+        reqMap = {
+            type: pduType,
+            invokeId: invokeId,
+            serviceChoice: serviceChoice,
+            service: serviceData,
+        };
+
         return reqMap;
     }
 
-    private getSubscribeCOV (reader: BACnetReaderUtil): Map<string, any> {
-        const serviceMap: Map<string, any> = new Map();
+    private getSubscribeCOV (reader: BACnetReaderUtil): ISimpleACKSubscribeCOVService {
+        const serviceMap: ISimpleACKSubscribeCOVService = {};
 
         return serviceMap;
     }
 
-    private getWriteProperty (reader: BACnetReaderUtil): Map<string, any> {
-        const serviceMap: Map<string, any> = new Map();
+    private getWriteProperty (reader: BACnetReaderUtil): ISimpleACKWriteProperty {
+        const serviceMap: ISimpleACKWriteProperty = {};
 
         return serviceMap;
     }

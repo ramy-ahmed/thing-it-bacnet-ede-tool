@@ -9,6 +9,13 @@ import {
 } from '../../utils';
 
 import {
+    IUnconfirmedReqLayer,
+    IUnconfirmedReqService,
+    IUnconfirmedReqIAmService,
+    IUnconfirmedReqWhoIsService,
+} from '../../interfaces';
+
+import {
     BACnetPropTypes,
     BACnetPropIds,
     BACnetTagTypes,
@@ -27,63 +34,72 @@ import {
 export class UnconfirmReqPDU {
     public className: string = 'UnconfirmReqPDU';
 
-    public getFromBuffer (buf: Buffer): Map<string, any> {
+    public getFromBuffer (buf: Buffer): IUnconfirmedReqLayer {
         const reader = new BACnetReaderUtil(buf);
-        const reqMap: Map<string, any> = new Map();
+
+        let reqMap: IUnconfirmedReqLayer;
+        let serviceChoice: BACnetUnconfirmedService, serviceData: IUnconfirmedReqService;
+        let pduType: number;
 
         try {
             // --- Read meta byte
             const mMeta = reader.readUInt8();
 
-            const pduType = TyperUtil.getBitRange(mMeta, 4, 4);
-            reqMap.set('type', pduType);
+            pduType = TyperUtil.getBitRange(mMeta, 4, 4);
 
-            const serviceChoice = reader.readUInt8();
-            reqMap.set('serviceChoice', serviceChoice);
+            serviceChoice = reader.readUInt8();
 
-            let serviceMap;
             switch (serviceChoice) {
                 case BACnetUnconfirmedService.iAm:
-                    serviceMap = this.getIAm(reader);
+                    serviceData = this.getIAm(reader);
                     break;
                 case BACnetUnconfirmedService.whoIs:
-                    serviceMap = this.getWhoIs(reader);
+                    serviceData = this.getWhoIs(reader);
                     break;
             }
-            reqMap.set('service', serviceMap);
         } catch (error) {
             logger.error(`${this.className} - getFromBuffer: Parse - ${error}`);
         }
 
+        reqMap = {
+            type: pduType,
+            serviceChoice: serviceChoice,
+            service: serviceData,
+        };
+
         return reqMap;
     }
 
-    private getIAm (reader: BACnetReaderUtil): Map<string, any> {
-        const serviceMap: Map<string, any> = new Map();
+    private getIAm (reader: BACnetReaderUtil): IUnconfirmedReqIAmService {
+        let serviceData: IUnconfirmedReqIAmService;
+        let objId, maxAPDUlength, segmSupported, vendorId;
 
         try {
-            const objIdent = reader.readObjectIdentifier();
-            serviceMap.set('objIdent', objIdent);
+            objId = reader.readObjectIdentifier();
 
-            const maxAPDUlength = reader.readParam();
-            serviceMap.set('maxAPDUlength', maxAPDUlength);
+            maxAPDUlength = reader.readParam();
 
-            const segmentationSupported = reader.readParam();
-            serviceMap.set('segmentationSupported', segmentationSupported);
+            segmSupported = reader.readParam();
 
-            const vendorId = reader.readParam();
-            serviceMap.set('vendorId', vendorId);
+            vendorId = reader.readParam();
         } catch (error) {
             logger.error(`${this.className} - getIAm: Parse - ${error}`);
         }
 
-        return serviceMap;
+        serviceData = {
+            objId: objId,
+            maxAPDUlength: maxAPDUlength,
+            segmSupported: segmSupported,
+            vendorId: vendorId,
+        };
+
+        return serviceData;
     }
 
-    private getWhoIs (reader: BACnetReaderUtil): Map<string, any> {
-        const serviceMap: Map<string, any> = new Map();
+    private getWhoIs (reader: BACnetReaderUtil): IUnconfirmedReqWhoIsService {
+        const serviceData: IUnconfirmedReqWhoIsService = {};
 
-        return serviceMap;
+        return serviceData;
     }
 
     /**
