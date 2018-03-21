@@ -1,3 +1,4 @@
+import { BACnetTagTypes } from '../enums';
 
 export interface IBACnetModule {
     port: number;
@@ -36,9 +37,23 @@ export interface IBinaryValueUnitConfig {
 }
 
 
+export interface IBACnetTag {
+    num: number;
+    type: BACnetTagTypes;
+    value: number;
+}
+export interface IBACnetParam {
+    tag: IBACnetTag;
+    payload: IBACnetType;
+}
+
 /**
  * BACnet types
  */
+export type IBACnetType = IBACnetTypeBoolean | IBACnetTypeUnsignedInt
+    | IBACnetTypeReal | IBACnetTypeEnumerated | IBACnetTypeStatusFlags
+    | IBACnetTypeBitString | IBACnetTypeCharString | IBACnetTypeObjectId;
+
 export interface IBACnetTypeBoolean {
     value: boolean;
 }
@@ -61,6 +76,11 @@ export interface IBACnetTypeBitString {
 
 export interface IBACnetTypeEnumerated {
     value: number;
+}
+
+export interface IBACnetTypeObjectId {
+    type: number; // enum
+    instance: number;
 }
 
 export interface IBACnetTypeStatusFlags {

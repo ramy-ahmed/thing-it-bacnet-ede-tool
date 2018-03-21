@@ -34,13 +34,13 @@ export interface IBACnetObjectProperty {
     values: any;
 }
 
-export interface IBLVCLayer {
+export interface IBLVCReqLayer {
     func: BLVCFunction;
     npdu: BACnetWriterUtil;
     apdu: BACnetWriterUtil;
 }
 
-export interface INPDULayer {
+export interface INPDUReqLayer {
     control?: INPDULayerControl;
     destNetworkAddress?: number;
     destMacAddress?: string;

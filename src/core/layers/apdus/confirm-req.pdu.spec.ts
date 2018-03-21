@@ -6,7 +6,13 @@ import { spy, SinonSpy } from 'sinon';
 
 import { confirmReqPDU } from './confirm-req.pdu';
 
-describe('ConfirmReqPDU', () => {
+import {
+    IBACnetTypeObjectId,
+    IBACnetTypeUnsignedInt,
+    IConfirmedReqReadPropertyService,
+} from '../../interfaces';
+
+describe('ConfirmedReqPDU', () => {
     describe('getFromBuffer', () => {
         let buf: Buffer;
 
@@ -17,31 +23,32 @@ describe('ConfirmReqPDU', () => {
 
         it('should return Map with correct metadata', () => {
             const newBuf = confirmReqPDU.getFromBuffer(buf);
-            expect(newBuf.get('type')).to.equal(0x00);
-            expect(newBuf.get('seg')).to.equal(0x00);
-            expect(newBuf.get('mor')).to.equal(0x00);
-            expect(newBuf.get('sa')).to.equal(0x00);
-            expect(newBuf.get('maxSegs')).to.equal(0x00);
-            expect(newBuf.get('maxResp')).to.equal(0x05);
-            expect(newBuf.get('invokeId')).to.equal(0x01);
-            expect(newBuf.get('serviceChoice')).to.equal(0x0c);
-            const service = newBuf.get('service');
+            expect(newBuf.type).to.equal(0x00);
+            expect(newBuf.seg).to.equal(false);
+            expect(newBuf.mor).to.equal(false);
+            expect(newBuf.sa).to.equal(false);
+            expect(newBuf.maxSegs).to.equal(0x00);
+            expect(newBuf.maxResp).to.equal(0x05);
+            expect(newBuf.invokeId).to.equal(0x01);
+            expect(newBuf.serviceChoice).to.equal(0x0c);
+            const service = newBuf.service as IConfirmedReqReadPropertyService;
 
-            const objIdent = service.get('objIdent');
-            const objTag = objIdent.get('tag');
-            expect(objTag.get('number')).to.equal(0);
-            expect(objTag.get('class')).to.equal(1);
-            expect(objTag.get('value')).to.equal(4);
-            const objValue = objIdent.get('value');
-            expect(objValue.get('type')).to.equal(8);
-            expect(objValue.get('instance')).to.equal(9999);
+            const objId = service.objId;
+            const objTag = objId.tag;
+            expect(objTag.num).to.equal(0);
+            expect(objTag.type).to.equal(1);
+            expect(objTag.value).to.equal(4);
+            const objIdPayload = objId.payload as IBACnetTypeObjectId;
+            expect(objIdPayload.type).to.equal(8);
+            expect(objIdPayload.instance).to.equal(9999);
 
-            const propIdent = service.get('propIdent');
-            const propTag = propIdent.get('tag');
-            expect(propTag.get('number')).to.equal(1);
-            expect(propTag.get('class')).to.equal(1);
-            expect(propTag.get('value')).to.equal(1);
-            expect(propIdent.get('value')).to.equal(77);
+            const propId = service.propId;
+            const propTag = propId.tag;
+            expect(propTag.num).to.equal(1);
+            expect(propTag.type).to.equal(1);
+            expect(propTag.value).to.equal(1);
+            const propIdPayload = propId.payload as IBACnetTypeUnsignedInt;
+            expect(propIdPayload.value).to.equal(77);
         });
     });
 });

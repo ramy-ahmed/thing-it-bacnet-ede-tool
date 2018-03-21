@@ -19,82 +19,97 @@ import {
 import {
     IComplexACK,
     IComplexACKReadProperty,
+
+    IComplexACKLayer,
+    IComplexACKService,
+    IComplexACKReadPropertyService,
 } from '../../interfaces';
 
 export class ComplexACKPDU {
     public className: string = 'ComplexACKPDU';
 
-    private getFromBuffer (buf: Buffer): Map<string, any> {
+    private getFromBuffer (buf: Buffer): IComplexACKLayer {
         const reader = new BACnetReaderUtil(buf);
-        const reqMap: Map<string, any> = new Map();
+
+        let reqMap: IComplexACKLayer;
+        let serviceChoice: BACnetConfirmedService, serviceData: IComplexACKService;
+        let pduType: number, pduSeg: boolean, pduMor: boolean;
+        let invokeId: number, sequenceNumber: number, proposedWindowSize: number;
 
         try {
             // --- Read meta byte
             const mMeta = reader.readUInt8();
 
-            const pduType = TyperUtil.getBitRange(mMeta, 4, 4);
-            reqMap.set('type', pduType);
+            pduType = TyperUtil.getBitRange(mMeta, 4, 4);
 
-            const pduSeg = TyperUtil.getBit(mMeta, 3);
-            reqMap.set('seg', pduSeg);
+            pduSeg = !!TyperUtil.getBit(mMeta, 3);
 
-            const pduMor = TyperUtil.getBit(mMeta, 2);
-            reqMap.set('mor', pduMor);
+            pduMor = !!TyperUtil.getBit(mMeta, 2);
 
             // --- Read InvokeID byte
-            const invokeId = reader.readUInt8();
-            reqMap.set('invokeId', invokeId);
+            invokeId = reader.readUInt8();
 
             if (pduSeg) {
-                const sequenceNumber = reader.readUInt8();
-                reqMap.set('sequenceNumber', sequenceNumber);
+                sequenceNumber = reader.readUInt8();
 
-                const proposedWindowSize = reader.readUInt8();
-                reqMap.set('proposedWindowSize', proposedWindowSize);
+                proposedWindowSize = reader.readUInt8();
             }
 
-            const serviceChoice = reader.readUInt8();
-            reqMap.set('serviceChoice', serviceChoice);
+            serviceChoice = reader.readUInt8();
 
-            let serviceMap;
             switch (serviceChoice) {
                 case BACnetConfirmedService.ReadProperty:
-                    serviceMap = this.getReadProperty(reader);
+                    serviceData = this.getReadProperty(reader);
                     break;
             }
-            reqMap.set('service', serviceMap);
         } catch (error) {
             logger.error(`${this.className} - getFromBuffer: Parse - ${error}`);
         }
 
+        reqMap = {
+            type: pduType,
+            seg: pduSeg,
+            mor: pduMor,
+            invokeId: invokeId,
+            sequenceNumber: sequenceNumber,
+            proposedWindowSize: proposedWindowSize,
+            serviceChoice: serviceChoice,
+            service: serviceData,
+        };
+
         return reqMap;
     }
 
-    private getReadProperty (reader: BACnetReaderUtil): Map<string, any> {
-        const serviceMap: Map<string, any> = new Map();
+    private getReadProperty (reader: BACnetReaderUtil): IComplexACKReadPropertyService {
+        let serviceData: IComplexACKReadPropertyService;
+
+        let objId, propId, propArrayIndex, propValues;
 
         try {
-            const objIdent = reader.readObjectIdentifier();
-            serviceMap.set('objIdent', objIdent);
+            objId = reader.readObjectIdentifier();
 
-            const propIdent = reader.readProperty();
-            serviceMap.set('propIdent', propIdent);
+            propId = reader.readParam();
 
             const optTag = reader.readTag(false);
-            const optTagNumber = optTag.get('number');
+            const optTagNumber = optTag.num;
 
             if (optTagNumber === 2) {
-                const propArrayIndex = reader.readParam();
-                serviceMap.set('propArrayIndex', propArrayIndex);
+                propArrayIndex = reader.readParam();
             }
 
-            const propValue = reader.readParamValue();
-            serviceMap.set('propValue', propValue);
+            propValues = reader.readParamValue();
         } catch (error) {
             logger.error(`${this.className} - getReadProperty: Parse - ${error}`);
         }
 
-        return serviceMap;
+        serviceData = {
+            objId: objId,
+            propId: propId,
+            propArrayIndex: propArrayIndex,
+            propValues: propValues,
+        };
+
+        return serviceData;
     }
 
     /**
