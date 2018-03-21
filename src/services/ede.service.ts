@@ -2,6 +2,13 @@ import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
 
 import {
+    IComplexACKLayer,
+    IComplexACKReadPropertyService,
+    IBACnetTypeObjectId,
+    IBACnetTypeUnsignedInt,
+} from '../core/interfaces';
+
+import {
     BACnetServiceTypes,
     BACnetPropIds,
     BLVCFunction,
@@ -28,14 +35,15 @@ export class EDEService {
      */
     public iAm (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduService = inputSoc.apdu.get('service');
+        const apduMessage = inputSoc.apdu as IComplexACKLayer;
+        const apduService = apduMessage.service as IComplexACKReadPropertyService;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
         // Get object identifier
-        const objIdent = apduService.get('objIdent');
-        const objIdentValue = objIdent.get('value');
-        const objType = objIdentValue.get('type');
-        const objInst = objIdentValue.get('instance');
+        const objId = apduService.objId;
+        const objIdPayload = objId.payload as IBACnetTypeObjectId;
+        const objType = objIdPayload.type;
+        const objInst = objIdPayload.instance;
 
         edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc);
 
@@ -59,20 +67,20 @@ export class EDEService {
      */
     public readPropertyObjectListLenght (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduService = inputSoc.apdu.get('service');
+        const apduMessage = inputSoc.apdu as IComplexACKLayer;
+        const apduService = apduMessage.service as IComplexACKReadPropertyService;
 
         // Get object identifier
-        const objIdent = apduService.get('objIdent');
-        const objIdentValue = objIdent.get('value');
-        const objType = objIdentValue.get('type');
-        const objInst = objIdentValue.get('instance');
+        const objId = apduService.objId;
+        const objIdPayload = objId.payload as IBACnetTypeObjectId;
+        const objType = objIdPayload.type;
+        const objInst = objIdPayload.instance;
 
-        const propValue = apduService.get('propValue');
-        const propValueValues: Map<string, any>[] = propValue.get('values');
-        const value = propValueValues[0].get('value');
+        const propValues = apduService.propValues;
+        const propValuePayload = propValues[0].payload as IBACnetTypeUnsignedInt;
 
-        logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${value.value}`);
-        for (let itemIndex = 1; itemIndex <= value.value; itemIndex++) {
+        logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValuePayload.value}`);
+        for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
             confirmedReqService.readProperty({
                 segAccepted: true,
                 invokeId: 1,
@@ -95,33 +103,35 @@ export class EDEService {
      */
     public readPropertyObjectListItem (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduService = inputSoc.apdu.get('service');
+        const apduMessage = inputSoc.apdu as IComplexACKLayer;
+        const apduService = apduMessage.service as IComplexACKReadPropertyService;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
         // Get object identifier
-        const objIdent = apduService.get('objIdent');
-        const objIdentValue = objIdent.get('value');
-        const objType = objIdentValue.get('type');
-        const objInst = objIdentValue.get('instance');
+        const objId = apduService.objId;
+        const objIdPayload = objId.payload as IBACnetTypeObjectId;
+        const objType = objIdPayload.type;
+        const objInst = objIdPayload.instance;
 
-        const propValue = apduService.get('propValue');
-        const propValueValues: Map<string, any>[] = propValue.get('values');
-        const value = propValueValues[0].get('value');
+        const propValues = apduService.propValues;
+        const propValuePayload = propValues[0].payload as IBACnetTypeObjectId;
 
-        edeStorage.addUnit({ type: objType, instance: objInst }, value);
+        edeStorage.addUnit({ type: objType, instance: objInst }, propValuePayload);
 
-        logger.info(`EDEService - readPropertyObjectListItem: Device ${objType}:${objInst}, Unit ${value.type}:${value.instance}`);
+        logger.info(`EDEService - readPropertyObjectListItem: Device ${objType}:${objInst},`
+            + `Unit ${propValuePayload.type}:${propValuePayload.instance}`);
+
         confirmedReqService.readProperty({
             invokeId: 1,
-            objType: value.type,
-            objInst: value.instance,
+            objType: propValuePayload.type,
+            objInst: propValuePayload.instance,
             propId: BACnetPropIds.objectName,
         }, outputSoc);
 
         confirmedReqService.readProperty({
             invokeId: 1,
-            objType: value.type,
-            objInst: value.instance,
+            objType: propValuePayload.type,
+            objInst: propValuePayload.instance,
             propId: BACnetPropIds.description,
         }, outputSoc);
 
@@ -137,27 +147,27 @@ export class EDEService {
      */
     public readPropertyAll (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduService = inputSoc.apdu.get('service');
+        const apduMessage = inputSoc.apdu as IComplexACKLayer;
+        const apduService = apduMessage.service as IComplexACKReadPropertyService;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
         // Get object identifier
-        const objIdent = apduService.get('objIdent');
-        const objIdentValue = objIdent.get('value');
-        const objType = objIdentValue.get('type');
-        const objInst = objIdentValue.get('instance');
+        const objId = apduService.objId;
+        const objIdPayload = objId.payload as IBACnetTypeObjectId;
+        const objType = objIdPayload.type;
+        const objInst = objIdPayload.instance;
 
         // Get prop identifier
-        const propIdent = apduService.get('propIdent');
-        const propIdentValue = propIdent.get('value');
+        const propId = apduService.propId;
+        const propIdPayload = propId.payload as IBACnetTypeUnsignedInt;
 
         // Get prop value
-        const propValue = apduService.get('propValue');
-        const propValueValues: Map<string, any>[] = propValue.get('values');
-        const value = propValueValues[0].get('value');
+        const propValues = apduService.propValues;
+        const propValuePayload = propValues[0].payload as IBACnetTypeObjectId;
 
-        logger.info(`EDEService - readPropertyAll: ${objType}:${objInst}, Property ID ${propIdentValue}`);
+        logger.info(`EDEService - readPropertyAll: ${objType}:${objInst}, Property ID ${propIdPayload.value}`);
         edeStorage.setUnitProp({ type: objType, instance: objInst },
-            BACnetPropIds[propIdentValue], value);
+            BACnetPropIds[propIdPayload.value], propValuePayload);
 
         return Bluebird.resolve();
     }
