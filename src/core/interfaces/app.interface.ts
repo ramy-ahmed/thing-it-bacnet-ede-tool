@@ -10,7 +10,7 @@ export interface IServerConfig {
     outputSequence: ISequenceConfig;
 }
 export interface ISequenceConfig {
-    size: number;
+    thread: number;
     delay: number;
 }
 

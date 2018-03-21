@@ -62,7 +62,7 @@ export class SequenceManager {
         const busyFlows = this.busyFlows.get(flow.id);
         const freeFlows = this.freeFlows.get(flow.id);
 
-        if (busyFlows >= this.seqConfig.size || !freeFlows.length) {
+        if (busyFlows >= this.seqConfig.thread || !freeFlows.length) {
             return;
         }
         this.busyFlows.set(flow.id, busyFlows + 1);

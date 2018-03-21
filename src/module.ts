@@ -6,7 +6,7 @@ export const appConfig: IAppConfig = {
     server: {
         port: 1235,
         outputSequence: {
-            size: 5,
+            thread: 5,
             delay: 100,
         },
     },
