@@ -8,7 +8,6 @@ import {
 import {
     IBACnetType,
     IBACnetParam,
-    IBACnetTypeObjectId,
 } from './unit.interface';
 
 /*
@@ -85,19 +84,19 @@ export type IConfirmedReqService = IConfirmedReqReadPropertyService
     | IConfirmedReqWritePropertyService;
 
 export interface IConfirmedReqReadPropertyService {
-    objId: IBACnetTypeObjectId;
+    objId: IBACnetParam;
     propId: IBACnetParam;
 }
 
 export interface IConfirmedReqSubscribeCOVService {
-    objId: IBACnetTypeObjectId;
+    objId: IBACnetParam;
     subscriberProcessId: IBACnetParam;
     issConfNotif: IBACnetParam;
     lifeTime: IBACnetParam;
 }
 
 export interface IConfirmedReqWritePropertyService {
-    objId: IBACnetTypeObjectId;
+    objId: IBACnetParam;
     propId: IBACnetParam;
     propValues: IBACnetParam[];
     priority: number;
@@ -116,7 +115,7 @@ export type IUnconfirmedReqService = IUnconfirmedReqIAmService
     | IUnconfirmedReqWhoIsService;
 
 export interface IUnconfirmedReqIAmService {
-    objId: IBACnetTypeObjectId;
+    objId: IBACnetParam;
     maxAPDUlength: IBACnetParam;
     segmSupported: IBACnetParam;
     vendorId: IBACnetParam;
@@ -142,7 +141,7 @@ export interface IComplexACKLayer {
 export type IComplexACKService = IComplexACKReadPropertyService;
 
 export interface IComplexACKReadPropertyService {
-    objId: IBACnetTypeObjectId;
+    objId: IBACnetParam;
     propId: IBACnetParam;
     propArrayIndex?: IBACnetParam;
     propValues?: IBACnetParam[];
