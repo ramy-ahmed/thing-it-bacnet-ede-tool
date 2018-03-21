@@ -88,7 +88,7 @@ export class ComplexACKPDU {
         try {
             objId = reader.readObjectIdentifier();
 
-            propId = reader.readProperty();
+            propId = reader.readParam();
 
             const optTag = reader.readTag(false);
             const optTagNumber = optTag.get('number');

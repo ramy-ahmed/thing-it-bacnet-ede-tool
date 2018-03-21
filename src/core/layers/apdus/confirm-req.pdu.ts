@@ -108,7 +108,7 @@ export class ConfirmReqPDU {
         try {
             objId = reader.readObjectIdentifier();
 
-            propId = reader.readProperty();
+            propId = reader.readParam();
         } catch (error) {
             logger.error(`${this.className} - getReadProperty: Parse - ${error}`);
         }
@@ -154,7 +154,7 @@ export class ConfirmReqPDU {
         try {
             objId = reader.readObjectIdentifier();
 
-            propId = reader.readProperty();
+            propId = reader.readParam();
 
             propValues = reader.readParamValue();
 
