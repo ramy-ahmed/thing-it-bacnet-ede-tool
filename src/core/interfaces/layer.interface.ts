@@ -26,13 +26,13 @@ export interface IBLVCLayer {
  */
 export interface INPDULayer {
     version: number;
-    control: INPDUControlLayer;
+    control: INPDUControl;
     dest: INPDUDestNetwork;
     src: INPDUSrcNetwork;
     apdu: IAPDULayer;
 }
 
-export interface INPDUControlLayer {
+export interface INPDUControl {
     noApduMessageType: boolean;
     reserved1: number;
     destSpecifier: boolean;
@@ -46,7 +46,7 @@ export interface INPDUControlLayer {
 export interface INPDUNetworkLayer {
     networkAddress: number;
     macAddressLen: number;
-    macAddress: string;
+    macAddress?: string;
 }
 
 export interface INPDUDestNetwork
@@ -143,7 +143,7 @@ type IComplexACKService = IComplexACKReadPropertyService;
 
 export interface IComplexACKReadPropertyService {
     objId: IBACnetTypeObjectId;
-    propIdent: IBACnetParam;
+    propId: IBACnetParam;
     propArrayIndex?: IBACnetParam;
     propValues?: IBACnetParam[];
 }
@@ -155,7 +155,7 @@ export interface ISimpleACKLayer {
     type: BACnetServiceTypes;
     invokeId: number;
     serviceChoice: BACnetConfirmedService;
-    service: IComplexACKService;
+    service: ISimpleACKService;
 }
 
 type ISimpleACKService = ISimpleACKSubscribeCOVService
