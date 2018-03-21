@@ -32,12 +32,11 @@ describe('NPDU', () => {
                 0xff, 0x00, 0xff, 0x10, 0x00, 0xc4, 0x02, 0x00,
                 0x27, 0x0f, 0x22, 0x05, 0xc4, 0x91, 0x00, 0x21, 0xb2]);
             const newBuf = npdu.getFromBuffer(buf);
-            expect(newBuf.get('version')).to.equal(0x01);
-            const control = newBuf.get('control');
-            expect(control.size).to.equal(8);
-            expect(newBuf.get('destNetworkAddress')).to.equal(0xffff);
-            expect(newBuf.get('destMacAddressLen')).to.equal(0x00);
-            expect(newBuf.get('hopCount')).to.equal(255);
+            expect(newBuf.version).to.equal(0x01);
+            const control = newBuf.control;
+            expect(newBuf.dest.networkAddress).to.equal(0xffff);
+            expect(newBuf.dest.macAddressLen).to.equal(0x00);
+            expect(newBuf.dest.hopCount).to.equal(255);
         });
 
         it('should return metadata with dest mac address', () => {
@@ -45,13 +44,12 @@ describe('NPDU', () => {
                 0x01, 0x01, 0x01, 0xff, 0x10, 0x00, 0xc4, 0x02, 0x00,
                 0x27, 0x0f, 0x22, 0x05, 0xc4, 0x91, 0x00, 0x21, 0xb2]);
             const newBuf = npdu.getFromBuffer(buf);
-            expect(newBuf.get('version')).to.equal(0x01);
-            const control = newBuf.get('control');
-            expect(control.size).to.equal(8);
-            expect(newBuf.get('destNetworkAddress')).to.equal(0xffff);
-            expect(newBuf.get('destMacAddressLen')).to.equal(0x04);
-            expect(newBuf.get('destMacAddress')).to.equal('01010101');
-            expect(newBuf.get('hopCount')).to.equal(255);
+            expect(newBuf.version).to.equal(0x01);
+            const control = newBuf.control;
+            expect(newBuf.dest.networkAddress).to.equal(0xffff);
+            expect(newBuf.dest.macAddressLen).to.equal(0x04);
+            expect(newBuf.dest.macAddress).to.equal('01010101');
+            expect(newBuf.dest.hopCount).to.equal(255);
         });
 
         it('should return metadata without src mac address', () => {
@@ -59,11 +57,10 @@ describe('NPDU', () => {
                 0xff, 0x00, 0xff, 0x10, 0x00, 0xc4, 0x02, 0x00,
                 0x27, 0x0f, 0x22, 0x05, 0xc4, 0x91, 0x00, 0x21, 0xb2]);
             const newBuf = npdu.getFromBuffer(buf);
-            expect(newBuf.get('version')).to.equal(0x01);
-            const control = newBuf.get('control');
-            expect(control.size).to.equal(8);
-            expect(newBuf.get('srcNetworkAddress')).to.equal(0xffff);
-            expect(newBuf.get('srcMacAddressLen')).to.equal(0x00);
+            expect(newBuf.version).to.equal(0x01);
+            const control = newBuf.control;
+            expect(newBuf.src.networkAddress).to.equal(0xffff);
+            expect(newBuf.src.macAddressLen).to.equal(0x00);
         });
 
         it('should return metadata with src mac address', () => {
@@ -71,12 +68,11 @@ describe('NPDU', () => {
                 0x01, 0x01, 0x01, 0xff, 0x10, 0x00, 0xc4, 0x02, 0x00,
                 0x27, 0x0f, 0x22, 0x05, 0xc4, 0x91, 0x00, 0x21, 0xb2]);
             const newBuf = npdu.getFromBuffer(buf);
-            expect(newBuf.get('version')).to.equal(0x01);
-            const control = newBuf.get('control');
-            expect(control.size).to.equal(8);
-            expect(newBuf.get('srcNetworkAddress')).to.equal(0xffff);
-            expect(newBuf.get('srcMacAddressLen')).to.equal(0x04);
-            expect(newBuf.get('srcMacAddress')).to.equal('01010101');
+            expect(newBuf.version).to.equal(0x01);
+            const control = newBuf.control;
+            expect(newBuf.src.networkAddress).to.equal(0xffff);
+            expect(newBuf.src.macAddressLen).to.equal(0x04);
+            expect(newBuf.src.macAddress).to.equal('01010101');
         });
 
         it('should return metadata with dest and src mac address', () => {
@@ -84,16 +80,15 @@ describe('NPDU', () => {
                 0x01, 0x01, 0x01, 0xff, 0xff, 0x02, 0x05, 0x05, 0xff, 0x10, 0x00, 0xc4, 0x02, 0x00,
                 0x27, 0x0f, 0x22, 0x05, 0xc4, 0x91, 0x00, 0x21, 0xb2]);
             const newBuf = npdu.getFromBuffer(buf);
-            expect(newBuf.get('version')).to.equal(0x01);
-            const control = newBuf.get('control');
-            expect(control.size).to.equal(8);
-            expect(newBuf.get('destNetworkAddress')).to.equal(0xffff);
-            expect(newBuf.get('destMacAddressLen')).to.equal(0x04);
-            expect(newBuf.get('destMacAddress')).to.equal('01010101');
-            expect(newBuf.get('srcNetworkAddress')).to.equal(0xffff);
-            expect(newBuf.get('srcMacAddressLen')).to.equal(0x02);
-            expect(newBuf.get('srcMacAddress')).to.equal('0505');
-            expect(newBuf.get('hopCount')).to.equal(255);
+            expect(newBuf.version).to.equal(0x01);
+            const control = newBuf.control;
+            expect(newBuf.dest.networkAddress).to.equal(0xffff);
+            expect(newBuf.dest.macAddressLen).to.equal(0x04);
+            expect(newBuf.dest.macAddress).to.equal('01010101');
+            expect(newBuf.src.networkAddress).to.equal(0xffff);
+            expect(newBuf.src.macAddressLen).to.equal(0x02);
+            expect(newBuf.src.macAddress).to.equal('0505');
+            expect(newBuf.dest.hopCount).to.equal(255);
         });
 
         it('should slice the buffer correctly', () => {
@@ -119,70 +114,70 @@ describe('NPDU', () => {
 
         it('should return unsetted flags', () => {
             const control = npdu.getControlFlags(0x00);
-            expect(control.get('noApduMessageType')).to.be.false;
-            expect(control.get('reserved1')).to.equal(0);
-            expect(control.get('destSpecifier')).to.be.false;
-            expect(control.get('reserved2')).to.equal(0);
-            expect(control.get('srcSpecifier')).to.be.false;
-            expect(control.get('expectingReply')).to.be.false;
-            expect(control.get('priority1')).to.equal(0);
-            expect(control.get('priority2')).to.equal(0);
+            expect(control.noApduMessageType).to.be.false;
+            expect(control.reserved1).to.equal(0);
+            expect(control.destSpecifier).to.be.false;
+            expect(control.reserved2).to.equal(0);
+            expect(control.srcSpecifier).to.be.false;
+            expect(control.expectingReply).to.be.false;
+            expect(control.priority1).to.equal(0);
+            expect(control.priority2).to.equal(0);
         });
 
         it('should return second priority bit', () => {
             const control = npdu.getControlFlags(0x01);
-            expect(control.get('priority2')).to.equal(1);
+            expect(control.priority2).to.equal(1);
         });
 
         it('should return first priority bit', () => {
             const control = npdu.getControlFlags(0x02);
-            expect(control.get('priority1')).to.equal(1);
+            expect(control.priority1).to.equal(1);
         });
 
         it('should return expecting reply flag', () => {
             const control = npdu.getControlFlags(0x04);
-            expect(control.get('expectingReply')).to.be.true;
+            expect(control.expectingReply).to.be.true;
         });
 
         it('should return src specifier flag', () => {
             const control = npdu.getControlFlags(0x08);
-            expect(control.get('srcSpecifier')).to.be.true;
+            expect(control.srcSpecifier).to.be.true;
         });
 
         it('should return second reserved bit', () => {
             const control = npdu.getControlFlags(0x10);
-            expect(control.get('reserved2')).to.equal(1);
+            expect(control.reserved2).to.equal(1);
         });
 
         it('should return dest specifier flag', () => {
             const control = npdu.getControlFlags(0x20);
-            expect(control.get('destSpecifier')).to.be.true;
+            expect(control.destSpecifier).to.be.true;
         });
 
         it('should return first reserved bit', () => {
             const control = npdu.getControlFlags(0x40);
-            expect(control.get('reserved1')).to.equal(1);
+            expect(control.reserved1).to.equal(1);
         });
 
         it('should return no APDU message type flag', () => {
             const control = npdu.getControlFlags(0x80);
-            expect(control.get('noApduMessageType')).to.be.true;
+            expect(control.noApduMessageType).to.be.true;
         });
 
         it('should return even bits', () => {
             const control = npdu.getControlFlags(0xaa);
-            expect(control.get('noApduMessageType')).to.be.true;
-            expect(control.get('destSpecifier')).to.be.true;
-            expect(control.get('srcSpecifier')).to.be.true;
-            expect(control.get('priority1')).to.equal(1);
+            expect(control.noApduMessageType).to.be.true;
+            expect(control.destSpecifier).to.be.true;
+            expect(control.srcSpecifier).to.be.true;
+            expect(control.priority1).to.equal(1);
         });
 
         it('should return odd bits', () => {
             const control = npdu.getControlFlags(0x55);
-            expect(control.get('reserved1')).to.equal(1);
-            expect(control.get('reserved2')).to.equal(1);
-            expect(control.get('expectingReply')).to.be.true;
-            expect(control.get('priority2')).to.equal(1);
+            expect(control.reserved1).to.equal(1);
+            expect(control.reserved2).to.equal(1);
+            expect(control.expectingReply).to.be.true;
+            expect(control.priority2).to.equal(1);
         });
     });
 

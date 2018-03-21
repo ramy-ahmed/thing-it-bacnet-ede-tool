@@ -41,9 +41,9 @@ describe('BLVC', () => {
 
         it('should return Map with correct metadata', () => {
             const newBuf = blvc.getFromBuffer(buf);
-            expect(newBuf.get('type')).to.equal(0x81);
-            expect(newBuf.get('function')).to.equal(0x0b);
-            expect(newBuf.get('lenght')).to.equal(0x18);
+            expect(newBuf.type).to.equal(0x81);
+            expect(newBuf.func).to.equal(0x0b);
+            expect(newBuf.length).to.equal(0x18);
         });
 
         it('should slice the buffer correctly', () => {
