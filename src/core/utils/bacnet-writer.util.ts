@@ -3,6 +3,10 @@ import * as _ from 'lodash';
 import { ApiError } from '../errors';
 
 import {
+    IBACnetTypeUnsignedInt,
+} from '../interfaces';
+
+import {
     BACnetPropIds,
     BACnetPropTypes,
     OpertionMaxValue,
@@ -257,7 +261,7 @@ export class BACnetWriterUtil {
      * @param  {any} params - object with parameters
      * @return {void}
      */
-    public writeTypeUnsignedInt (params: any): void {
+    public writeTypeUnsignedInt (params: IBACnetTypeUnsignedInt): void {
         // DataType - Application tag - DataTypeSize
         if (params.value <= OpertionMaxValue.uInt8) {
             this.writeTag(BACnetPropTypes.unsignedInt, 0, 1);
