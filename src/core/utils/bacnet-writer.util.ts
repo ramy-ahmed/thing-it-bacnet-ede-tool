@@ -5,6 +5,7 @@ import { ApiError } from '../errors';
 import {
     BACnetPropIds,
     BACnetPropTypes,
+    OpertionMaxValue,
 } from '../enums';
 
 import { OffsetUtil } from './offset.util';
@@ -258,9 +259,16 @@ export class BACnetWriterUtil {
      */
     public writeTypeUnsignedInt (params: any): void {
         // DataType - Application tag - DataTypeSize
-        this.writeTag(BACnetPropTypes.unsignedInt, 0, 1);
-
-        this.writeUInt8(params.value)
+        if (params.value <= OpertionMaxValue.uInt8) {
+            this.writeTag(BACnetPropTypes.unsignedInt, 0, 1);
+            this.writeUInt8(params.value);
+        } else if (params.value <= OpertionMaxValue.uInt16) {
+            this.writeTag(BACnetPropTypes.unsignedInt, 0, 2);
+            this.writeUInt16BE(params.value);
+        } else if (params.value <= OpertionMaxValue.uInt32) {
+            this.writeTag(BACnetPropTypes.unsignedInt, 0, 4);
+            this.writeUInt32BE(params.value);
+        }
     }
 
     /**
