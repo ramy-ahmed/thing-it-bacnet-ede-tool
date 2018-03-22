@@ -16,6 +16,10 @@ import {
 } from '../core/interfaces';
 
 import {
+    ApiError,
+} from '../core/errors';
+
+import {
     logger,
 } from '../core/utils';
 
@@ -51,6 +55,10 @@ export class EDEStorageManager {
      */
     public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket): void {
         const id = this.getObjId(deviceId.type, deviceId.instance);
+
+        if (this.devices.has(id)) {
+            throw new ApiError('EDEStorageManager - addDevice: Device already exists!');
+        }
 
         this.devices.set(id, {
             outputSoc: outputSoc,

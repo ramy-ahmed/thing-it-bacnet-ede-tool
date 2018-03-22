@@ -45,17 +45,21 @@ export class EDEService {
         const objType = objIdPayload.type;
         const objInst = objIdPayload.instance;
 
-        edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc);
+        try {
+            edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc);
 
-        logger.info(`EDEService - iAm: Object Type ${objType}, Object Instance ${objInst}`);
-        return confirmedReqService.readProperty({
-            segAccepted: true,
-            invokeId: 1,
-            objType: objType,
-            objInst: objInst,
-            propId: BACnetPropIds.objectList,
-            propArrayIndex: 0,
-        }, outputSoc);
+            logger.info(`EDEService - iAm: ${objType}:${objInst}, Add device`);
+            return confirmedReqService.readProperty({
+                segAccepted: true,
+                invokeId: 1,
+                objType: objType,
+                objInst: objInst,
+                propId: BACnetPropIds.objectList,
+                propArrayIndex: 0,
+            }, outputSoc);
+        } catch (error) {
+            logger.info(`EDEService - iAm: ${objType}:${objInst}, ${error}`)
+        }
     }
 
     /**
