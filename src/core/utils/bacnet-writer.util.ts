@@ -275,6 +275,23 @@ export class BACnetWriterUtil {
         }
     }
 
+    /**
+     * writeTypeUnsignedInt - writes BACnet Integer value to the internal buffer.
+     *
+     * @param  {any} params - object with parameters
+     * @return {void}
+     */
+    public writeUnsignedInt (value: number): void {
+        // DataType - Application tag - DataTypeSize
+        if (value <= OpertionMaxValue.uInt8) {
+            this.writeUInt8(value);
+        } else if (value <= OpertionMaxValue.uInt16) {
+            this.writeUInt16BE(value);
+        } else if (value <= OpertionMaxValue.uInt32) {
+            this.writeUInt32BE(value);
+        }
+    }
+
     public getTypeLenght (value: number) {
         if (value <= OpertionMaxValue.uInt8) {
             return 1;

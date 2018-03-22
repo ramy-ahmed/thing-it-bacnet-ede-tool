@@ -216,16 +216,12 @@ export class ConfirmReqPDU {
 
         // Write Property ID
         writer.writeTag(1, BACnetTagTypes.context, writer.getTypeLenght(params.propId));
-        writer.writeTypeUnsignedInt({
-            value: params.propId,
-        });
+        writer.writeUnsignedInt(params.propId);
 
         if (_.isNumber(params.propArrayIndex)) {
             // Write Property Array Index
             writer.writeTag(2, BACnetTagTypes.context, writer.getTypeLenght(params.propArrayIndex));
-            writer.writeTypeUnsignedInt({
-                value: params.propArrayIndex,
-            });
+            writer.writeUnsignedInt(params.propArrayIndex);
         }
 
         return writer;
