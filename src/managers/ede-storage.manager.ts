@@ -139,6 +139,7 @@ export class EDEStorageManager {
             groupOfUnits.push(unit);
         });
 
+        const promises: Bluebird<any>[] = [];
         groupedUnits.forEach((groupOfUnits, deviceId) => {
             this.edeTableManager.clear();
             this.edeTableManager.addHeader(this.config.header);
@@ -158,9 +159,10 @@ export class EDEStorageManager {
                 }
             });
 
-            this.edeTableManager.genCSVFile(deviceId, this.config.file);
+            const promise = this.edeTableManager.genCSVFile(deviceId, this.config.file);
+            promises.push(promise);
         })
 
-        return Bluebird.resolve();
+        return Bluebird.all(promises);
     }
 }
