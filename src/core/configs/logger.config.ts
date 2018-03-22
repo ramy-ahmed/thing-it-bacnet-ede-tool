@@ -7,6 +7,13 @@ export const LoggerConfig = {
             timestamp: true,
             colorize: true,
             level: 'debug'
-        })
+        }),
+        new (winston.transports.File)({
+            filename: 'all-logs.log',
+            maxFiles: 1,
+            timestamp: false,
+            colorize: false,
+            level: 'debug'
+        }),
     ]
 };
