@@ -97,7 +97,12 @@ export class AppManager {
             })
             .then(() => {
                 logger.info('AppManager - startNetworkMonitoring: Save EDE storage');
-                this.edeStorageManager.saveEDEStorage();
+                return this.edeStorageManager.saveEDEStorage();
+            })
+            .then(() => {
+                logger.info('AppManager - startNetworkMonitoring: Move EDE logs');
+                return AsyncUtil.moveFile(`${__dirname}/../../all-logs.log`,
+                    `${this.appConfig.ede.file.path}/all-logs.log`);
             });
     }
 }
