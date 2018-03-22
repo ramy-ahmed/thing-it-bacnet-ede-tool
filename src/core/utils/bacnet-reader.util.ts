@@ -192,25 +192,11 @@ export class BACnetReaderUtil {
 
         const paramTag = this.readTag(changeOffset);
 
-        let paramPayload;
-        const len: number = paramTag.value;
-        switch (len) {
-            case 1:
-                paramPayload = this.readUInt8(changeOffset);
-                break;
-            case 2:
-                paramPayload = this.readUInt16BE(changeOffset);
-                break;
-            case 4:
-                paramPayload = this.readUInt32BE(changeOffset);
-                break;
-        }
+        let paramPayload = this.readParamValueUnsignedInt(paramTag, changeOffset);
 
         paramData = {
             tag: paramTag,
-            payload: {
-                value: paramPayload,
-            },
+            payload: paramPayload,
         };
 
         return paramData;
@@ -295,8 +281,21 @@ export class BACnetReaderUtil {
      * @return {Map<string, any>}
      */
     public readParamValueUnsignedInt (tag: IBACnetTag, changeOffset: boolean = true) {
+        let value: number;
+        switch (tag.value) {
+            case 1:
+                value = this.readUInt8(changeOffset);
+                break;
+            case 2:
+                value = this.readUInt16BE(changeOffset);
+                break;
+            case 4:
+                value = this.readUInt32BE(changeOffset);
+                break;
+        }
+
         return {
-            value: this.readUInt8(changeOffset),
+            value: value,
         };
     }
 
