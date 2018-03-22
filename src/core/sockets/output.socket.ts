@@ -63,7 +63,7 @@ export class OutputSocket {
      */
     public _sendBroadcast (msg: Buffer, reqMethodName: string): Bluebird<any> {
         this.app.setBroadcast(true);
-        const bcAddress = '255.255.255.255';
+        const bcAddress = this.rinfo.address;
         const bcPort = this.rinfo.port;
 
         this.logSendMethods(bcAddress, bcPort, msg, 'sendBroadcast', reqMethodName);
