@@ -215,14 +215,14 @@ export class ConfirmReqPDU {
         writer.writeObjectIdentifier(params.objType, params.objInst);
 
         // Write Property ID
-        writer.writeTag(1, BACnetTagTypes.context, 1);
+        writer.writeTag(1, BACnetTagTypes.context, writer.getTypeLenght(params.propId));
         writer.writeTypeUnsignedInt({
             value: params.propId,
         });
 
         if (_.isNumber(params.propArrayIndex)) {
             // Write Property Array Index
-            writer.writeTag(2, BACnetTagTypes.context, 1);
+            writer.writeTag(2, BACnetTagTypes.context, writer.getTypeLenght(params.propArrayIndex));
             writer.writeTypeUnsignedInt({
                 value: params.propArrayIndex,
             });

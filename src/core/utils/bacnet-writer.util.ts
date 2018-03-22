@@ -275,6 +275,16 @@ export class BACnetWriterUtil {
         }
     }
 
+    public getTypeLenght (value: number) {
+        if (value <= OpertionMaxValue.uInt8) {
+            return 1;
+        } else if (value <= OpertionMaxValue.uInt16) {
+            return 2;
+        } else if (value <= OpertionMaxValue.uInt32) {
+            return 4;
+        }
+    }
+
     /**
      * writeTypeReal - writes BACnet Real value to the internal buffer.
      *
