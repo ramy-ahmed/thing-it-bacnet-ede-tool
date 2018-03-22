@@ -10,6 +10,9 @@ export const appConfig: IAppConfig = {
             delay: 20,
         },
     },
+    bacnet: {
+        network: '255.255.255.255',
+    },
     ede: {
         file: {
             path: `${__dirname}/..`,

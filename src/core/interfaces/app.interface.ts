@@ -3,8 +3,12 @@ import { IEDEConfig } from './ede.interface';
 export interface IAppConfig {
     server: IServerConfig;
     ede: IEDEConfig;
+    bacnet: IBACnetConfig;
 }
 
+export interface IBACnetConfig {
+    network: string;
+}
 export interface IServerConfig {
     port: number;
     outputSequence: ISequenceConfig;

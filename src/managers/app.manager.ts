@@ -45,6 +45,10 @@ export class AppManager {
             this.appConfig.ede.file.path = argv.filePath;
         }
 
+        if (argv.network) {
+            this.appConfig.bacnet.network = argv.network;
+        }
+
         if (argv.fileName) {
             this.appConfig.ede.file.name = argv.fileName;
         }
