@@ -11,6 +11,7 @@ import {
     IEDEHeaderOptions,
     IEDEUnitProps,
     IEDEUnit,
+    IBACnetAddressInfo,
 } from '../core/interfaces';
 
 export class EDETableManager {
@@ -29,10 +30,14 @@ export class EDETableManager {
     public addHeader (opts: IEDEHeaderOptions): void {
         const fileType = this.csvTable.addRow();
         fileType.setCellValue(0, '# Proposal_Engineering-Data-Exchange - B.I.G.-EU');
+        fileType.setCellValue(2, 'Device_Address');
+        fileType.setCellValue(3, 'Device_Port');
 
-        const projectName = this.csvTable.addRow();
+        const projectName = this.csvTable.addRow('ProjectName');
         projectName.setCellValue(0, 'Project_Name');
         projectName.setCellValue(1, opts.projectName);
+        projectName.setCellAlias(2, 'DeviceAddress');
+        projectName.setCellAlias(3, 'DevicePort');
 
         const versionOfRefFile = this.csvTable.addRow();
         versionOfRefFile.setCellValue(0, 'VERSION_OF_REFERENCEFILE');
@@ -85,6 +90,18 @@ export class EDETableManager {
         titles.setCellValue('state-text-reference', 'state-text-reference');
         titles.setCellValue('unit-code', 'unit-code');
         titles.setCellValue('vendor-specific-address', 'vendor-specific-address');
+    }
+
+    /**
+     * setDeviceAddressInfo - sets the address information for current device.
+     *
+     * @param  {IBACnetAddressInfo} rinfo - address info
+     * @return {type}
+     */
+    public setDeviceAddressInfo (rinfo: IBACnetAddressInfo) {
+        const projectName = this.csvTable.getRowByAlias('ProjectName');
+        projectName.setCellValue('DeviceAddress', rinfo.address);
+        projectName.setCellValue('DevicePort', rinfo.port);
     }
 
     /**

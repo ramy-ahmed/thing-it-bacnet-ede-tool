@@ -135,6 +135,10 @@ export class EDEStorageManager {
             this.edeTableManager.clear();
             this.edeTableManager.addHeader(this.config.header);
 
+            const deviceInfo = this.devices.get(deviceId);
+            const deviceAddressInfo = deviceInfo.outputSoc.getAddressInfo();
+            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo);
+
             const device = this.units.get(deviceId);
 
             groupOfUnits.forEach((unit) => {
