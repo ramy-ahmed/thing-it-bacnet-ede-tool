@@ -5,10 +5,12 @@ import { ApiError } from '../errors';
 import { CSVRow } from './row.csv';
 
 export class CSVTable {
+    private aliases: Map<string, number>;
     private rows: CSVRow[];
 
     constructor () {
         this.rows = [];
+        this.aliases = new Map();
     }
 
     /**
@@ -29,6 +31,44 @@ export class CSVTable {
             row.destroy();
         })
         this.rows = [];
+        this.aliases.clear();
+    }
+
+    /**
+     * setRowAlias - sets the alias to the specific row.
+     *
+     * @param  {number} cellNumber - cell ID
+     * @param  {string} cellAlias - cell alias
+     * @return {CSVRow}
+     */
+    public setRowAlias (rowNumber: number, rowAlias: string): CSVTable {
+        if (this.aliases.has(rowAlias)) {
+            throw new ApiError(`CSVTable - setRowAlias: Alias ${rowAlias} is already exist!`);
+        }
+
+        this.aliases.set(rowAlias, rowNumber);
+        return this;
+    }
+
+    /**
+     * getRowByIndex - returns the CSVRow instance by index row.
+     *
+     * @param  {number} index - index of the element
+     * @return {CSVRow}
+     */
+    public getRowByIndex (index: number): CSVRow {
+        return this.rows[index];
+    }
+
+    /**
+     * getRowByIndex - returns the CSVRow instance by index row.
+     *
+     * @param  {number} index - index of the element
+     * @return {CSVRow}
+     */
+    public getRowByAlias (alias: string): CSVRow {
+        const rowIndex: number = this.aliases.get(alias);
+        return this.rows[rowIndex];
     }
 
     /**
@@ -36,9 +76,14 @@ export class CSVTable {
      *
      * @return {CSVRow}
      */
-    public addRow (): CSVRow {
+    public addRow (alias?: string): CSVRow {
         const row = new CSVRow();
+        const rowIndex = this.rows.length;
         this.rows.push(row);
+
+        if (_.isString(alias) && alias) {
+            this.setRowAlias(rowIndex, alias);
+        }
         return row;
     }
 
