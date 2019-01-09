@@ -1,8 +1,8 @@
 import {
     IAppConfig,
-} from './core/interfaces';
+} from '../interfaces';
 
-export const appConfig: IAppConfig = {
+export const AppConfig: IAppConfig = {
     server: {
         port: 47808,
         outputSequence: {
