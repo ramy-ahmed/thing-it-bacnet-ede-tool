@@ -1,15 +1,6 @@
 import { logger } from '../../core/utils';
 
-import {
-    IComplexACKLayer,
-    IComplexACKReadPropertyService,
-    IBACnetTypeUnsignedInt,
-} from '../../core/interfaces';
-
-import {
-    BACnetConfirmedService,
-    BACnetPropIds,
-} from '../../core/enums';
+import * as BACNet from 'tid-bacnet-logic';
 
 import { edeService } from '../../services';
 
@@ -17,19 +8,16 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../../core/sockets';
 
 export function ReadPropertyRouter (
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-    const apduMessage = inputSoc.apdu as IComplexACKLayer;
+    const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
 
-    const serviceMap = apduMessage.service as IComplexACKReadPropertyService;
-    const propId = serviceMap.propId;
-    const propIdPayload = propId.payload as IBACnetTypeUnsignedInt;
+    const serviceMap = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
+    const propId = serviceMap.prop.id as BACNet.Types.BACnetEnumerated;
 
+    switch (propId.value) {
+        case BACNet.Enums.PropertyId.objectList: {
+            const propArrayIndex = serviceMap.prop.index as BACNet.Types.BACnetUnsignedInteger;
 
-    switch (propIdPayload.value) {
-        case BACnetPropIds.objectList: {
-            const propArrayIndex = serviceMap.propArrayIndex;
-            const propArrayIndexPayload = propArrayIndex.payload as IBACnetTypeUnsignedInt;
-
-            switch (propArrayIndexPayload.value) {
+            switch (propArrayIndex.value) {
                 case 0:
                     return edeService.readPropertyObjectListLenght(inputSoc, outputSoc, serviceSocket);
                 default:
