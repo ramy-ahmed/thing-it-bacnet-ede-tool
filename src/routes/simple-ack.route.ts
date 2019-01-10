@@ -1,23 +1,16 @@
 import { logger } from '../core/utils';
+import * as BACNet from 'tid-bacnet-logic';
 
-import {
-    ISimpleACKLayer,
-} from '../core/interfaces';
-
-import {
-    BACnetConfirmedService,
-} from '../core/enums';
-
-import { simpleACKService, complexACKService } from '../services';
+import { simpleACKService, confirmedReqService } from '../services';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 
 export function SimpleACKRouter (
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-    const apduMessage = inputSoc.apdu as ISimpleACKLayer;
+    const apduMessage = inputSoc.apdu as BACNet.Interfaces.SimpleACK.Read.Layer;
     const serviceChoice = apduMessage.serviceChoice;
 
-    logger.debug(`MainRouter - Request Service: ${BACnetConfirmedService[serviceChoice]}`);
+    logger.debug(`MainRouter - Request Service: ${BACNet.Enums.ConfirmedServiceChoice[serviceChoice]}`);
     switch (serviceChoice) {
     }
     return;
