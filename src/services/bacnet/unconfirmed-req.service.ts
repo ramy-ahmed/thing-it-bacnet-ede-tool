@@ -1,6 +1,5 @@
 import { InputSocket, OutputSocket } from '../../core/sockets';
 
-
 import * as BACNet from 'tid-bacnet-logic';
 
 export class UnconfirmedReqService {
