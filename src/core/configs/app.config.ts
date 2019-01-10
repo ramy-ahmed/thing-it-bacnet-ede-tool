@@ -15,7 +15,7 @@ export const AppConfig: IAppConfig = {
     },
     ede: {
         file: {
-            path: `${__dirname}/..`,
+            path: `${__dirname}/../../..`,
             name: `auto-ede.csv`,
             timeout: 15000,
         },
