@@ -38,10 +38,11 @@ export class EDEService {
             return confirmedReqService.readProperty({
                 segAccepted: true,
                 invokeId: 1,
-                objType: objType,
-                objInst: objInst,
-                propId: BACNet.Enums.PropertyId.objectList,
-                propArrayIndex: 0,
+                objId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
+                    index: new BACNet.Types.BACnetUnsignedInteger(0)
+                },
             }, outputSoc);
         } catch (error) {
             logger.info(`EDEService - iAm: ${objType}:${objInst}, ${error}`)
@@ -74,10 +75,11 @@ export class EDEService {
             confirmedReqService.readProperty({
                 segAccepted: true,
                 invokeId: 1,
-                objType: objType,
-                objInst: objInst,
-                propId: BACNet.Enums.PropertyId.objectList,
-                propArrayIndex: itemIndex,
+                objId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
+                    index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
+                },
             }, outputSoc);
         }
 
@@ -113,16 +115,18 @@ export class EDEService {
 
         confirmedReqService.readProperty({
             invokeId: 1,
-            objType: propValuePayload.type,
-            objInst: propValuePayload.instance,
-            propId: BACNet.Enums.PropertyId.objectName,
+            objId,
+            prop: {
+                id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
+            }
         }, outputSoc);
 
         confirmedReqService.readProperty({
             invokeId: 1,
-            objType: propValuePayload.type,
-            objInst: propValuePayload.instance,
-            propId: BACNet.Enums.PropertyId.description,
+            objId,
+            prop: {
+                id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
+            },
         }, outputSoc);
 
         return Bluebird.resolve();
