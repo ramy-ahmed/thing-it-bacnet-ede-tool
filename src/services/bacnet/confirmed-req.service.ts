@@ -1,17 +1,3 @@
-import {
-    BACnetServiceTypes,
-    BLVCFunction,
-} from '../../core/enums';
-
-import { confirmReqPDU } from '../../core/layers/apdus';
-import { blvc, npdu } from '../../core/layers';
-
-import { BACnetWriterUtil } from '../../core/utils';
-
-import {
-    IConfirmedReqReadPropertyOptions,
-} from '../../core/interfaces';
-
 import * as BACNet from 'tid-bacnet-logic';
 
 import { InputSocket, OutputSocket } from '../../core/sockets';
