@@ -105,17 +105,17 @@ export class EDEService {
         const objType = objIdPayload.type;
         const objInst = objIdPayload.instance;
 
-        const propValues = apduService.prop.values;
-        const propValuePayload = propValues[0].getValue() as BACNet.Interfaces.Type.ObjectId;
+        const unitId = apduService.prop.values[0] as BACNet.Types.BACnetObjectId;
+        const unitIdValue = unitId.getValue() as BACNet.Interfaces.Type.ObjectId;
 
-        edeStorage.addUnit({ type: objType, instance: objInst }, propValuePayload);
+        edeStorage.addUnit({ type: objType, instance: objInst }, unitIdValue);
 
         logger.info(`EDEService - readPropertyObjectListItem: Device ${objType}:${objInst},`
-            + `Unit ${propValuePayload.type}:${propValuePayload.instance}`);
+            + `Unit ${unitIdValue.type}:${unitIdValue.instance}`);
 
         confirmedReqService.readProperty({
             invokeId: 1,
-            objId,
+            objId: unitId,
             prop: {
                 id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
             }
@@ -123,7 +123,7 @@ export class EDEService {
 
         confirmedReqService.readProperty({
             invokeId: 1,
-            objId,
+            objId: unitId,
             prop: {
                 id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
             },
@@ -157,7 +157,7 @@ export class EDEService {
 
         // Get prop value
         const propValues = apduService.prop.values;
-        const propValuePayload = propValues[0].getValue() as BACNet.Interfaces.Type.ObjectId;
+        const propValuePayload = propValues[0] as BACNet.Types.BACnetTypeBase;
 
         logger.info(`EDEService - readPropertyAll: ${objType}:${objInst}, Property ID ${propIdPayload.value}`);
         edeStorage.setUnitProp({ type: objType, instance: objInst },
