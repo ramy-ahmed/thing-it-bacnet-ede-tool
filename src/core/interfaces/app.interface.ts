@@ -4,6 +4,7 @@ export interface IAppConfig {
     server: IServerConfig;
     ede: IEDEConfig;
     bacnet: IBACnetConfig;
+    reportProgress: boolean;
 }
 
 export interface IBACnetConfig {

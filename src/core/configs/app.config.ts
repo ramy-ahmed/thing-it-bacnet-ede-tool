@@ -3,6 +3,7 @@ import {
 } from '../interfaces';
 
 export const AppConfig: IAppConfig = {
+    reportProgress: false,
     server: {
         port: 47808,
         outputSequence: {
@@ -21,7 +22,7 @@ export const AppConfig: IAppConfig = {
         },
         header: {
             projectName: 'Thing-it',
-            authorOfLastChange: 'Andrey',
+            authorOfLastChange: '',
             versionOfRefFile: 1,
             versionOfLayout: 2,
         }
