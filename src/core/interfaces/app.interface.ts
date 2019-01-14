@@ -24,3 +24,10 @@ export interface ISequenceFlow {
     method: any;
     params: any[];
 }
+
+
+export interface IScanStatus {
+    devicesFound: number;
+    datapointsDiscovered: number;
+    datapointsReceived: number;
+}
