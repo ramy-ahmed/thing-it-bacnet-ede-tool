@@ -20,6 +20,7 @@ import {
 import {
     IAppConfig,
     IBACnetAddressInfo,
+    IScanStatus
 } from '../core/interfaces';
 
 import {
@@ -27,13 +28,20 @@ import {
     AsyncUtil,
 } from '../core/utils';
 
+import { scanProgressService } from '../services'
+import { BehaviorSubject } from 'rxjs'
+
 export class AppManager {
     private server: Server;
     private edeStorageManager: EDEStorageManager;
+    public progressReportsFlow: BehaviorSubject<IScanStatus>;
 
     constructor (private appConfig: IAppConfig) {
         this.handleArgs();
         this.server = new Server(this.appConfig.server, mainRouter);
+        if (this.appConfig.reportProgress) {
+            this.progressReportsFlow = scanProgressService.getProgressNotificationsFlow();
+        }
         this.initServices();
     }
 
