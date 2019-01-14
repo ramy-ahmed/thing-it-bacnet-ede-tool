@@ -1,13 +1,5 @@
 import { logger } from '../core/utils';
-
-import {
-    IComplexACKLayer,
-} from '../core/interfaces';
-
-import {
-    BACnetConfirmedService,
-    BACnetPropIds,
-} from '../core/enums';
+import * as BACNet from 'tid-bacnet-logic';
 
 import { edeService } from '../services';
 
@@ -16,12 +8,12 @@ import { ReadPropertyRouter } from './complex-ack/read-property.route';
 
 export function ComplexACKRouter (
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-    const apduMessage = inputSoc.apdu as IComplexACKLayer;
+    const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
     const serviceChoice = apduMessage.serviceChoice;
 
-    logger.debug(`MainRouter - Request Service: ${BACnetConfirmedService[serviceChoice]}`);
+    logger.debug(`MainRouter - Request Service: ${BACNet.Enums.ConfirmedServiceChoice[serviceChoice]}`);
     switch (serviceChoice) {
-        case BACnetConfirmedService.ReadProperty:
+        case BACNet.Enums.ConfirmedServiceChoice.ReadProperty:
             return ReadPropertyRouter(inputSoc, outputSoc, serviceSocket);
     }
     return;

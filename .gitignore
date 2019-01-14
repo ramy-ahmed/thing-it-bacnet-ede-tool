@@ -3,4 +3,4 @@
 /dist
 /tests
 /*auto-ede.csv
-/all-logs.log
+/*.log

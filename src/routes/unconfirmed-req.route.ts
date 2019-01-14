@@ -1,12 +1,5 @@
 import { logger } from '../core/utils';
-
-import {
-    IUnconfirmedReqLayer,
-} from '../core/interfaces';
-
-import {
-    BACnetUnconfirmedService,
-} from '../core/enums';
+import * as BACNet from 'tid-bacnet-logic';
 
 import { edeService } from '../services';
 
@@ -14,12 +7,12 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 
 export function UnconfirmedReqRouter (
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-    const apduMessage = inputSoc.apdu as IUnconfirmedReqLayer;
+    const apduMessage = inputSoc.apdu as BACNet.Interfaces.UnconfirmedRequest.Read.Layer;
     const serviceChoice = apduMessage.serviceChoice;
 
-    logger.debug(`MainRouter - Request Service: ${BACnetUnconfirmedService[serviceChoice]}`);
+    logger.debug(`MainRouter - Request Service: ${BACNet.Enums.UnconfirmedServiceChoice[serviceChoice]}`);
     switch (serviceChoice) {
-        case BACnetUnconfirmedService.iAm:
+        case BACNet.Enums.UnconfirmedServiceChoice.iAm:
             return edeService.iAm(inputSoc, outputSoc, serviceSocket);
     }
     return;

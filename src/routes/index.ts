@@ -1,8 +1,6 @@
 import { logger } from '../core/utils';
 
-import {
-    BACnetServiceTypes,
-} from '../core/enums';
+import * as BACNet from 'tid-bacnet-logic';
 
 import { ConfirmedReqRouter } from './confirmed-req.route';
 import { UnconfirmedReqRouter } from './unconfirmed-req.route';
@@ -16,15 +14,15 @@ export function mainRouter (
     const apduReq = inputSoc.apdu;
     const pduType = apduReq.type;
 
-    logger.debug(`MainRouter - Request PDU: ${BACnetServiceTypes[pduType]}`);
+    logger.debug(`MainRouter - Request PDU: ${BACNet.Enums.ServiceType[pduType]}`);
     switch (pduType) {
-        case BACnetServiceTypes.ConfirmedReqPDU:
+        case BACNet.Enums.ServiceType.ConfirmedReqPDU:
             return ConfirmedReqRouter(inputSoc, outputSoc, serviceSocket);
-        case BACnetServiceTypes.UnconfirmedReqPDU:
+        case BACNet.Enums.ServiceType.UnconfirmedReqPDU:
             return UnconfirmedReqRouter(inputSoc, outputSoc, serviceSocket);
-        case BACnetServiceTypes.SimpleACKPDU:
+        case BACNet.Enums.ServiceType.SimpleACKPDU:
             return SimpleACKRouter(inputSoc, outputSoc, serviceSocket);
-        case BACnetServiceTypes.ComplexACKPDU:
+        case BACNet.Enums.ServiceType.ComplexACKPDU:
             return ComplexACKRouter(inputSoc, outputSoc, serviceSocket);
     }
     return;

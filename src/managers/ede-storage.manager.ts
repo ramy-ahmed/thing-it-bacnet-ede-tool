@@ -126,7 +126,7 @@ export class EDEStorageManager {
      *
      * @return {void}
      */
-    public saveEDEStorage (): Bluebird<any> {
+    public saveEDEStorage (): Bluebird<string[]> {
         const groupedUnits: Map<string, IEDEUnit[]> = new Map();
         this.units.forEach((unit) => {
             const deviceId = this.getObjId(unit.props.deviceId.type, unit.props.deviceId.instance);

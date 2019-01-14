@@ -1,11 +1,6 @@
 import { CSVRow } from '../csv/row.csv';
 import { OutputSocket } from '../sockets';
-import { IBACnetTypeCharString } from './unit.interface';
-
-import {
-    IBACnetObjectIdentifier,
-    IBACnetAddressInfo,
-} from './bacnet.interface';
+import * as BACNet from 'tid-bacnet-logic';
 
 export interface IEDEConfig {
     file: IEDEFileConfig;
@@ -30,8 +25,8 @@ export interface IEDEUnit {
     props: IEDEUnitProps;
 }
 export interface IEDEUnitProps {
-    objId: IBACnetObjectIdentifier;
-    deviceId: IBACnetObjectIdentifier;
-    objectName?: IBACnetTypeCharString;
-    description?: IBACnetTypeCharString;
+    objId: BACNet.Interfaces.Type.ObjectId;
+    deviceId: BACNet.Interfaces.Type.ObjectId;
+    objectName?: BACNet.Types.BACnetCharacterString;
+    description?: BACNet.Types.BACnetCharacterString;
 }

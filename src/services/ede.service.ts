@@ -1,25 +1,11 @@
 import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
 
-import {
-    IComplexACKLayer,
-    IComplexACKReadPropertyService,
-    IBACnetTypeObjectId,
-    IBACnetTypeUnsignedInt,
-} from '../core/interfaces';
-
-import {
-    BACnetServiceTypes,
-    BACnetPropIds,
-    BLVCFunction,
-} from '../core/enums';
+import * as BACNet from 'tid-bacnet-logic';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 
-import { complexACKPDU, simpleACKPDU } from '../core/layers/apdus';
-import { blvc, npdu } from '../core/layers';
-
-import { BACnetWriterUtil, logger } from '../core/utils';
+import { logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
 import { confirmedReqService } from './bacnet';
@@ -35,13 +21,13 @@ export class EDEService {
      */
     public iAm (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduMessage = inputSoc.apdu as IComplexACKLayer;
-        const apduService = apduMessage.service as IComplexACKReadPropertyService;
+        const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+        const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
         // Get object identifier
         const objId = apduService.objId;
-        const objIdPayload = objId.payload as IBACnetTypeObjectId;
+        const objIdPayload = objId.getValue() as BACNet.Interfaces.Type.ObjectId;
         const objType = objIdPayload.type;
         const objInst = objIdPayload.instance;
 
@@ -52,10 +38,11 @@ export class EDEService {
             return confirmedReqService.readProperty({
                 segAccepted: true,
                 invokeId: 1,
-                objType: objType,
-                objInst: objInst,
-                propId: BACnetPropIds.objectList,
-                propArrayIndex: 0,
+                objId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
+                    index: new BACNet.Types.BACnetUnsignedInteger(0)
+                },
             }, outputSoc);
         } catch (error) {
             logger.info(`EDEService - iAm: ${objType}:${objInst}, ${error}`)
@@ -71,27 +58,28 @@ export class EDEService {
      */
     public readPropertyObjectListLenght (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduMessage = inputSoc.apdu as IComplexACKLayer;
-        const apduService = apduMessage.service as IComplexACKReadPropertyService;
+        const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+        const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
 
         // Get object identifier
         const objId = apduService.objId;
-        const objIdPayload = objId.payload as IBACnetTypeObjectId;
+        const objIdPayload = objId.getValue() as BACNet.Interfaces.Type.ObjectId;
         const objType = objIdPayload.type;
         const objInst = objIdPayload.instance;
 
-        const propValues = apduService.propValues;
-        const propValuePayload = propValues[0].payload as IBACnetTypeUnsignedInt;
+        const propValues = apduService.prop.values
+        const propValuePayload = propValues[0] as BACNet.Types.BACnetUnsignedInteger;
 
         logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValuePayload.value}`);
         for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
             confirmedReqService.readProperty({
                 segAccepted: true,
                 invokeId: 1,
-                objType: objType,
-                objInst: objInst,
-                propId: BACnetPropIds.objectList,
-                propArrayIndex: itemIndex,
+                objId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
+                    index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
+                },
             }, outputSoc);
         }
 
@@ -107,36 +95,38 @@ export class EDEService {
      */
     public readPropertyObjectListItem (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduMessage = inputSoc.apdu as IComplexACKLayer;
-        const apduService = apduMessage.service as IComplexACKReadPropertyService;
+        const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+        const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
         // Get object identifier
         const objId = apduService.objId;
-        const objIdPayload = objId.payload as IBACnetTypeObjectId;
+        const objIdPayload = objId.value as BACNet.Interfaces.Type.ObjectId;
         const objType = objIdPayload.type;
         const objInst = objIdPayload.instance;
 
-        const propValues = apduService.propValues;
-        const propValuePayload = propValues[0].payload as IBACnetTypeObjectId;
+        const unitId = apduService.prop.values[0] as BACNet.Types.BACnetObjectId;
+        const unitIdValue = unitId.getValue() as BACNet.Interfaces.Type.ObjectId;
 
-        edeStorage.addUnit({ type: objType, instance: objInst }, propValuePayload);
+        edeStorage.addUnit({ type: objType, instance: objInst }, unitIdValue);
 
         logger.info(`EDEService - readPropertyObjectListItem: Device ${objType}:${objInst},`
-            + `Unit ${propValuePayload.type}:${propValuePayload.instance}`);
+            + `Unit ${unitIdValue.type}:${unitIdValue.instance}`);
 
         confirmedReqService.readProperty({
             invokeId: 1,
-            objType: propValuePayload.type,
-            objInst: propValuePayload.instance,
-            propId: BACnetPropIds.objectName,
+            objId: unitId,
+            prop: {
+                id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
+            }
         }, outputSoc);
 
         confirmedReqService.readProperty({
             invokeId: 1,
-            objType: propValuePayload.type,
-            objInst: propValuePayload.instance,
-            propId: BACnetPropIds.description,
+            objId: unitId,
+            prop: {
+                id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
+            },
         }, outputSoc);
 
         return Bluebird.resolve();
@@ -151,27 +141,27 @@ export class EDEService {
      */
     public readPropertyAll (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduMessage = inputSoc.apdu as IComplexACKLayer;
-        const apduService = apduMessage.service as IComplexACKReadPropertyService;
+        const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+        const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
         // Get object identifier
         const objId = apduService.objId;
-        const objIdPayload = objId.payload as IBACnetTypeObjectId;
+        const objIdPayload = objId.getValue() as BACNet.Interfaces.Type.ObjectId;
         const objType = objIdPayload.type;
         const objInst = objIdPayload.instance;
 
         // Get prop identifier
-        const propId = apduService.propId;
-        const propIdPayload = propId.payload as IBACnetTypeUnsignedInt;
+        const propId = apduService.prop.id;
+        const propIdPayload = propId as BACNet.Types.BACnetEnumerated;
 
         // Get prop value
-        const propValues = apduService.propValues;
-        const propValuePayload = propValues[0].payload as IBACnetTypeObjectId;
+        const propValues = apduService.prop.values;
+        const propValuePayload = propValues[0] as BACNet.Types.BACnetTypeBase;
 
-        logger.info(`EDEService - readPropertyAll: ${objType}:${objInst}, Property ID ${propIdPayload.value}`);
+        logger.info(`EDEService - readPropertyAll: (${objType}:${objInst}) Property (${BACNet.Enums.PropertyId[propIdPayload.value]}): ${propValuePayload.value}`);
         edeStorage.setUnitProp({ type: objType, instance: objInst },
-            BACnetPropIds[propIdPayload.value], propValuePayload);
+            BACNet.Enums.PropertyId[propIdPayload.value], propValuePayload);
 
         return Bluebird.resolve();
     }

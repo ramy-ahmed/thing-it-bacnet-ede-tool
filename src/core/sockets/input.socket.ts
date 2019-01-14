@@ -2,21 +2,24 @@ import * as dgram from 'dgram';
 
 import * as Bluebird from 'bluebird';
 
-import { blvc } from '../layers/blvc.layer';
-
 import { logger } from '../utils';
 
-import { IBLVCLayer, INPDULayer, IAPDULayer } from '../interfaces';
+import * as BACNet from 'tid-bacnet-logic';
 
 export class InputSocket {
-    public className: string = 'InputSocket';
-    public blvc: IBLVCLayer;
-    public npdu: INPDULayer;
-    public apdu: IAPDULayer;
+    public readonly className: string = 'InputSocket';
+    public blvc: BACNet.Interfaces.BLVC.Read.Layer;
+    public npdu: BACNet.Interfaces.NPDU.Read.Layer;
+    public apdu: BACNet.Interfaces.APDU.Read.Layer;
 
     constructor (msg: Buffer) {
         logger.debug(`${this.className} - message: ${msg.toString('hex')}`);
-        this.blvc = blvc.getFromBuffer(msg);
+        const reader = new BACNet.IO.Reader(msg);
+        try {
+            this.blvc = BACNet.Layers.Reader.BLVC.readLayer(reader);
+        } catch (error) {
+            logger.error(error);
+        }
 
         try {
             this.npdu = this.blvc.npdu;
