@@ -101,7 +101,7 @@ export class EDEStorageManager {
 
         const newUnit = this.setObjectProperty(unit, propName, propValue);
 
-        if (_.has(newUnit.props, 'objectName')) {
+        if (propName === 'objectName') {
             scanProgressService.reportDatapointReceived();
         }
 
