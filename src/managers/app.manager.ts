@@ -1,7 +1,6 @@
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
-import { argv } from 'yargs';
 
 import { InputSocket, OutputSocket, Server } from '../core/sockets';
 
@@ -37,45 +36,11 @@ export class AppManager {
     public progressReportsFlow: BehaviorSubject<IScanStatus>;
 
     constructor (private appConfig: IAppConfig) {
-        this.handleArgs();
         this.server = new Server(this.appConfig.server, mainRouter);
         if (this.appConfig.reportProgress) {
             this.progressReportsFlow = scanProgressService.getProgressNotificationsFlow();
         }
         this.initServices();
-    }
-
-    public handleArgs () {
-        if (argv.filePath) {
-            if (!path.isAbsolute(argv.filePath)) {
-                throw new ApiError('AppManager - handleArgs: Path must be absolute!');
-            }
-            this.appConfig.ede.file.path = argv.filePath;
-        }
-
-        if (argv.network) {
-            this.appConfig.bacnet.network = argv.network;
-        }
-
-        if (argv.fileName) {
-            this.appConfig.ede.file.name = argv.fileName;
-        }
-
-        if (argv.port) {
-            this.appConfig.server.port = argv.port;
-        }
-
-        if (argv.timeout) {
-            this.appConfig.ede.file.timeout = +argv.timeout;
-        }
-
-        if (argv.reqDelay) {
-            this.appConfig.server.outputSequence.delay = +argv.reqDelay;
-        }
-
-        if (argv.reqThread) {
-            this.appConfig.server.outputSequence.thread = +argv.reqThread;
-        }
     }
 
     public initServices () {

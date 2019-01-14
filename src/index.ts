@@ -1,6 +1,3 @@
-import { AppManager } from './managers/app.manager';
+export { AppManager } from './managers/app.manager';
 
-import { AppConfig } from './core/configs';
-
-const appManager = new AppManager(AppConfig);
-appManager.start();
+export { AppConfig } from './core/configs';

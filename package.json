@@ -5,7 +5,7 @@
     "main": "./dist/index.js",
     "scripts": {
         "test": "gulp watch:test:unit",
-        "start": "npm run build && node ./dist/index.js",
+        "start": "npm run build && node ./dist/start.js",
         "build": "gulp build:code"
     },
     "repository": {
