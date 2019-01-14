@@ -9,6 +9,7 @@ import { logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
 import { confirmedReqService } from './bacnet';
+import { scanProgressService } from './scan-pogress.service'
 
 export class EDEService {
 
@@ -33,6 +34,7 @@ export class EDEService {
 
         try {
             edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc);
+            scanProgressService.reportDeviceFound();
 
             logger.info(`EDEService - iAm: ${objType}:${objInst}, Add device`);
             return confirmedReqService.readProperty({
@@ -69,6 +71,7 @@ export class EDEService {
 
         const propValues = apduService.prop.values
         const propValuePayload = propValues[0] as BACNet.Types.BACnetUnsignedInteger;
+        scanProgressService.reportDatapointsDiscovered(propValuePayload.value);
 
         logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValuePayload.value}`);
         for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
