@@ -171,13 +171,14 @@ export class EDETableManager {
      *
      * @return {Bluebird<any>}
      */
-    public genCSVFile (deviceInst: string, config: IEDEFileConfig): Bluebird<any> {
+    public genCSVFile (deviceInst: string, config: IEDEFileConfig): Bluebird<string> {
         const csvFileData = this.csvTable.toString();
 
         return new Bluebird((resolve, reject) => {
-            fs.writeFile(`${config.path}/${deviceInst}-${config.name}`, csvFileData, (error) => {
+            const path = `${config.path}/${deviceInst}-${config.name}`;
+            fs.writeFile(path, csvFileData, (error) => {
                 if (error) { return reject(error); }
-                resolve();
+                resolve(path);
             });
         });
     }

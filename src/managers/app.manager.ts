@@ -88,7 +88,7 @@ export class AppManager {
             .then(() => this.startNetworkMonitoring());
     }
 
-    public startNetworkMonitoring () {
+    public startNetworkMonitoring (): Bluebird<any> {
         logger.info('AppManager - startNetworkMonitoring: Start the monitoring');
         if (this.appConfig.ede.file.timeout === 0) {
             return Bluebird.resolve();
@@ -106,10 +106,12 @@ export class AppManager {
                 logger.info('AppManager - stopNetworkMonitoring: Save EDE storage');
                 return this.edeStorageManager.saveEDEStorage();
             })
-            .then(() => {
+            .then((pathArr: string[]) => {
                 logger.info('AppManager - stopNetworkMonitoring: Move EDE logs');
-                return AsyncUtil.moveFile(`${__dirname}/../../all-logs.log`,
+                AsyncUtil.moveFile(`${__dirname}/../../all-logs.log`,
                     `${this.appConfig.ede.file.path}/all-logs.log`);
+                const resolvedPathArr = pathArr.map(pathValue => path.resolve(pathValue));
+                return Bluebird.resolve(resolvedPathArr)
             });
     }
 }
