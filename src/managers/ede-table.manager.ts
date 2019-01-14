@@ -175,7 +175,7 @@ export class EDETableManager {
         const csvFileData = this.csvTable.toString();
 
         return new Bluebird((resolve, reject) => {
-            const path = `${config.path}/${deviceInst}-${config.name}`;
+            const path = `${config.path}/${deviceInst}-${config.name}.csv`;
             fs.writeFile(path, csvFileData, (error) => {
                 if (error) { return reject(error); }
                 resolve(path);
