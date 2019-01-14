@@ -159,7 +159,7 @@ export class EDEService {
         const propValues = apduService.prop.values;
         const propValuePayload = propValues[0] as BACNet.Types.BACnetTypeBase;
 
-        logger.info(`EDEService - readPropertyAll: ${objType}:${objInst}, Property ID ${propIdPayload.value}`);
+        logger.info(`EDEService - readPropertyAll: (${objType}:${objInst}) Property (${BACNet.Enums.PropertyId[propIdPayload.value]}): ${propValuePayload.value}`);
         edeStorage.setUnitProp({ type: objType, instance: objInst },
             BACNet.Enums.PropertyId[propIdPayload.value], propValuePayload);
 
