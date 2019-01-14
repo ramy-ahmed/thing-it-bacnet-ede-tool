@@ -4,6 +4,7 @@ export interface IAppConfig {
     server: IServerConfig;
     ede: IEDEConfig;
     bacnet: IBACnetConfig;
+    reportProgress: boolean;
 }
 
 export interface IBACnetConfig {
@@ -23,4 +24,11 @@ export interface ISequenceFlow {
     object: any;
     method: any;
     params: any[];
+}
+
+
+export interface IScanStatus {
+    devicesFound: number;
+    datapointsDiscovered: number;
+    datapointsReceived: number;
 }

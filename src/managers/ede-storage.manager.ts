@@ -23,6 +23,8 @@ import {
     logger,
 } from '../core/utils';
 
+import { scanProgressService } from '../services';
+
 export class EDEStorageManager {
     private devices: Map<string, IEDEDevice>;
     private units: Map<string, IEDEUnit>;
@@ -97,7 +99,11 @@ export class EDEStorageManager {
         const id = this.getObjId(unitId.type, unitId.instance);
         const unit = this.units.get(id);
 
-        const newUnit = this.setObjectProperty(unit, propName, propValue)
+        const newUnit = this.setObjectProperty(unit, propName, propValue);
+
+        if (propName === 'objectName') {
+            scanProgressService.reportDatapointReceived();
+        }
 
         this.units.set(id, newUnit);
     }
