@@ -6,7 +6,8 @@
     "scripts": {
         "test": "gulp watch:test:unit",
         "start": "npm run build && node ./dist/start.js",
-        "build": "gulp build:code"
+        "build": "gulp build:code",
+        "postinstall": "npm install --ignore-scripts && gulp build:code"
     },
     "repository": {
         "type": "git",
