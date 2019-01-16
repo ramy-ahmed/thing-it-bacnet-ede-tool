@@ -4,6 +4,7 @@ const ts = require('gulp-typescript');
 const tslint = require('gulp-tslint');
 const mocha = require('gulp-mocha');
 const clean = require('gulp-clean');
+const merge = require('merge2');
 
 const folderApp = './dist'; // .
 const folderSrc = './src'; // ./src
@@ -26,6 +27,15 @@ gulp.task('build:code', ['clean:code'], () => {
     return tsProject.src()
         .pipe(tsProject())
         .js.pipe(gulp.dest(folderApp));
+});
+gulp.task('build:prod', ['clean:code'], () => {
+    const tsResult = tsProject.src()
+        .pipe(tsProject());
+
+    return merge([
+        tsResult.dts.pipe(gulp.dest(folderApp)),
+        tsResult.js.pipe(gulp.dest(folderApp)),
+    ]);
 });
 gulp.task('build:test', ['clean:test'], () => {
     return tsTest.src()
