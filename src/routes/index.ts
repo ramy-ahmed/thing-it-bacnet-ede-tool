@@ -10,7 +10,7 @@ import { ComplexACKRouter } from './complex-ack.route';
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 
 export function mainRouter (
-        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
+        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket): any {
     const apduReq = inputSoc.apdu;
     const pduType = apduReq.type;
 

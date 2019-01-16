@@ -7,7 +7,7 @@ import { edeService } from '../../services';
 import { InputSocket, OutputSocket, ServiceSocket } from '../../core/sockets';
 
 export function ReadPropertyRouter (
-        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
+        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket): any {
     const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
 
     const serviceMap = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;

@@ -7,7 +7,7 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 import { ReadPropertyRouter } from './complex-ack/read-property.route';
 
 export function ComplexACKRouter (
-        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
+        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket): any {
     const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
     const serviceChoice = apduMessage.serviceChoice;
 
