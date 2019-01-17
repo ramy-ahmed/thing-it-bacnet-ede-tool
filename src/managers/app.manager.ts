@@ -48,13 +48,13 @@ export class AppManager {
         this.server.registerService('edeStorage', this.edeStorageManager);
     }
 
-    public start () {
-        this.server.startServer()
+    public start (): Bluebird<any> {
+        return this.server.startServer()
             .then((addrInfo: IBACnetAddressInfo) => {
                 // Generate OutputSocket instance
                 const outputSocket = this.server.genOutputSocket({
                     address: this.appConfig.bacnet.network,
-                    port: addrInfo.port,
+                    port: 47807,
                 });
                 return unconfirmedReqService.whoIs(null, outputSocket);
             })
