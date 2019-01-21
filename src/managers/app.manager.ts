@@ -54,7 +54,7 @@ export class AppManager {
                 // Generate OutputSocket instance
                 const outputSocket = this.server.genOutputSocket({
                     address: this.appConfig.bacnet.network,
-                    port: 47807,
+                    port: addrInfo.port,
                 });
                 return unconfirmedReqService.whoIs(null, outputSocket);
             })
