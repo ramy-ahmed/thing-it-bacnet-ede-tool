@@ -46,7 +46,7 @@
         "lodash": "^4.17.5",
         "moment": "^2.20.1",
         "rxjs": "^5.5.6",
-        "tid-bacnet-logic": "git+https://github.com/thing-it/tid-bacnet-logic.git",
+        "@thing-it/device-bacnet-logic": "^1.0.0",
         "winston": "^2.4.0",
         "yargs": "^11.0.0"
     }

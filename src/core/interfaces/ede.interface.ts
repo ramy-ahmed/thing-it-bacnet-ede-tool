@@ -1,6 +1,6 @@
 import { CSVRow } from '../csv/row.csv';
 import { OutputSocket } from '../sockets';
-import * as BACNet from 'tid-bacnet-logic';
+import * as BACNet from '@thing-it/device-bacnet-logic';
 
 export interface IEDEConfig {
     file: IEDEFileConfig;

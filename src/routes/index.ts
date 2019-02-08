@@ -1,6 +1,6 @@
 import { logger } from '../core/utils';
 
-import * as BACNet from 'tid-bacnet-logic';
+import * as BACNet from '@thing-it/device-bacnet-logic';
 
 import { ConfirmedReqRouter } from './confirmed-req.route';
 import { UnconfirmedReqRouter } from './unconfirmed-req.route';

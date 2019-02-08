@@ -1,4 +1,4 @@
-import * as BACNet from 'tid-bacnet-logic';
+import * as BACNet from '@thing-it/device-bacnet-logic';
 
 export interface IBACnetObjectIdentifier {
     type: number;
