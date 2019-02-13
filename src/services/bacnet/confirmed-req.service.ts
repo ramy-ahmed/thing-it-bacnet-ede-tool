@@ -1,4 +1,4 @@
-import * as BACNet from '@thing-it/device-bacnet-logic';
+import * as BACNet from '@thing-it/bacnet-logic';
 
 import { InputSocket, OutputSocket } from '../../core/sockets';
 

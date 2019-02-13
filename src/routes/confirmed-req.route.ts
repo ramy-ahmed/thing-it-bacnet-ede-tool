@@ -1,5 +1,5 @@
 import { logger } from '../core/utils';
-import * as BACNet from '@thing-it/device-bacnet-logic';
+import * as BACNet from '@thing-it/bacnet-logic';
 
 import { confirmedReqService } from '../services';
 

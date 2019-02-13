@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
 
-import * as BACNet from '@thing-it/device-bacnet-logic';
+import * as BACNet from '@thing-it/bacnet-logic';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 

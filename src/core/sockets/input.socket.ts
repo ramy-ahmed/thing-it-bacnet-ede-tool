@@ -4,7 +4,7 @@ import * as Bluebird from 'bluebird';
 
 import { logger } from '../utils';
 
-import * as BACNet from '@thing-it/device-bacnet-logic';
+import * as BACNet from '@thing-it/bacnet-logic';
 
 export class InputSocket {
     public readonly className: string = 'InputSocket';
