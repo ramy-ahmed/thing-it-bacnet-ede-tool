@@ -81,10 +81,12 @@ export class AppManager {
             })
             .then((pathArr: string[]) => {
                 logger.info('AppManager - stopNetworkMonitoring: Move EDE logs');
-                AsyncUtil.moveFile(`./all-logs.log`,
-                    `${this.appConfig.ede.file.path}/${this.appConfig.ede.file.name}.log`);
+
                 const resolvedPathArr = pathArr.map(pathValue => path.resolve(pathValue));
-                return Bluebird.resolve(resolvedPathArr)
-            });
+                return Bluebird.resolve(resolvedPathArr);
+            })
+            .catch((err) => {
+                logger.error('AppManager - stopNetworkMonitoring: Close the socket connection');
+            })
     }
 }
