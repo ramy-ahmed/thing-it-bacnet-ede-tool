@@ -74,6 +74,7 @@ export class AppManager {
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Close the socket connection');
                 this.server.destroy();
+                scanProgressService.clearData();
             })
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Save EDE storage');

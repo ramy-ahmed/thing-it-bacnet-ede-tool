@@ -29,6 +29,14 @@ export class ScanProgressService {
     getProgressNotificationsFlow() {
         return this.statusNotificationsFlow;
     }
+
+    clearData() {
+        this.scanStatus = {
+            devicesFound: 0,
+            datapointsDiscovered: 0,
+            datapointsReceived: 0
+        };
+    }
 }
 
 export const scanProgressService = new ScanProgressService();
