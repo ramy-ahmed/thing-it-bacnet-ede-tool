@@ -1,13 +1,12 @@
 {
-    "name": "thing-it-bacnet-ede-tool",
+    "name": "@thing-it/bacnet-ede-tool",
     "version": "1.0.0",
-    "description": "thing-it-bacnet-ede-tool",
+    "description": "@thing-it/bacnet-ede-tool",
     "main": "./dist/index.js",
     "scripts": {
         "test": "gulp watch:test:unit",
-        "start": "npm run build && node ./dist/start.js",
-        "build": "gulp build:code",
-        "postinstall": "npm install --ignore-scripts && gulp build:prod"
+        "start": "gulp build:code && node ./dist/start.js",
+        "build": "gulp build:prod"
     },
     "repository": {
         "type": "git",
@@ -29,11 +28,11 @@
         "@types/winston": "^2.3.8",
         "@types/yargs": "^11.0.0",
         "chai": "^4.1.2",
-        "gulp": "^3.9.1",
+        "gulp": "^4.0.0",
         "gulp-clean": "^0.4.0",
         "gulp-mocha": "^5.0.0",
         "gulp-tslint": "^8.1.3",
-        "gulp-typescript": "^4.0.1",
+        "gulp-typescript": "^4.0.2",
         "merge2": "^1.2.3",
         "mocha": "^5.0.1",
         "run-sequence": "^2.2.1",
