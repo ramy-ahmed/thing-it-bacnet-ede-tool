@@ -31,8 +31,21 @@ gulp.task('build:code', gulp.series(['clean:code'], () => {
         tsResult.js.pipe(gulp.dest(folderApp)),
     ]);
 }));
+gulp.task('build:prod:package', (cb) => {
+    const fs = require('fs');
+    const packageJson = require('./package.json');
+    packageJson.main = 'index.js';
+    packageJson.scripts = {};
+    packageJson.devDependencies = {};
 
-gulp.task('build:prod', gulp.series(['clean:code'], () => {
+    if (!fs.existsSync(folderApp)){
+        fs.mkdirSync(folderApp);
+    }
+
+    const packageJsonString = JSON.stringify(packageJson, null, 2);
+    fs.writeFile(`${folderApp}/package.json`, packageJsonString, cb);
+});
+gulp.task('build:prod', gulp.series(['clean:code'], 'build:prod:package', () => {
     
     return tsProject.src()
         .pipe(tsProject())
