@@ -1,6 +1,7 @@
 /node_modules
 /build
-/dist
+/dist/**
+!/dist/.gitkeep
 /tests
 /*auto-ede.csv
 /*.log
