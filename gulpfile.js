@@ -1,5 +1,4 @@
 const gulp = require('gulp');
-const runSequence = require('run-sequence');
 const ts = require('gulp-typescript');
 const tslint = require('gulp-tslint');
 const mocha = require('gulp-mocha');
