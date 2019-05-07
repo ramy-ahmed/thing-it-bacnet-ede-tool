@@ -1,6 +1,7 @@
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
+import * as BACNet from '@thing-it/bacnet-logic';
 
 import { InputSocket, OutputSocket, Server } from '../core/sockets';
 
@@ -56,7 +57,11 @@ export class AppManager {
                     address: this.appConfig.bacnet.network,
                     port: addrInfo.port,
                 });
-                return unconfirmedReqService.whoIs(null, outputSocket);
+                const whoIsParams = {
+                    lowLimit: new BACNet.Types.BACnetUnsignedInteger(0),
+                    hiLimit: new BACNet.Types.BACnetUnsignedInteger(4194303)
+                }
+                return unconfirmedReqService.whoIs(whoIsParams, outputSocket);
             })
             .then(() => this.startNetworkMonitoring());
     }
