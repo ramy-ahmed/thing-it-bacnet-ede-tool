@@ -22,7 +22,8 @@ export class EDEService {
      */
     public iAm (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+        const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
+        const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
@@ -37,6 +38,8 @@ export class EDEService {
             scanProgressService.reportDeviceFound();
 
             logger.info(`EDEService - iAm: ${objType}:${objInst}, Add device`);
+            const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
+
             return confirmedReqService.readProperty({
                 segAccepted: true,
                 invokeId: 1,
@@ -45,7 +48,7 @@ export class EDEService {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
                     index: new BACNet.Types.BACnetUnsignedInteger(0)
                 },
-            }, outputSoc);
+            }, outputSoc, npduOpts);
         } catch (error) {
             logger.info(`EDEService - iAm: ${objType}:${objInst}, ${error}`)
         }
@@ -60,7 +63,8 @@ export class EDEService {
      */
     public readPropertyObjectListLenght (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+        const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
+        const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
 
         // Get object identifier
@@ -74,6 +78,8 @@ export class EDEService {
         scanProgressService.reportDatapointsDiscovered(propValuePayload.value);
 
         logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValuePayload.value}`);
+        const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
+
         for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
             confirmedReqService.readProperty({
                 segAccepted: true,
@@ -83,7 +89,7 @@ export class EDEService {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
                     index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
                 },
-            }, outputSoc);
+            }, outputSoc, npduOpts);
         }
 
         return Bluebird.resolve();
@@ -98,7 +104,8 @@ export class EDEService {
      */
     public readPropertyObjectListItem (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+        const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
+        const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
@@ -115,6 +122,7 @@ export class EDEService {
 
         logger.info(`EDEService - readPropertyObjectListItem: Device ${objType}:${objInst},`
             + `Unit ${unitIdValue.type}:${unitIdValue.instance}`);
+        const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
 
         confirmedReqService.readProperty({
             invokeId: 1,
@@ -122,7 +130,7 @@ export class EDEService {
             prop: {
                 id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
             }
-        }, outputSoc);
+        }, outputSoc, npduOpts);
 
         confirmedReqService.readProperty({
             invokeId: 1,
@@ -130,7 +138,7 @@ export class EDEService {
             prop: {
                 id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
             },
-        }, outputSoc);
+        }, outputSoc, npduOpts);
 
         return Bluebird.resolve();
     }
@@ -167,6 +175,28 @@ export class EDEService {
             BACNet.Enums.PropertyId[propIdPayload.value], propValuePayload);
 
         return Bluebird.resolve();
+    }
+
+    /**
+     * getNpduOptions - transforms 'src' params from incoming messsage to 'dest' params for message to sent.
+     *
+     * @param  {BACNet.Interfaces.NPDU.Read.Layer} npduMessage - incoming message's NPDU Layer
+     * @return {BACNet.Interfaces.NPDU.Write.Layer}
+     */
+    private getNpduOptions (npduMessage: BACNet.Interfaces.NPDU.Read.Layer): BACNet.Interfaces.NPDU.Write.Layer {
+        let npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {};
+        if (npduMessage.src) {
+            const srcParams = npduMessage.src;
+            npduOpts = {
+                control: {
+                    destSpecifier: true
+                },
+                destNetworkAddress: srcParams.networkAddress,
+                destMacAddress: srcParams.macAddress,
+                hopCount: 0xff
+            }
+        }
+        return npduOpts;
     }
 }
 
