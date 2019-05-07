@@ -34,8 +34,8 @@ export class EDETableManager {
         fileType.setCellValue(2, 'Device_Address');
         fileType.setCellValue(3, 'Device_Port');
         if (networkParams) {
-            fileType.setCellValue(2, 'Network_Number');
-            fileType.setCellValue(3, 'MAC-address');
+            fileType.setCellValue(4, 'Network_Number');
+            fileType.setCellValue(5, 'MAC-address');
         }
 
         const projectName = this.csvTable.addRow('ProjectName');
@@ -44,8 +44,8 @@ export class EDETableManager {
         projectName.setCellAlias(2, 'DeviceAddress');
         projectName.setCellAlias(3, 'DevicePort');
         if (networkParams) {
-            projectName.setCellAlias(2, 'Network_Number');
-            projectName.setCellAlias(3, 'MAC-address');
+            projectName.setCellAlias(4, 'Network_Number');
+            projectName.setCellAlias(5, 'MAC-address');
         }
 
         const versionOfRefFile = this.csvTable.addRow();
