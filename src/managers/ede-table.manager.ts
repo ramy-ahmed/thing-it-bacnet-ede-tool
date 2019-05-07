@@ -13,6 +13,7 @@ import {
     IEDEUnit,
     IBACnetAddressInfo,
 } from '../core/interfaces';
+import { Interfaces } from '@thing-it/bacnet-logic';
 
 export class EDETableManager {
     private csvTable: CSVTable;
@@ -27,17 +28,25 @@ export class EDETableManager {
      * @param  {IEDEHeaderOptions} opts - EDE header options
      * @return {void}
      */
-    public addHeader (opts: IEDEHeaderOptions): void {
+    public addHeader (opts: IEDEHeaderOptions, networkParams?: boolean): void {
         const fileType = this.csvTable.addRow();
         fileType.setCellValue(0, '# Proposal_Engineering-Data-Exchange - B.I.G.-EU');
         fileType.setCellValue(2, 'Device_Address');
         fileType.setCellValue(3, 'Device_Port');
+        if (networkParams) {
+            fileType.setCellValue(2, 'Network_Number');
+            fileType.setCellValue(3, 'MAC-address');
+        }
 
         const projectName = this.csvTable.addRow('ProjectName');
         projectName.setCellValue(0, 'Project_Name');
         projectName.setCellValue(1, opts.projectName);
         projectName.setCellAlias(2, 'DeviceAddress');
         projectName.setCellAlias(3, 'DevicePort');
+        if (networkParams) {
+            projectName.setCellAlias(2, 'Network_Number');
+            projectName.setCellAlias(3, 'MAC-address');
+        }
 
         const versionOfRefFile = this.csvTable.addRow();
         versionOfRefFile.setCellValue(0, 'VERSION_OF_REFERENCEFILE');
@@ -98,10 +107,14 @@ export class EDETableManager {
      * @param  {IBACnetAddressInfo} rinfo - address info
      * @return {type}
      */
-    public setDeviceAddressInfo (rinfo: IBACnetAddressInfo) {
+    public setDeviceAddressInfo (rinfo: IBACnetAddressInfo, networkParams?: Interfaces.NPDU.Read.NetworkDest) {
         const projectName = this.csvTable.getRowByAlias('ProjectName');
         projectName.setCellValue('DeviceAddress', rinfo.address);
         projectName.setCellValue('DevicePort', rinfo.port);
+        if (networkParams) {
+            projectName.setCellValue('Network_Number', networkParams.networkAddress);
+            projectName.setCellValue('MAC-address', networkParams.macAddress);
+        }
     }
 
     /**
