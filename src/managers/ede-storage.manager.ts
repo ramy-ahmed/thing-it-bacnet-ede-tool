@@ -24,6 +24,7 @@ import {
 } from '../core/utils';
 
 import { scanProgressService } from '../services';
+import { Interfaces } from '@thing-it/bacnet-logic';
 
 export class EDEStorageManager {
     private devices: Map<string, IEDEDevice>;
@@ -55,7 +56,7 @@ export class EDEStorageManager {
      * @param  {IBACnetAddressInfo} remote
      * @return {void}
      */
-    public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket): void {
+    public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket, destParams?: Interfaces.NPDU.Read.NetworkDest): void {
         const id = this.getObjId(deviceId.type, deviceId.instance);
 
         if (this.devices.has(id)) {
@@ -64,6 +65,7 @@ export class EDEStorageManager {
 
         this.devices.set(id, {
             outputSoc: outputSoc,
+            destParams: destParams
         });
     }
 
@@ -148,11 +150,12 @@ export class EDEStorageManager {
         const promises: Bluebird<any>[] = [];
         groupedUnits.forEach((groupOfUnits, deviceId) => {
             this.edeTableManager.clear();
-            this.edeTableManager.addHeader(this.config.header);
-
             const deviceInfo = this.devices.get(deviceId);
+
+            this.edeTableManager.addHeader(this.config.header, !!deviceInfo.destParams);
+
             const deviceAddressInfo = deviceInfo.outputSoc.getAddressInfo();
-            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo);
+            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo, deviceInfo.destParams);
 
             const device = this.units.get(deviceId);
 

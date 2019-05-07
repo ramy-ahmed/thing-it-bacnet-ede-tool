@@ -34,7 +34,15 @@ export class EDEService {
         const objInst = objIdPayload.instance;
 
         try {
-            edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc);
+            let destParams: BACNet.Interfaces.NPDU.Read.NetworkDest = null;
+            if (npduMessage.src) {
+                destParams = {
+                    networkAddress: npduMessage.src.networkAddress,
+                    macAddress: npduMessage.src.macAddress,
+                    macAddressLen: npduMessage.src.macAddressLen
+                };
+            }
+            edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc, destParams);
             scanProgressService.reportDeviceFound();
 
             logger.info(`EDEService - iAm: ${objType}:${objInst}, Add device`);

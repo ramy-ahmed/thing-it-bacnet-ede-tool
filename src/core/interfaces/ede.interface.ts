@@ -20,6 +20,7 @@ export interface IEDEHeaderOptions {
 
 export interface IEDEDevice {
     outputSoc: OutputSocket;
+    destParams?: BACNet.Interfaces.NPDU.Read.NetworkDest
 }
 export interface IEDEUnit {
     props: IEDEUnitProps;
