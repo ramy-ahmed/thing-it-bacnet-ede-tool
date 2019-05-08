@@ -10,6 +10,7 @@ import { logger } from '../core/utils';
 import { EDEStorageManager } from '../managers/ede-storage.manager';
 import { confirmedReqService } from './bacnet';
 import { scanProgressService } from './scan-pogress.service'
+import { IBACnetAddressInfo } from '../core/interfaces';
 
 export class EDEService {
 
@@ -111,7 +112,7 @@ export class EDEService {
      * @return {type}
      */
     public readPropertyObjectListItem (
-            inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
+            inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket, rinfo: IBACnetAddressInfo) {
         const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
@@ -125,8 +126,12 @@ export class EDEService {
 
         const unitId = apduService.prop.values[0] as BACNet.Types.BACnetObjectId;
         const unitIdValue = unitId.getValue() as BACNet.Interfaces.Type.ObjectId;
+        let macAddress = rinfo.address;
+        if (npduMessage.src) {
+            macAddress = npduMessage.src.macAddress;
+        }
 
-        edeStorage.addUnit({ type: objType, instance: objInst }, unitIdValue);
+        edeStorage.addUnit({ type: objType, instance: objInst }, unitIdValue, macAddress);
 
         logger.info(`EDEService - readPropertyObjectListItem: Device ${objType}:${objInst},`
             + `Unit ${unitIdValue.type}:${unitIdValue.instance}`);
@@ -159,8 +164,9 @@ export class EDEService {
      * @return {type}
      */
     public readPropertyAll (
-            inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
-        const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+            inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket, rinfo: IBACnetAddressInfo) {
+        const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
+        const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
@@ -179,8 +185,13 @@ export class EDEService {
         const propValuePayload = propValues[0] as BACNet.Types.BACnetTypeBase;
 
         logger.info(`EDEService - readPropertyAll: (${objType}:${objInst}) Property (${BACNet.Enums.PropertyId[propIdPayload.value]}): ${propValuePayload.value}`);
+
+        let macAddress = rinfo.address;
+        if (npduMessage.src) {
+            macAddress = npduMessage.src.macAddress;
+        }
         edeStorage.setUnitProp({ type: objType, instance: objInst },
-            BACNet.Enums.PropertyId[propIdPayload.value], propValuePayload);
+            BACNet.Enums.PropertyId[propIdPayload.value], propValuePayload, macAddress);
 
         return Bluebird.resolve();
     }

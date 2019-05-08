@@ -8,9 +8,10 @@ import { SimpleACKRouter } from './simple-ack.route';
 import { ComplexACKRouter } from './complex-ack.route';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
+import { IBACnetAddressInfo } from '../core/interfaces';
 
 export function mainRouter (
-        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket): any {
+        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket, rinfo: IBACnetAddressInfo): any {
     const apduReq = inputSoc.apdu;
     const pduType = apduReq.type;
 
@@ -23,7 +24,7 @@ export function mainRouter (
         case BACNet.Enums.ServiceType.SimpleACKPDU:
             return SimpleACKRouter(inputSoc, outputSoc, serviceSocket);
         case BACNet.Enums.ServiceType.ComplexACKPDU:
-            return ComplexACKRouter(inputSoc, outputSoc, serviceSocket);
+            return ComplexACKRouter(inputSoc, outputSoc, serviceSocket, rinfo);
     }
     return;
 }
