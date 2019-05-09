@@ -78,13 +78,21 @@ export class EDEStorageManager {
         if (this.devices.has(id)) {
             throw new ApiError('EDEStorageManager - addDevice: Device already exists!');
         }
-
-        this.devices.set(id, {
+        const device = {
             objId: deviceId,
             outputSoc: outputSoc,
             destParams: destParams,
             units: new Map()
+        };
+        const deviceUnitId = this.getObjId(deviceId.type, deviceId.instance)
+        device.units.set(deviceUnitId, {
+            props: {
+                deviceId: deviceId,
+                objId: deviceId,
+            },
         });
+
+        this.devices.set(id, device);
     }
 
     /**
@@ -151,7 +159,7 @@ export class EDEStorageManager {
     }
 
     /**
-     * saveEDEStorage2 - saves the EDE data to a separete CSV file for each BACnet device.
+     * saveEDEStorage - saves the EDE data to a separete CSV file for each BACnet device.
      *
      * @return {void}
      */
