@@ -84,7 +84,6 @@ export class EDEService {
 
         const propValues = apduService.prop.values
         const propValuePayload = propValues[0] as BACNet.Types.BACnetUnsignedInteger;
-        scanProgressService.reportDatapointsDiscovered(propValuePayload.value);
 
         logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValuePayload.value}`);
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
@@ -117,6 +116,8 @@ export class EDEService {
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
+
+        scanProgressService.reportDatapointsDiscovered(1);
 
         // Get object identifier
         const objId = apduService.objId;
