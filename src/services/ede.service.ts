@@ -49,7 +49,23 @@ export class EDEService {
             logger.info(`EDEService - iAm: ${objType}:${objInst}, Add device`);
             const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
 
-            return confirmedReqService.readProperty({
+            confirmedReqService.readProperty({
+                invokeId: 1,
+                objId: objId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
+                }
+            }, outputSoc, npduOpts);
+
+            confirmedReqService.readProperty({
+                invokeId: 1,
+                objId: objId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
+                },
+            }, outputSoc, npduOpts);
+
+            confirmedReqService.readProperty({
                 segAccepted: true,
                 invokeId: 1,
                 objId,
