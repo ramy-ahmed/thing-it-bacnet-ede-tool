@@ -45,6 +45,7 @@ export class EDEService {
             }
             edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc, destParams);
             scanProgressService.reportDeviceFound();
+            scanProgressService.reportDatapointsDiscovered(1);
 
             logger.info(`EDEService - iAm: ${objType}:${objInst}, Add device`);
             const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
@@ -133,8 +134,6 @@ export class EDEService {
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
-        scanProgressService.reportDatapointsDiscovered(1);
-
         // Get object identifier
         const objId = apduService.objId;
         const objIdPayload = objId.value as BACNet.Interfaces.Type.ObjectId;
@@ -143,6 +142,11 @@ export class EDEService {
 
         const unitId = apduService.prop.values[0] as BACNet.Types.BACnetObjectId;
         const unitIdValue = unitId.getValue() as BACNet.Interfaces.Type.ObjectId;
+
+        if (unitIdValue.type !== BACNet.Enums.ObjectType.Device) {
+            scanProgressService.reportDatapointsDiscovered(1);
+        }
+
         let macAddress = rinfo.address;
         if (npduMessage.src) {
             macAddress = npduMessage.src.macAddress;
