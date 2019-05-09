@@ -69,15 +69,21 @@ export class EDEStorageManager {
      * @return {void}
      */
     public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket, destParams?: Interfaces.NPDU.Read.NetworkDest): void {
-        const id = this.getObjId(deviceId.type, deviceId.instance);
+        const rinfo = outputSoc.getAddressInfo();
+        let id =  rinfo.address;
+        if (destParams) {
+            id = destParams.macAddress
+        }
 
         if (this.devices.has(id)) {
             throw new ApiError('EDEStorageManager - addDevice: Device already exists!');
         }
 
         this.devices.set(id, {
+            objId: deviceId,
             outputSoc: outputSoc,
-            destParams: destParams
+            destParams: destParams,
+            units: new Map()
         });
     }
 
@@ -89,9 +95,10 @@ export class EDEStorageManager {
      * @return {void}
      */
     public addUnit (deviceId: IBACnetObjectIdentifier, unitId: IBACnetObjectIdentifier, macAddress: string): void {
-        const id = this.getStorageId(macAddress, unitId);
+        const device = this.devices.get(macAddress);
 
-        this.units.set(id, {
+        const id = this.getObjId(unitId.type, unitId.instance);
+        device.units.set(id, {
             props: {
                 deviceId: deviceId,
                 objId: unitId,
@@ -110,8 +117,10 @@ export class EDEStorageManager {
      */
     public setUnitProp (unitId: IBACnetObjectIdentifier,
             propName: string, propValue: any, macAddress: string): void {
-        const id = this.getStorageId(macAddress, unitId);
-        const unit = this.units.get(id);
+        const device = this.devices.get(macAddress);
+
+        const id = this.getObjId(unitId.type, unitId.instance);
+        const unit = device.units.get(id);
 
         const newUnit = this.setObjectProperty(unit, propName, propValue);
 
@@ -119,7 +128,7 @@ export class EDEStorageManager {
             scanProgressService.reportDatapointReceived();
         }
 
-        this.units.set(id, newUnit);
+        device.units.set(id, newUnit);
     }
 
     /**
@@ -147,34 +156,34 @@ export class EDEStorageManager {
      * @return {void}
      */
     public saveEDEStorage (): Bluebird<string[]> {
-        const groupedUnits: Map<string, IEDEUnit[]> = new Map();
-        this.units.forEach((unit) => {
-            const deviceId = this.getObjId(unit.props.deviceId.type, unit.props.deviceId.instance);
+        // const groupedUnits: Map<string, IEDEUnit[]> = new Map();
+        // this.units.forEach((unit) => {
+        //     const deviceId = this.getObjId(unit.props.deviceId.type, unit.props.deviceId.instance);
 
-            if (!groupedUnits.has(deviceId)) {
-                groupedUnits.set(deviceId, []);
-            }
+        //     if (!groupedUnits.has(deviceId)) {
+        //         groupedUnits.set(deviceId, []);
+        //     }
 
-            const groupOfUnits = groupedUnits.get(deviceId);
-            groupOfUnits.push(unit);
-        });
+        //     const groupOfUnits = groupedUnits.get(deviceId);
+        //     groupOfUnits.push(unit);
+        // });
 
         const promises: Bluebird<any>[] = [];
-        groupedUnits.forEach((groupOfUnits, deviceId) => {
+        this.devices.forEach((device) => {
             this.edeTableManager.clear();
-            const deviceInfo = this.devices.get(deviceId);
+            const deviceId = this.getObjId(device.objId.type, device.objId.instance)
 
-            this.edeTableManager.addHeader(this.config.header, !!deviceInfo.destParams);
+            this.edeTableManager.addHeader(this.config.header, !!device.destParams);
 
-            const deviceAddressInfo = deviceInfo.outputSoc.getAddressInfo();
-            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo, deviceInfo.destParams);
+            const deviceAddressInfo = device.outputSoc.getAddressInfo();
+            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo, device.destParams);
 
-            const device = Array.from(this.units.values()).find(unit => this.getObjId(unit.props.objId.type, unit.props.objId.instance) === deviceId);
+            const deviceUnit = device.units.get(deviceId)//Array.from(this.units.values()).find(unit => this.getObjId(unit.props.objId.type, unit.props.objId.instance) === deviceId);
 
-            groupOfUnits.forEach((unit) => {
+            device.units.forEach((unit) => {
                 try {
                     const unitRow = this.edeTableManager.addDataPointRow();
-                    this.edeTableManager.setDataPointRow(unitRow, device.props, unit.props);
+                    this.edeTableManager.setDataPointRow(unitRow, deviceUnit.props, unit.props);
                 } catch (error) {
                     logger.error(`EDEStorageManager - saveEDEStorage: ${error}`);
                 }
