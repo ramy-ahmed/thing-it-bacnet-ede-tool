@@ -5,10 +5,9 @@ import * as BACNet from '@thing-it/bacnet-logic';
 import { edeService } from '../../services';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../../core/sockets';
-import { IBACnetAddressInfo } from '../../core/interfaces';
 
 export function ReadPropertyRouter (
-        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket, rinfo: IBACnetAddressInfo): any {
+        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket): any {
     const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
 
     const serviceMap = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
@@ -22,10 +21,10 @@ export function ReadPropertyRouter (
                 case 0:
                     return edeService.readPropertyObjectListLenght(inputSoc, outputSoc, serviceSocket);
                 default:
-                    return edeService.readPropertyObjectListItem(inputSoc, outputSoc, serviceSocket, rinfo);
+                    return edeService.readPropertyObjectListItem(inputSoc, outputSoc, serviceSocket);
             }
         }
         default:
-            return edeService.readPropertyAll(inputSoc, outputSoc, serviceSocket, rinfo);
+            return edeService.readPropertyAll(inputSoc, outputSoc, serviceSocket);
     }
 }
