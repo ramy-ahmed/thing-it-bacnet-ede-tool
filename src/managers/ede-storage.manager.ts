@@ -9,7 +9,6 @@ import { OutputSocket } from '../core/sockets';
 
 import {
     IEDEConfig,
-    IBACnetAddressInfo,
     IBACnetObjectIdentifier,
     IEDEDevice,
     IEDEUnit,
@@ -47,18 +46,6 @@ export class EDEStorageManager {
      */
     public getObjId (objType: number, objInst: number): string {
         return `${objType}:${objInst}`;
-    }
-
-    /**
-     * getStorageId - returns the storage identifier by the object type and
-     * object instance.
-     *
-     * @param  {number} objType - object type
-     * @param  {number} objInst - object identifier
-     * @return {string}
-     */
-    public getStorageId (macAddress: string, objectId: IBACnetObjectIdentifier): string {
-        return `${macAddress}:${objectId.type}:${objectId.instance}`;
     }
 
     /**
@@ -118,7 +105,7 @@ export class EDEStorageManager {
      * setUnitProp - sets the BACnet property for the EDE unit in internal
      * units storage.
      *
-     * @param  {IBACnetObjectIdentifier} deviceId - BACnet unit identifier
+     * @param  {IBACnetObjectIdentifier} unitId - BACnet unit identifier
      * @param  {string} propName - BACnet property name
      * @param  {any} propValue - BACnet property value
      * @return {void}
@@ -164,17 +151,6 @@ export class EDEStorageManager {
      * @return {void}
      */
     public saveEDEStorage (): Bluebird<string[]> {
-        // const groupedUnits: Map<string, IEDEUnit[]> = new Map();
-        // this.units.forEach((unit) => {
-        //     const deviceId = this.getObjId(unit.props.deviceId.type, unit.props.deviceId.instance);
-
-        //     if (!groupedUnits.has(deviceId)) {
-        //         groupedUnits.set(deviceId, []);
-        //     }
-
-        //     const groupOfUnits = groupedUnits.get(deviceId);
-        //     groupOfUnits.push(unit);
-        // });
 
         const promises: Bluebird<any>[] = [];
         this.devices.forEach((device) => {
@@ -186,7 +162,7 @@ export class EDEStorageManager {
             const deviceAddressInfo = device.outputSoc.getAddressInfo();
             this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo, device.destParams);
 
-            const deviceUnit = device.units.get(deviceId)//Array.from(this.units.values()).find(unit => this.getObjId(unit.props.objId.type, unit.props.objId.instance) === deviceId);
+            const deviceUnit = device.units.get(deviceId);
 
             device.units.forEach((unit) => {
                 try {

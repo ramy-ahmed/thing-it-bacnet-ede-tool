@@ -9,8 +9,7 @@ import { logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
 import { confirmedReqService } from './bacnet';
-import { scanProgressService } from './scan-pogress.service'
-import { IBACnetAddressInfo } from '../core/interfaces';
+import { scanProgressService } from './scan-pogress.service';
 
 export class EDEService {
 
