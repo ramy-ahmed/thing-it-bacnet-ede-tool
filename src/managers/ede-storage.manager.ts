@@ -102,8 +102,8 @@ export class EDEStorageManager {
      * @param  {IBACnetObjectIdentifier} unitId - BACnet unit identifier
      * @return {void}
      */
-    public addUnit (deviceId: IBACnetObjectIdentifier, unitId: IBACnetObjectIdentifier, macAddress: string): void {
-        const device = this.devices.get(macAddress);
+    public addUnit (deviceId: IBACnetObjectIdentifier, unitId: IBACnetObjectIdentifier, deviceStorageId: string): void {
+        const device = this.devices.get(deviceStorageId);
 
         const id = this.getObjId(unitId.type, unitId.instance);
         device.units.set(id, {
@@ -124,8 +124,8 @@ export class EDEStorageManager {
      * @return {void}
      */
     public setUnitProp (unitId: IBACnetObjectIdentifier,
-            propName: string, propValue: any, macAddress: string): void {
-        const device = this.devices.get(macAddress);
+            propName: string, propValue: any, deviceStorageId: string): void {
+        const device = this.devices.get(deviceStorageId);
 
         const id = this.getObjId(unitId.type, unitId.instance);
         const unit = device.units.get(id);
