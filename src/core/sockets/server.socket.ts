@@ -66,7 +66,7 @@ export class Server {
             });
             // Handle request
             try {
-                this.mainRouter(inputSoc, outputSoc, this.serviceSocket, rinfo);
+                this.mainRouter(inputSoc, outputSoc, this.serviceSocket);
             } catch (error) {
                 logger.error(`App ${error}`);
             }

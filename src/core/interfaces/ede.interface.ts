@@ -1,6 +1,7 @@
 import { CSVRow } from '../csv/row.csv';
 import { OutputSocket } from '../sockets';
 import * as BACNet from '@thing-it/bacnet-logic';
+import { IBACnetObjectIdentifier } from './bacnet.interface';
 
 export interface IEDEConfig {
     file: IEDEFileConfig;
@@ -19,8 +20,10 @@ export interface IEDEHeaderOptions {
 }
 
 export interface IEDEDevice {
+    objId: IBACnetObjectIdentifier;
     outputSoc: OutputSocket;
-    destParams?: BACNet.Interfaces.NPDU.Read.NetworkDest
+    destParams?: BACNet.Interfaces.NPDU.Read.NetworkDest;
+    units: Map<string, IEDEUnit>;
 }
 export interface IEDEUnit {
     props: IEDEUnitProps;

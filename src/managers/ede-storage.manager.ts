@@ -9,7 +9,6 @@ import { OutputSocket } from '../core/sockets';
 
 import {
     IEDEConfig,
-    IBACnetAddressInfo,
     IBACnetObjectIdentifier,
     IEDEDevice,
     IEDEUnit,
@@ -50,18 +49,6 @@ export class EDEStorageManager {
     }
 
     /**
-     * getStorageId - returns the storage identifier by the object type and
-     * object instance.
-     *
-     * @param  {number} objType - object type
-     * @param  {number} objInst - object identifier
-     * @return {string}
-     */
-    public getStorageId (macAddress: string, objectId: IBACnetObjectIdentifier): string {
-        return `${macAddress}:${objectId.type}:${objectId.instance}`;
-    }
-
-    /**
      * addDevice - adds the EDE device into internal devices storage.
      *
      * @param  {IBACnetObjectIdentifier} deviceId - BACnet device identifier
@@ -69,16 +56,30 @@ export class EDEStorageManager {
      * @return {void}
      */
     public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket, destParams?: Interfaces.NPDU.Read.NetworkDest): void {
-        const id = this.getObjId(deviceId.type, deviceId.instance);
+        const rinfo = outputSoc.getAddressInfo();
+        let id =  rinfo.address;
+        if (destParams) {
+            id = destParams.macAddress
+        }
 
         if (this.devices.has(id)) {
             throw new ApiError('EDEStorageManager - addDevice: Device already exists!');
         }
-
-        this.devices.set(id, {
+        const device = {
+            objId: deviceId,
             outputSoc: outputSoc,
-            destParams: destParams
+            destParams: destParams,
+            units: new Map()
+        };
+        const deviceUnitId = this.getObjId(deviceId.type, deviceId.instance)
+        device.units.set(deviceUnitId, {
+            props: {
+                deviceId: deviceId,
+                objId: deviceId,
+            },
         });
+
+        this.devices.set(id, device);
     }
 
     /**
@@ -88,10 +89,11 @@ export class EDEStorageManager {
      * @param  {IBACnetObjectIdentifier} unitId - BACnet unit identifier
      * @return {void}
      */
-    public addUnit (deviceId: IBACnetObjectIdentifier, unitId: IBACnetObjectIdentifier, macAddress: string): void {
-        const id = this.getStorageId(macAddress, unitId);
+    public addUnit (deviceId: IBACnetObjectIdentifier, unitId: IBACnetObjectIdentifier, deviceStorageId: string): void {
+        const device = this.devices.get(deviceStorageId);
 
-        this.units.set(id, {
+        const id = this.getObjId(unitId.type, unitId.instance);
+        device.units.set(id, {
             props: {
                 deviceId: deviceId,
                 objId: unitId,
@@ -103,15 +105,17 @@ export class EDEStorageManager {
      * setUnitProp - sets the BACnet property for the EDE unit in internal
      * units storage.
      *
-     * @param  {IBACnetObjectIdentifier} deviceId - BACnet unit identifier
+     * @param  {IBACnetObjectIdentifier} unitId - BACnet unit identifier
      * @param  {string} propName - BACnet property name
      * @param  {any} propValue - BACnet property value
      * @return {void}
      */
     public setUnitProp (unitId: IBACnetObjectIdentifier,
-            propName: string, propValue: any, macAddress: string): void {
-        const id = this.getStorageId(macAddress, unitId);
-        const unit = this.units.get(id);
+            propName: string, propValue: any, deviceStorageId: string): void {
+        const device = this.devices.get(deviceStorageId);
+
+        const id = this.getObjId(unitId.type, unitId.instance);
+        const unit = device.units.get(id);
 
         const newUnit = this.setObjectProperty(unit, propName, propValue);
 
@@ -119,7 +123,7 @@ export class EDEStorageManager {
             scanProgressService.reportDatapointReceived();
         }
 
-        this.units.set(id, newUnit);
+        device.units.set(id, newUnit);
     }
 
     /**
@@ -142,39 +146,28 @@ export class EDEStorageManager {
     }
 
     /**
-     * saveEDEStorage2 - saves the EDE data to a separete CSV file for each BACnet device.
+     * saveEDEStorage - saves the EDE data to a separete CSV file for each BACnet device.
      *
      * @return {void}
      */
     public saveEDEStorage (): Bluebird<string[]> {
-        const groupedUnits: Map<string, IEDEUnit[]> = new Map();
-        this.units.forEach((unit) => {
-            const deviceId = this.getObjId(unit.props.deviceId.type, unit.props.deviceId.instance);
-
-            if (!groupedUnits.has(deviceId)) {
-                groupedUnits.set(deviceId, []);
-            }
-
-            const groupOfUnits = groupedUnits.get(deviceId);
-            groupOfUnits.push(unit);
-        });
 
         const promises: Bluebird<any>[] = [];
-        groupedUnits.forEach((groupOfUnits, deviceId) => {
+        this.devices.forEach((device) => {
             this.edeTableManager.clear();
-            const deviceInfo = this.devices.get(deviceId);
+            const deviceId = this.getObjId(device.objId.type, device.objId.instance)
 
-            this.edeTableManager.addHeader(this.config.header, !!deviceInfo.destParams);
+            this.edeTableManager.addHeader(this.config.header, !!device.destParams);
 
-            const deviceAddressInfo = deviceInfo.outputSoc.getAddressInfo();
-            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo, deviceInfo.destParams);
+            const deviceAddressInfo = device.outputSoc.getAddressInfo();
+            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo, device.destParams);
 
-            const device = Array.from(this.units.values()).find(unit => this.getObjId(unit.props.objId.type, unit.props.objId.instance) === deviceId);
+            const deviceUnit = device.units.get(deviceId);
 
-            groupOfUnits.forEach((unit) => {
+            device.units.forEach((unit) => {
                 try {
                     const unitRow = this.edeTableManager.addDataPointRow();
-                    this.edeTableManager.setDataPointRow(unitRow, device.props, unit.props);
+                    this.edeTableManager.setDataPointRow(unitRow, deviceUnit.props, unit.props);
                 } catch (error) {
                     logger.error(`EDEStorageManager - saveEDEStorage: ${error}`);
                 }
