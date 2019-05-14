@@ -7,6 +7,12 @@ export interface IBACnetObjectIdentifier {
 export interface IBACnetAddressInfo {
     address: string;
     port: number;
+    dest?: IBACnetDestParams;
+}
+
+export interface IBACnetDestParams {
+    networkAddress: number;
+    macAddress: string;
 }
 
 export interface IBACnetDevice extends IBACnetObject {
