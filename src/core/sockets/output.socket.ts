@@ -46,8 +46,12 @@ export class OutputSocket {
      * @return {Bluebird<any>}
      */
     public send (msg: Buffer, reqMethodName: string): void {
+        let id = `${this.rinfo.address}:${this.rinfo.port}`;
+        if (this.rinfo.dest) {
+            id += `${this.rinfo.dest.networkAddress}:${this.rinfo.dest.macAddress}`
+        }
         this.reqFlow.next({
-            id: `${this.rinfo.address}:${this.rinfo.port}`,
+            id,
             object: this,
             method: this._send,
             params: [msg, reqMethodName],
@@ -86,8 +90,12 @@ export class OutputSocket {
      * @return {Bluebird<any>}
      */
     public sendBroadcast (msg: Buffer, reqMethodName: string): void {
+        let id = `${this.rinfo.address}:${this.rinfo.port}`;
+        if (this.rinfo.dest) {
+            id += `${this.rinfo.dest.networkAddress}:${this.rinfo.dest.macAddress}`
+        }
         this.reqFlow.next({
-            id: `${this.rinfo.address}:${this.rinfo.port}`,
+            id,
             object: this,
             method: this._sendBroadcast,
             params: [msg, reqMethodName],
