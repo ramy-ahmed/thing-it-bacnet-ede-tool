@@ -35,7 +35,7 @@ export interface IBACnetObjectProperty {
 }
 
 export interface IBACnetRequestInfo {
-    choice: BACNet.Enums.ConfirmedServiceChoice
+    choice: string
     opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty|BACNet.Interfaces.ConfirmedRequest.Service.WriteProperty|BACNet.Interfaces.ConfirmedRequest.Service.SubscribeCOV|BACNet.Interfaces.ConfirmedRequest.Service.UnsubscribeCOV
 }
 
