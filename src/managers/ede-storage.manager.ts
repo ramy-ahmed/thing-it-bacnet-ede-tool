@@ -1,6 +1,4 @@
-import * as fs from 'fs';
 import * as _ from 'lodash';
-import * as moment from 'moment';
 import * as Bluebird from 'bluebird';
 
 import { EDETableManager } from './ede-table.manager';
@@ -27,12 +25,10 @@ import { Interfaces } from '@thing-it/bacnet-logic';
 
 export class EDEStorageManager {
     private devices: Map<string, IEDEDevice>;
-    private units: Map<string, IEDEUnit>;
     private edeTableManager: EDETableManager;
 
     constructor (private config: IEDEConfig) {
         this.devices = new Map();
-        this.units = new Map();
         this.edeTableManager = new EDETableManager();
     }
 
