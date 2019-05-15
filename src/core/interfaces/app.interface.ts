@@ -31,3 +31,8 @@ export interface IScanStatus {
     datapointsDiscovered: number;
     datapointsReceived: number;
 }
+
+export interface IReqStoreConfig {
+    timeout: number;
+    thread: number;
+}
