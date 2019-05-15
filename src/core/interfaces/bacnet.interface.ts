@@ -1,4 +1,5 @@
 import * as BACNet from '@thing-it/bacnet-logic';
+import { Resolver } from 'bluebird'
 
 export interface IBACnetObjectIdentifier {
     type: number;
@@ -31,4 +32,14 @@ export interface IBACnetObjectProperty {
     id: BACNet.Enums.PropertyId;
     type: BACNet.Enums.PropertyType;
     values: any;
+}
+
+export interface IBACnetRequestInfo {
+    choice: BACNet.Enums.ConfirmedServiceChoice
+    opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty|BACNet.Interfaces.ConfirmedRequest.Service.WriteProperty|BACNet.Interfaces.ConfirmedRequest.Service.SubscribeCOV|BACNet.Interfaces.ConfirmedRequest.Service.UnsubscribeCOV
+}
+
+export interface IBACnetDelayedRequest {
+    idDefer: Resolver<number>;
+    rinfo: IBACnetRequestInfo|boolean;
 }

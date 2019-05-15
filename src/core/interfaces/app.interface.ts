@@ -26,7 +26,6 @@ export interface ISequenceFlow {
     params: any[];
 }
 
-
 export interface IScanStatus {
     devicesFound: number;
     datapointsDiscovered: number;
