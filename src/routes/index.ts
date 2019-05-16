@@ -6,6 +6,9 @@ import { ConfirmedReqRouter } from './confirmed-req.route';
 import { UnconfirmedReqRouter } from './unconfirmed-req.route';
 import { SimpleACKRouter } from './simple-ack.route';
 import { ComplexACKRouter } from './complex-ack.route';
+import { AbortRouter } from './abort.route';
+import { ErrorRouter } from './error.route';
+import { RejectRouter } from './reject.route';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 
@@ -24,6 +27,12 @@ export function mainRouter (
             return SimpleACKRouter(inputSoc, outputSoc, serviceSocket);
         case BACNet.Enums.ServiceType.ComplexACKPDU:
             return ComplexACKRouter(inputSoc, outputSoc, serviceSocket);
+        case BACNet.Enums.ServiceType.ErrorPDU:
+            return ErrorRouter(inputSoc, outputSoc, serviceSocket);
+        case BACNet.Enums.ServiceType.AbortPDU:
+            return RejectRouter(inputSoc, outputSoc, serviceSocket);
+        case BACNet.Enums.ServiceType.RejectPDU:
+            return AbortRouter(inputSoc, outputSoc, serviceSocket);
     }
     return;
 }
