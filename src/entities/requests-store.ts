@@ -1,7 +1,7 @@
 import * as Bluebird from 'bluebird';
 import { Subscription} from 'rxjs';
 import { timer as RxTimer } from 'rxjs/observable/timer';
-import { IBACnetDelayedRequest, IBACnetRequestInfo} from '../core/interfaces'
+import { IBACnetDelayedRequest, IBACnetRequestInfo, IReqStoreConfig} from '../core/interfaces'
 
 export class RequestsStore {
 
@@ -10,7 +10,7 @@ export class RequestsStore {
     private releaseIdSubs: Subscription[] = [];
 
     constructor (
-        private config
+        private config: IReqStoreConfig
     ) {}
 
     /**
@@ -21,7 +21,7 @@ export class RequestsStore {
      */
     public registerRequest (rinfo: IBACnetRequestInfo|boolean = true): Bluebird<number> {
         const id = this.store.findIndex(storedItem => !storedItem)
-        if (id !== -1) {
+        if (id !== -1 && this.config.thread && (this.store.length < this.config.thread)) {
             this.store[id] = rinfo;
             // We need to release id and clean requestInfo after timeout for the cases of network problems
             // It's needed to be sure that status check request will not stuck and successfully be sent after reconnection
