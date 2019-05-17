@@ -20,8 +20,8 @@ export class RequestsStore {
      * @return {Bluebird<number>} - free Invoke Id
      */
     public registerRequest (rinfo: IBACnetRequestInfo|boolean = true): Bluebird<number> {
-        const id = this.store.findIndex(storedItem => !storedItem)
-        if (id !== -1 && this.config.thread && (this.store.length < this.config.thread)) {
+        const id = this.store.findIndex(storedItem => !storedItem);
+        if (id !== -1 && (!this.config.thread || (this.store.length < this.config.thread))) {
             this.store[id] = rinfo;
             // We need to release id and clean requestInfo after timeout for the cases of network problems
             // It's needed to be sure that status check request will not stuck and successfully be sent after reconnection
