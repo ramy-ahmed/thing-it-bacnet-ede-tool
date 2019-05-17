@@ -281,6 +281,39 @@ export class EDEService {
         const invokeId = apduService.invokeId;
         reqStore.releaseInvokeId(invokeId)
     }
+
+    /**
+     * processError - gets requestInfo about error's 'reason' requests and logs it
+     *
+     * @param  {InputSocket} inputSoc - request options
+     * @param  {OutputSocket} outputSoc - output socket
+     * @return {void}
+     */
+    public processError (inputSoc: InputSocket, outputSoc: OutputSocket): void {
+        const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
+        const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+        const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
+
+        const rinfo = outputSoc.getAddressInfo();
+        let deviceStorageId = rinfo.address;
+        if (npduMessage.src) {
+            deviceStorageId = npduMessage.src.macAddress;
+        }
+        const reqStore = this.reqStoresMap.get(deviceStorageId);
+
+        const invokeId = apduService.invokeId;
+        const reqInfo = reqStore.getRequestInfo(invokeId);
+        if (reqInfo.choice === 'readProperty') {
+            const reqOpts = reqInfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;;
+            const objId = reqOpts.objId.value;
+            const prop = reqOpts.prop
+            let logMessage = `readProperty #${invokeId}: (${BACNet.Enums.ObjectType[objId.type]}, ${objId.instance}) - ${BACNet.Enums.PropertyId[prop.id.value]}`
+            if (reqInfo.opts) {
+                logMessage += `[${prop.index.value}]`
+            }
+            logger.error(logMessage)
+        }
+    }
 }
 
 export const edeService: EDEService = new EDEService();

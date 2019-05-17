@@ -15,5 +15,6 @@ export function AbortRouter (
     logger.debug(`MainRouter - Request Service: Abort reason: ${_.capitalize(BACNet.Enums.AbortReason[abortMessage.reason])}`);
 
     edeService.releaseInvokeId(inputSoc, outputSoc);
+    edeService.processError(inputSoc, outputSoc);
     return;
 }

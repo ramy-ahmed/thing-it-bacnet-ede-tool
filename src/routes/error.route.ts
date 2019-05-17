@@ -16,5 +16,6 @@ export function ErrorRouter (
     logger.debug(`MainRouter - Request Service: Reason: ${_.capitalize(BACNet.Enums.ErrorClass[error.class.value])}, error - ${BACNet.Enums.ErrorCode[error.code.value]}`);
 
     edeService.releaseInvokeId(inputSoc, outputSoc);
+    edeService.processError(inputSoc, outputSoc);
     return;
 }

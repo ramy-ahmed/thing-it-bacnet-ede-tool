@@ -15,5 +15,6 @@ export function RejectRouter (
     logger.debug(`Reject reason: ${_.capitalize(BACNet.Enums.RejectReason[rejectMessage.reason])}`);
 
     edeService.releaseInvokeId(inputSoc, outputSoc);
+    edeService.processError(inputSoc, outputSoc);
     return;
 }
