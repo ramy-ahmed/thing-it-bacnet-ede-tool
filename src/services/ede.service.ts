@@ -304,10 +304,10 @@ export class EDEService {
         const invokeId = apduService.invokeId;
         const reqInfo = reqStore.getRequestInfo(invokeId);
         if (reqInfo.choice === 'readProperty') {
-            const reqOpts = reqInfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;;
+            const reqOpts = reqInfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
             const objId = reqOpts.objId.value;
             const prop = reqOpts.prop
-            let logMessage = `readProperty #${invokeId}: (${BACNet.Enums.ObjectType[objId.type]}, ${objId.instance}) - ${BACNet.Enums.PropertyId[prop.id.value]}`
+            let logMessage = `readProperty #${invokeId}: (${BACNet.Enums.ObjectType[objId.type]}, ${objId.instance}) - ${BACNet.Enums.PropertyId[prop.id.value]}`;
             if (reqInfo.opts) {
                 logMessage += `[${prop.index.value}]`
             }
