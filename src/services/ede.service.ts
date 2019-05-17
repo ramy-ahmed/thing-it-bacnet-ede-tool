@@ -269,7 +269,6 @@ export class EDEService {
     public releaseInvokeId (inputSoc: InputSocket, outputSoc: OutputSocket): void {
         const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
-        const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
 
         const rinfo = outputSoc.getAddressInfo();
         let deviceStorageId = rinfo.address;
@@ -278,7 +277,7 @@ export class EDEService {
         }
         const reqStore = this.reqStoresMap.get(deviceStorageId);
 
-        const invokeId = apduService.invokeId;
+        const invokeId = apduMessage.invokeId;
         reqStore.releaseInvokeId(invokeId)
     }
 
