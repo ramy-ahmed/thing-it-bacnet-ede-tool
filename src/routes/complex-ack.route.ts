@@ -10,8 +10,9 @@ export function ComplexACKRouter (
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket): any {
     const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
     const serviceChoice = apduMessage.serviceChoice;
+    const invokeId = apduMessage.invokeId
 
-    logger.debug(`MainRouter - Request Service: ${BACNet.Enums.ConfirmedServiceChoice[serviceChoice]}`);
+    logger.debug(`MainRouter - Request Service: ${BACNet.Enums.ConfirmedServiceChoice[serviceChoice]} #${invokeId}`);
     switch (serviceChoice) {
         case BACNet.Enums.ConfirmedServiceChoice.ReadProperty:
             return ReadPropertyRouter(inputSoc, outputSoc, serviceSocket);
