@@ -305,8 +305,10 @@ export class EDEService {
         if (reqInfo.choice === 'readProperty') {
             const reqOpts = reqInfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
             const objId = reqOpts.objId.value;
-            const prop = reqOpts.prop
-            let logMessage = `readProperty #${invokeId}: (${BACNet.Enums.ObjectType[objId.type]}, ${objId.instance}) - ${BACNet.Enums.PropertyId[prop.id.value]}`;
+            const prop = reqOpts.prop;
+            const deviceId = reqStore.deviceId;
+            let logMessage = `Failed readProperty #${invokeId}: (${BACNet.Enums.ObjectType[deviceId.type]},${deviceId.instance}): `
+                + `(${BACNet.Enums.ObjectType[objId.type]},${objId.instance}) - ${BACNet.Enums.PropertyId[prop.id.value]}`;
             if (reqInfo.opts) {
                 logMessage += `[${prop.index.value}]`
             }
