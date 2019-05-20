@@ -32,9 +32,9 @@ export class EDEService {
 
         // Get object identifier
         const objId = apduService.objId;
-        const objIdPayload = objId.getValue() as BACNet.Interfaces.Type.ObjectId;
-        const objType = objIdPayload.type;
-        const objInst = objIdPayload.instance;
+        const objIdValue = objId.getValue() as BACNet.Interfaces.Type.ObjectId;
+        const objType = objIdValue.type;
+        const objInst = objIdValue.instance;
 
         try {
             let destParams: BACNet.Interfaces.NPDU.Read.NetworkDest = null;
@@ -57,7 +57,7 @@ export class EDEService {
             if (npduMessage.src) {
                 deviceStorageId = npduMessage.src.macAddress;
             }
-            const reqStore = new RequestsStore(ReqStoreConfig);
+            const reqStore = new RequestsStore(ReqStoreConfig, { type: objType, instance: objInst });
             this.reqStoresMap.set(deviceStorageId, reqStore)
 
             confirmedReqService.readProperty({

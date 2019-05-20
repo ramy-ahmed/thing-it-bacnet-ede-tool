@@ -1,7 +1,7 @@
 import * as Bluebird from 'bluebird';
 import { Subscription} from 'rxjs';
 import { timer as RxTimer } from 'rxjs/observable/timer';
-import { IBACnetDelayedRequest, IBACnetRequestInfo, IReqStoreConfig} from '../core/interfaces'
+import { IBACnetDelayedRequest, IBACnetRequestInfo, IReqStoreConfig, IBACnetObjectIdentifier} from '../core/interfaces'
 
 export class RequestsStore {
 
@@ -10,7 +10,8 @@ export class RequestsStore {
     private releaseIdSubs: Subscription[] = [];
 
     constructor (
-        private config: IReqStoreConfig
+        private config: IReqStoreConfig,
+        public deviceId: IBACnetObjectIdentifier
     ) {}
 
     /**
