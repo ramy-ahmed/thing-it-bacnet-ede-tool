@@ -309,7 +309,7 @@ export class EDEService {
             const deviceId = reqStore.deviceId;
             let logMessage = `Failed readProperty #${invokeId}: (${BACNet.Enums.ObjectType[deviceId.type]},${deviceId.instance}): `
                 + `(${BACNet.Enums.ObjectType[objId.type]},${objId.instance}) - ${BACNet.Enums.PropertyId[prop.id.value]}`;
-            if (reqInfo.opts) {
+            if (prop.index) {
                 logMessage += `[${prop.index.value}]`
             }
             logger.error(logMessage)
