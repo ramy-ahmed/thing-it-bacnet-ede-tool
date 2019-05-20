@@ -20,7 +20,7 @@ export class ConfirmedReqService {
                 // Get and send BACnet message
                 opts.invokeId = invokeId;
                 const msgBACnet = BACNet.Services.ConfirmedReqService.readProperty(opts, npduOpts)
-                return output.send(msgBACnet, 'readProperty');
+                return output.send(msgBACnet, `readProperty #${invokeId}`);
             })
     }
 }
