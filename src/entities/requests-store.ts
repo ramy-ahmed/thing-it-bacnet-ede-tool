@@ -1,7 +1,9 @@
 import * as Bluebird from 'bluebird';
 import { Subscription} from 'rxjs';
 import { timer as RxTimer } from 'rxjs/observable/timer';
-import { IBACnetDelayedRequest, IBACnetRequestInfo, IReqStoreConfig, IBACnetObjectIdentifier} from '../core/interfaces'
+import { IBACnetDelayedRequest, IBACnetRequestInfo, IReqStoreConfig, IBACnetObjectIdentifier} from '../core/interfaces';
+import { logger } from '../core/utils';
+import { Enums, Interfaces } from '@thing-it/bacnet-logic';
 
 export class RequestsStore {
 
@@ -20,7 +22,7 @@ export class RequestsStore {
      * @param {object} rinfo - request metadata
      * @return {Bluebird<number>} - free Invoke Id
      */
-    public registerRequest (rinfo: IBACnetRequestInfo|boolean = true): Bluebird<number> {
+    public registerRequest (rinfo: IBACnetRequestInfo): Bluebird<number> {
         const id = this.store.findIndex(storedItem => !storedItem);
         if (id !== -1 && (!this.config.thread || (this.store.length < this.config.thread))) {
             this.store[id] = rinfo;
@@ -28,6 +30,15 @@ export class RequestsStore {
             // It's needed to be sure that status check request will not stuck and successfully be sent after reconnection
             this.releaseIdSubs[id] = RxTimer(this.config.timeout)
                 .subscribe(() => {
+                    const reqOpts = rinfo.opts as Interfaces.ConfirmedRequest.Write.ReadProperty;
+                    const objId = reqOpts.objId.value;
+                    const prop = reqOpts.prop;
+                    let logMessage = `Timeout has exceeded for readProperty #${id}: (${Enums.ObjectType[this.deviceId.type]},${this.deviceId.instance}): `
+                        + `(${Enums.ObjectType[objId.type]},${objId.instance}) - ${Enums.PropertyId[prop.id.value]}`;
+                    if (prop.index) {
+                        logMessage += `[${prop.index.value}]`
+                    }
+                    logger.error(logMessage)
                     this.releaseInvokeId(id);
                 });
             return Bluebird.resolve(id);
