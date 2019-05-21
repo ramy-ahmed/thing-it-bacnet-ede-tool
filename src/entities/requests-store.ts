@@ -38,7 +38,8 @@ export class RequestsStore {
                     if (prop.index) {
                         logMessage += `[${prop.index.value}]`
                     }
-                    logger.error(logMessage)
+                    logger.error(logMessage);
+                    rinfo.timeoutAction && rinfo.timeoutAction(reqOpts);
                     this.releaseInvokeId(id);
                 });
             return Bluebird.resolve(id);

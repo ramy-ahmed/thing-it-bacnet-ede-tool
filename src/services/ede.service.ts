@@ -12,6 +12,7 @@ import { confirmedReqService } from './bacnet';
 import { scanProgressService } from './scan-pogress.service';
 import { RequestsStore } from '../entities';
 import { ReqStoreConfig } from '../core/configs'
+import { IBACNetRequestTimeoutHandler } from '../core/interfaces';
 
 export class EDEService {
     private reqStoresMap: Map<string, RequestsStore> = new Map();
@@ -323,16 +324,16 @@ export class EDEService {
      * @param  {OutputSocket} output - output socket
      * @param  {BACNet.Interfaces.NPDU.Write.Layer} npduOpts - NPDU layer options
      * @param  {RequestsStore} reqStore - requests store
-     * TODO: @param  {Function} timeoutAction - handler for the requests with expired timeout
+     * @param  {IBACNetRequestTimeoutHandler} timeoutAction - handler for the requests with expired timeout
      * @return {Bluebird<any>}
      */
     private sendReadProperty (opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty,
         output: OutputSocket,
         npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {},
-        reqStore: RequestsStore): Bluebird<any> {
-        return reqStore.registerRequest({ choice: 'readProperty', opts })
+        reqStore: RequestsStore,
+        timeoutAction?: IBACNetRequestTimeoutHandler): Bluebird<any> {
+        return reqStore.registerRequest({ choice: 'readProperty', opts, timeoutAction })
             .then((invokeId) => {
-                // Get and send BACnet message
                 opts.invokeId = invokeId;
                 return confirmedReqService.readProperty(opts, output, npduOpts)
             })
