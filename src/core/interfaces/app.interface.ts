@@ -1,4 +1,5 @@
 import { IEDEConfig } from './ede.interface';
+import { Subject } from 'rxjs'
 
 export interface IAppConfig {
     server: IServerConfig;
@@ -30,6 +31,22 @@ export interface IScanStatus {
     devicesFound: number;
     datapointsDiscovered: number;
     datapointsReceived: number;
+}
+
+export interface IUnitPropsProgress {
+    objectName?: Subject<void>;
+    description?: Subject<void>;
+}
+
+export interface IUnitProgress {
+    props: IUnitPropsProgress;
+    processed: Subject<void>;
+}
+
+export interface IDeviceProgress {
+    units: Map<string, IUnitProgress>;
+    objectsList: Subject<void>[];
+    processed: Subject<void>;
 }
 
 export interface IReqStoreConfig {
