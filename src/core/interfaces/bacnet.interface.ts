@@ -34,9 +34,12 @@ export interface IBACnetObjectProperty {
     values: any;
 }
 
+type ConfirmedRequestOptions = BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty|BACNet.Interfaces.ConfirmedRequest.Service.WriteProperty|BACNet.Interfaces.ConfirmedRequest.Service.SubscribeCOV|BACNet.Interfaces.ConfirmedRequest.Service.UnsubscribeCOV;
+
 export interface IBACnetRequestInfo {
     choice: string
-    opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty|BACNet.Interfaces.ConfirmedRequest.Service.WriteProperty|BACNet.Interfaces.ConfirmedRequest.Service.SubscribeCOV|BACNet.Interfaces.ConfirmedRequest.Service.UnsubscribeCOV
+    opts: ConfirmedRequestOptions
+    timeoutAction?: (opts: ConfirmedRequestOptions) => void;
 }
 
 export interface IBACnetDelayedRequest {

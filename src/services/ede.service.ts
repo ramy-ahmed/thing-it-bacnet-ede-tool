@@ -60,7 +60,7 @@ export class EDEService {
             const reqStore = new RequestsStore(ReqStoreConfig, { type: objType, instance: objInst });
             this.reqStoresMap.set(deviceStorageId, reqStore)
 
-            confirmedReqService.readProperty({
+            this.sendReadProperty({
                 invokeId: 1,
                 objId: objId,
                 prop: {
@@ -68,7 +68,7 @@ export class EDEService {
                 }
             }, outputSoc, npduOpts, reqStore);
 
-            confirmedReqService.readProperty({
+            this.sendReadProperty({
                 invokeId: 1,
                 objId: objId,
                 prop: {
@@ -76,7 +76,7 @@ export class EDEService {
                 },
             }, outputSoc, npduOpts, reqStore);
 
-            confirmedReqService.readProperty({
+            this.sendReadProperty({
                 segAccepted: true,
                 invokeId: 1,
                 objId,
@@ -123,7 +123,7 @@ export class EDEService {
         const reqStore = this.reqStoresMap.get(deviceStorageId);
 
         for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
-            confirmedReqService.readProperty({
+            this.sendReadProperty({
                 segAccepted: true,
                 invokeId: 1,
                 objId,
@@ -176,7 +176,7 @@ export class EDEService {
         if (unitIdValue.type !== BACNet.Enums.ObjectType.Device) {
             scanProgressService.reportDatapointsDiscovered(1);
 
-            confirmedReqService.readProperty({
+            this.sendReadProperty({
                 invokeId: 1,
                 objId: unitId,
                 prop: {
@@ -184,7 +184,7 @@ export class EDEService {
                 }
             }, outputSoc, npduOpts, reqStore);
 
-            confirmedReqService.readProperty({
+            this.sendReadProperty({
                 invokeId: 1,
                 objId: unitId,
                 prop: {
@@ -314,6 +314,28 @@ export class EDEService {
             }
             logger.error(logMessage)
         }
+    }
+
+    /**
+     * sendReadProperty - gets invokeId from req store and sends requests via confirmedReqService
+     *
+     * @param  {BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty} opts - request options
+     * @param  {OutputSocket} output - output socket
+     * @param  {BACNet.Interfaces.NPDU.Write.Layer} npduOpts - NPDU layer options
+     * @param  {RequestsStore} reqStore - requests store
+     * TODO: @param  {Function} timeoutAction - handler for the requests with expired timeout
+     * @return {Bluebird<any>}
+     */
+    private sendReadProperty (opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty,
+        output: OutputSocket,
+        npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {},
+        reqStore: RequestsStore): Bluebird<any> {
+        return reqStore.registerRequest({ choice: 'readProperty', opts })
+            .then((invokeId) => {
+                // Get and send BACnet message
+                opts.invokeId = invokeId;
+                return confirmedReqService.readProperty(opts, output, npduOpts)
+            })
     }
 }
 
