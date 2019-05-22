@@ -78,10 +78,10 @@ export class AppManager {
         return AsyncUtil.setTimeout(this.appConfig.ede.file.timeout)
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Close the socket connection');
-                this.server.destroy();
-                scanProgressService.clearData();
+                return this.server.destroy();
             })
             .then(() => {
+                scanProgressService.clearData();
                 logger.info('AppManager - stopNetworkMonitoring: Save EDE storage');
                 return this.edeStorageManager.saveEDEStorage();
             })
@@ -92,7 +92,7 @@ export class AppManager {
                 return Bluebird.resolve(resolvedPathArr);
             })
             .catch((err) => {
-                logger.error('AppManager - stopNetworkMonitoring: Close the socket connection');
+                logger.error('AppManager - stopNetworkMonitoring: ' + err);
             })
     }
 }
