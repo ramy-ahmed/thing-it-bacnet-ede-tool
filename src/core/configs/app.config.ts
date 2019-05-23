@@ -28,3 +28,8 @@ export const AppConfig: IAppConfig = {
         }
     },
 }
+
+export const ReqStoreConfig = {
+    timeout: 5000,
+    thread: 0
+};

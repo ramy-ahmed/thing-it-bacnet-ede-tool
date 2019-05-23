@@ -153,8 +153,8 @@ export class EDETableManager {
      */
     public setDataPointRow (dataPointRow: CSVRow,
             deviceProps: IEDEUnitProps, unitProps: IEDEUnitProps): void {
-        const deviceObjectName = _.get(deviceProps, 'objectName.value');
-        const unitObjectName = _.get(unitProps, 'objectName.value');
+        const deviceObjectName = _.get(deviceProps, 'objectName.value', '');
+        const unitObjectName = _.get(unitProps, 'objectName.value', '');
 
         dataPointRow.setCellValue('keyname',
             `${deviceProps.objId.instance}_${deviceObjectName}_${unitObjectName}`);
@@ -167,7 +167,7 @@ export class EDETableManager {
         dataPointRow.setCellValue('object-instance',
             unitProps.objId.instance);
         dataPointRow.setCellValue('description',
-            _.get(unitProps, 'description.value'));
+            _.get(unitProps, 'description.value', ''));
     }
 
     /**

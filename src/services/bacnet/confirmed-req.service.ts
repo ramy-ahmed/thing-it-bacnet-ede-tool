@@ -11,11 +11,10 @@ export class ConfirmedReqService {
      * @param  {OutputSocket} resp - response object (socket)
      * @return {type}
      */
-    public readProperty (opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty, output: OutputSocket, npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {}) {
+    public readProperty (opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty, output: OutputSocket, npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {}): void {
 
-        // Get and send BACnet message
         const msgBACnet = BACNet.Services.ConfirmedReqService.readProperty(opts, npduOpts)
-        return output.send(msgBACnet, 'readProperty');
+        return output.send(msgBACnet, `readProperty #${opts.invokeId}`);
     }
 }
 

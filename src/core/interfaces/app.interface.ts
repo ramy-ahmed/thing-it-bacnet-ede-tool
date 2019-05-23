@@ -26,9 +26,13 @@ export interface ISequenceFlow {
     params: any[];
 }
 
-
 export interface IScanStatus {
     devicesFound: number;
     datapointsDiscovered: number;
     datapointsReceived: number;
+}
+
+export interface IReqStoreConfig {
+    timeout: number;
+    thread: number;
 }

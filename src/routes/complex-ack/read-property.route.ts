@@ -13,6 +13,7 @@ export function ReadPropertyRouter (
     const serviceMap = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
     const propId = serviceMap.prop.id as BACNet.Types.BACnetEnumerated;
 
+    edeService.releaseInvokeId(inputSoc, outputSoc);
     switch (propId.value) {
         case BACNet.Enums.PropertyId.objectList: {
             const propArrayIndex = serviceMap.prop.index as BACNet.Types.BACnetUnsignedInteger;

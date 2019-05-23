@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 
 import { Subject } from 'rxjs';
 
-import { IServerConfig, IBACnetAddressInfo, ISequenceFlow } from '../interfaces';
+import { IServerConfig, IBACnetAddressInfo, ISequenceFlow, IBACnetDestParams } from '../interfaces';
 
 import { ApiError } from '../errors';
 import { logger } from '../utils';
@@ -60,9 +60,20 @@ export class Server {
         this.sock.on('message', (msg: Buffer, rinfo: IBACnetAddressInfo) => {
             // Generate Request instance
             const inputSoc = new InputSocket(msg);
+            const srcInfo = _.get(inputSoc, 'npdu.src');
+            let dest: IBACnetDestParams;
+
+            if (srcInfo) {
+                dest = {
+                    networkAddress: srcInfo.networkAddress,
+                    macAddress: srcInfo.macAddress
+                }
+            }
             // Generate Response instance
             const outputSoc = this.genOutputSocket({
-                port: rinfo.port, address: rinfo.address,
+                port: rinfo.port,
+                address: rinfo.address,
+                dest
             });
             // Handle request
             try {
