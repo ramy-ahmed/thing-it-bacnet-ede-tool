@@ -58,7 +58,6 @@ export class EDEService {
             }
 
             scanProgressService.reportDeviceFound(deviceStorageId, { type: objType, instance: objInst });
-            scanProgressService.reportDatapointDiscovered(deviceStorageId, { type: objType, instance: objInst });
 
             const reqStore = new RequestsStore(ReqStoreConfig, { type: objType, instance: objInst });
             this.reqStoresMap.set(deviceStorageId, reqStore)

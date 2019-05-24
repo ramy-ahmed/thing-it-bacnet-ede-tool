@@ -4,8 +4,7 @@ import { IScanStatus, IDeviceProgress, IUnitProgress, IUnitPropsProgress } from 
 import { logger } from '../core/utils';
 import { IBACnetObjectIdentifier } from '../core/interfaces';
 import * as _ from 'lodash';
-import { first as RxFirst } from 'rxjs/operators';
-import * as Bluebird from 'bluebird';
+import { first, filter, tap } from 'rxjs/operators';
 
 export class ScanProgressService {
     private scanStatus: IScanStatus = {
@@ -44,7 +43,7 @@ export class ScanProgressService {
 
         this.devicesProgressMap.set(id, deviceStatus);
 
-        //this.reportDatapointDiscovered(id, objId)
+        this.reportDatapointDiscovered(id, objId)
     }
 
     reportObjectListLength(deviceMapId: string, length: number) {
@@ -55,12 +54,14 @@ export class ScanProgressService {
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
         deviceStatus.objectsList =  new Array(length).fill(null).map(() => new BehaviorSubject(false));
 
-        Observable.combineLatest(deviceStatus.objectsList).subscribe((isObjListReadyArr) => {
-
-            if (isObjListReadyArr.every(ready => ready)) {
+        Observable.combineLatest(deviceStatus.objectsList)
+            .pipe(
+                filter((isObjListReadyArr) => isObjListReadyArr.every(ready => ready)),
+                first()
+            )
+            .subscribe(() => {
                 deviceStatus.processed.next(true)
-            }
-        });
+            });
     }
 
     reportDatapointDiscovered(deviceMapId: string, objId: IBACnetObjectIdentifier, objectListIndex?: number) {
@@ -83,11 +84,11 @@ export class ScanProgressService {
                 processed: new BehaviorSubject(false),
                 props: unitPropsStatus
             };
-            Observable.zip(unitPropsStatus.objectName, unitPropsStatus.description).subscribe((isFinished) => {
-                if (isFinished) {
+            Observable.zip(unitPropsStatus.objectName, unitPropsStatus.description)
+                .pipe(first())
+                .subscribe(() => {
                     unitStatus.processed.next(true)
-                }
-            })
+                })
             deviceStatus.units.set(unitId, unitStatus);
         } else {
             unitStatus = deviceStatus.units.get(unitId);
@@ -95,12 +96,15 @@ export class ScanProgressService {
 
 
         if (_.isFinite(objectListIndex)) {
-            unitStatus.processed.subscribe((isFinished) => {
-                if (isFinished) {
+            unitStatus.processed
+                .pipe(
+                    filter((isUnitReady) => isUnitReady),
+                    first()
+                )
+                .subscribe(() => {
                     const oLEntryStatus = deviceStatus.objectsList[objectListIndex - 1];
                     oLEntryStatus.next(true);
-                }
-            });
+                });
         }
     }
 
@@ -138,14 +142,13 @@ export class ScanProgressService {
     getScanCompletePromise() {
         const devicesProgressArr = Array.from(this.devicesProgressMap.values()).map(device => device.processed)
         const scanFinished = Observable.combineLatest(devicesProgressArr);
-        return new Bluebird((resolve, reject) => {
-            scanFinished.subscribe((isDeviceReadyArr) => {
-                if (isDeviceReadyArr.every(ready => ready)) {
-                    console.log('FINISH');
-                    resolve();
-                }
+        return  scanFinished.pipe(
+            filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
+            first(),
+            tap(() => {
+                console.log('FINISH');
             })
-        })
+        ).toPromise()
     }
 
     clearData() {
