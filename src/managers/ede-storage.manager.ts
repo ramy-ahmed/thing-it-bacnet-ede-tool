@@ -45,6 +45,15 @@ export class EDEStorageManager {
     }
 
     /**
+     * getDeviceList -
+     *
+     * @return {IEDEDevice[]}
+     */
+    public getDeviceList (): IEDEDevice[] {
+        return Array.from(this.devices.values());
+    }
+
+    /**
      * addDevice - adds the EDE device into internal devices storage.
      *
      * @param  {IBACnetObjectIdentifier} deviceId - BACnet device identifier
