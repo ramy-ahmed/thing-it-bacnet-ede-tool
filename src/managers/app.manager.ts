@@ -35,6 +35,7 @@ export class AppManager {
     private server: Server;
     private edeStorageManager: EDEStorageManager;
     public progressReportsFlow: BehaviorSubject<IScanStatus>;
+    private outputSocket: OutputSocket;
 
     constructor (private appConfig: IAppConfig) {
         this.server = new Server(this.appConfig.server, mainRouter);
@@ -53,7 +54,7 @@ export class AppManager {
         return this.server.startServer()
             .then((addrInfo: IBACnetAddressInfo) => {
                 // Generate OutputSocket instance
-                const outputSocket = this.server.genOutputSocket({
+                this.outputSocket = this.server.genOutputSocket({
                     address: this.appConfig.bacnet.network,
                     port: addrInfo.port,
                 });
@@ -61,7 +62,7 @@ export class AppManager {
                     lowLimit: new BACNet.Types.BACnetUnsignedInteger(0),
                     hiLimit: new BACNet.Types.BACnetUnsignedInteger(4194303)
                 }
-                return unconfirmedReqService.whoIs(whoIsParams, outputSocket);
+                return unconfirmedReqService.whoIs(whoIsParams, this.outputSocket);
             })
             .then(() => this.startNetworkMonitoring());
     }
