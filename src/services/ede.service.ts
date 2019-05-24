@@ -104,6 +104,7 @@ export class EDEService {
         const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
+        const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
 
         // Get object identifier
         const objId = apduService.objId;
@@ -136,6 +137,7 @@ export class EDEService {
                 },
             }, outputSoc, npduOpts, reqStore);
         }
+        edeStorage.addObjectListLength(deviceStorageId, propValuePayload.value)
 
         return Bluebird.resolve();
     }

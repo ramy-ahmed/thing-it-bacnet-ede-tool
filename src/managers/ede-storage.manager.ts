@@ -79,6 +79,18 @@ export class EDEStorageManager {
     }
 
     /**
+     * addObjectListLength
+     *
+     * @param  {IBACnetObjectIdentifier} deviceId - BACnet device identifier
+     * @param  {IBACnetObjectIdentifier} unitId - BACnet unit identifier
+     * @return {void}
+     */
+    public addObjectListLength (deviceStorageId: string, length: number): void {
+        const device = this.devices.get(deviceStorageId);
+
+        device.objectListLength = length;
+    }
+    /**
      * addUnit - adds the EDE unit into internal units storage.
      *
      * @param  {IBACnetObjectIdentifier} deviceId - BACnet device identifier

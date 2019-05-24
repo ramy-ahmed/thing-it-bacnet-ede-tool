@@ -24,6 +24,7 @@ export interface IEDEDevice {
     outputSoc: OutputSocket;
     destParams?: BACNet.Interfaces.NPDU.Read.NetworkDest;
     units: Map<string, IEDEUnit>;
+    objectListLength?: number;
 }
 export interface IEDEUnit {
     props: IEDEUnitProps;
