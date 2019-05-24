@@ -1,5 +1,5 @@
 import { IEDEConfig } from './ede.interface';
-import { Subject, Observable } from 'rxjs'
+import { Subject, Observable, BehaviorSubject } from 'rxjs'
 
 export interface IAppConfig {
     server: IServerConfig;
@@ -40,13 +40,13 @@ export interface IUnitPropsProgress {
 
 export interface IUnitProgress {
     props: IUnitPropsProgress;
-    processed: Observable<any>;
+    processed: BehaviorSubject<any>;
 }
 
 export interface IDeviceProgress {
     units: Map<string, IUnitProgress>;
-    objectsList: Observable<any>[];
-    processed: Observable<any>;
+    objectsList: BehaviorSubject<any>[];
+    processed: BehaviorSubject<any>;
 }
 
 export interface IReqStoreConfig {
