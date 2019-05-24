@@ -18,7 +18,7 @@ export const AppConfig: IAppConfig = {
         file: {
             path: `${__dirname}/../../..`,
             name: `auto-ede`,
-            timeout: 15000,
+            timeout: 2000,
         },
         header: {
             projectName: 'Thing-it',

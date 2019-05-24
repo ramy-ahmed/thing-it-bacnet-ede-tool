@@ -115,8 +115,17 @@ export class EDEStorageManager {
 
         const newUnit = this.setObjectProperty(unit, propName, propValue);
 
-        if (propName === 'objectName') {
-            scanProgressService.reportDatapointReceived();
+        switch (propName) {
+            case 'objectName':
+            scanProgressService.reportDatapointReceived(deviceStorageId, unitId);
+                break;
+
+            case 'description':
+                scanProgressService.reportPropertyProcessed(deviceStorageId, unitId, 'description');
+                    break;
+
+            default:
+                break;
         }
 
         device.units.set(id, newUnit);

@@ -47,8 +47,6 @@ export class EDEService {
                 };
             }
             edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc, destParams);
-            scanProgressService.reportDeviceFound();
-            scanProgressService.reportDatapointsDiscovered(1);
 
             logger.info(`EDEService - iAm: ${objType}:${objInst}, Add device`);
             const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
@@ -58,6 +56,10 @@ export class EDEService {
             if (npduMessage.src) {
                 deviceStorageId = npduMessage.src.macAddress;
             }
+
+            scanProgressService.reportDeviceFound(deviceStorageId, { type: objType, instance: objInst });
+            scanProgressService.reportDatapointDiscovered(deviceStorageId, { type: objType, instance: objInst });
+
             const reqStore = new RequestsStore(ReqStoreConfig, { type: objType, instance: objInst });
             this.reqStoresMap.set(deviceStorageId, reqStore)
 
@@ -122,6 +124,7 @@ export class EDEService {
             deviceStorageId = npduMessage.src.macAddress;
         }
         const reqStore = this.reqStoresMap.get(deviceStorageId);
+        scanProgressService.reportObjectListLength(deviceStorageId, propValuePayload.value);
 
         for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
             this.sendReadProperty({
@@ -160,6 +163,7 @@ export class EDEService {
 
         const unitId = apduService.prop.values[0] as BACNet.Types.BACnetObjectId;
         const unitIdValue = unitId.getValue() as BACNet.Interfaces.Type.ObjectId;
+        const index = apduService.prop.index.value;
 
         const rinfo = outputSoc.getAddressInfo();
         let deviceStorageId = rinfo.address;
@@ -174,8 +178,10 @@ export class EDEService {
             + `Unit ${unitIdValue.type}:${unitIdValue.instance}`);
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
 
+        //console.log(index)
+        scanProgressService.reportDatapointDiscovered(deviceStorageId, unitIdValue, index);
+
         if (unitIdValue.type !== BACNet.Enums.ObjectType.Device) {
-            scanProgressService.reportDatapointsDiscovered(1);
 
             this.sendReadProperty({
                 invokeId: 1,

@@ -77,6 +77,9 @@ export class AppManager {
     public stopNetworkMonitoring () {
         return AsyncUtil.setTimeout(this.appConfig.ede.file.timeout)
             .then(() => {
+                return scanProgressService.getScanCompletePromise();
+            })
+            .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Close the socket connection');
                 return this.server.destroy();
             })
