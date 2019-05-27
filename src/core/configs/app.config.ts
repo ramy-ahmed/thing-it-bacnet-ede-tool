@@ -15,7 +15,7 @@ export const AppConfig: IAppConfig = {
         network: '255.255.255.255',
     },
     ede: {
-        timeout: 2000,
+        timeout: 4000,
         file: {
             path: `${__dirname}/../../..`,
             name: `auto-ede`,
@@ -30,6 +30,6 @@ export const AppConfig: IAppConfig = {
 }
 
 export const ReqStoreConfig = {
-    timeout: 5000,
+    timeout: 2000,
     thread: 0
 };

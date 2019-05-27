@@ -62,21 +62,21 @@ export class EDEService {
             const reqStore = new RequestsStore(ReqStoreConfig, { type: objType, instance: objInst });
             this.reqStoresMap.set(deviceStorageId, reqStore)
 
-            this.sendReadProperty({
-                invokeId: 1,
-                objId: objId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
-                }
-            }, outputSoc, npduOpts, reqStore);
+            // this.sendReadProperty({
+            //     invokeId: 1,
+            //     objId: objId,
+            //     prop: {
+            //         id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
+            //     }
+            // }, outputSoc, npduOpts, reqStore);
 
-            this.sendReadProperty({
-                invokeId: 1,
-                objId: objId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
-                },
-            }, outputSoc, npduOpts, reqStore);
+            // this.sendReadProperty({
+            //     invokeId: 1,
+            //     objId: objId,
+            //     prop: {
+            //         id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
+            //     },
+            // }, outputSoc, npduOpts, reqStore);
 
             this.sendReadProperty({
                 segAccepted: true,
@@ -116,17 +116,23 @@ export class EDEService {
         const propValuePayload = propValues[0] as BACNet.Types.BACnetUnsignedInteger;
 
         logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValuePayload.value}`);
-        const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
 
         const rinfo = outputSoc.getAddressInfo();
         let deviceStorageId = rinfo.address;
         if (npduMessage.src) {
             deviceStorageId = npduMessage.src.macAddress;
         }
-        const reqStore = this.reqStoresMap.get(deviceStorageId);
         scanProgressService.reportObjectListLength(deviceStorageId, propValuePayload.value);
+        edeStorage.addObjectListLength(deviceStorageId, propValuePayload.value)
+
+
+        const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
+        const reqStore = this.reqStoresMap.get(deviceStorageId);
 
         for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
+            const timeoutAction = () => {
+                scanProgressService.reportObjectListItemProcessed(deviceStorageId, itemIndex)
+            }
             this.sendReadProperty({
                 segAccepted: true,
                 invokeId: 1,
@@ -135,9 +141,8 @@ export class EDEService {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
                     index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
                 },
-            }, outputSoc, npduOpts, reqStore);
+            }, outputSoc, npduOpts, reqStore, timeoutAction);
         }
-        edeStorage.addObjectListLength(deviceStorageId, propValuePayload.value)
 
         return Bluebird.resolve();
     }
@@ -189,7 +194,9 @@ export class EDEService {
                 prop: {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
                 }
-            }, outputSoc, npduOpts, reqStore);
+            }, outputSoc, npduOpts, reqStore, () => {
+                scanProgressService.reportPropertyProcessed(deviceStorageId, unitIdValue, 'objectName')
+            });
 
             this.sendReadProperty({
                 invokeId: 1,
@@ -197,7 +204,9 @@ export class EDEService {
                 prop: {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
                 },
-            }, outputSoc, npduOpts, reqStore);
+            }, outputSoc, npduOpts, reqStore, () => {
+                scanProgressService.reportPropertyProcessed(deviceStorageId, unitIdValue, 'description')
+            });
         }
 
         return Bluebird.resolve();

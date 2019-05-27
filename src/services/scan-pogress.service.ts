@@ -108,6 +108,13 @@ export class ScanProgressService {
         }
     }
 
+    reportObjectListItemProcessed(deviceMapId: string, index) {
+        const deviceStatus = this.devicesProgressMap.get(deviceMapId);
+
+        const oLEntryStatus = deviceStatus.objectsList[index - 1];
+        oLEntryStatus.next(true);
+    }
+
     reportDatapointReceived(deviceMapId: string, unitId: IBACnetObjectIdentifier) {
         this.scanStatus.datapointsReceived += 1;
         logger.info(`DATAPOINTS RECEIVED/DISVOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`)
