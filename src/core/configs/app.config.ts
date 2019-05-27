@@ -15,10 +15,10 @@ export const AppConfig: IAppConfig = {
         network: '255.255.255.255',
     },
     ede: {
+        timeout: 2000,
         file: {
             path: `${__dirname}/../../..`,
             name: `auto-ede`,
-            timeout: 2000,
         },
         header: {
             projectName: 'Thing-it',

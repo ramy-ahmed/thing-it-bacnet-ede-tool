@@ -32,7 +32,7 @@ if (argv.port) {
 }
 
 if (argv.timeout) {
-    appConfig.ede.file.timeout = +argv.timeout;
+    appConfig.ede.timeout = +argv.timeout;
 }
 
 if (argv.reqDelay) {
