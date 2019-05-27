@@ -68,7 +68,9 @@ export class EDEService {
                 prop: {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
                 }
-            }, outputSoc, npduOpts, reqStore);
+            }, outputSoc, npduOpts, reqStore, () => {
+                scanProgressService.reportPropertyProcessed(deviceStorageId, objIdValue, 'objectName')
+            });
 
             this.sendReadProperty({
                 invokeId: 1,
@@ -76,7 +78,9 @@ export class EDEService {
                 prop: {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
                 },
-            }, outputSoc, npduOpts, reqStore);
+            }, outputSoc, npduOpts, reqStore, () => {
+                scanProgressService.reportPropertyProcessed(deviceStorageId, objIdValue, 'description')
+            });
 
             this.sendReadProperty({
                 segAccepted: true,
