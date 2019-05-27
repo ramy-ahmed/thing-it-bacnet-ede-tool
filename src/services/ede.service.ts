@@ -8,11 +8,11 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 import { logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
-import { confirmedReqService } from './bacnet';
+import { confirmedReqService, unconfirmedReqService } from './bacnet';
 import { scanProgressService } from './scan-pogress.service';
 import { RequestsStore } from '../entities';
 import { ReqStoreConfig } from '../core/configs'
-import { IBACNetRequestTimeoutHandler } from '../core/interfaces';
+import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions } from '../core/interfaces';
 
 export class EDEService {
     private reqStoresMap: Map<string, RequestsStore> = new Map();
@@ -179,7 +179,6 @@ export class EDEService {
             + `Unit ${unitIdValue.type}:${unitIdValue.instance}`);
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
 
-        //console.log(index)
         scanProgressService.reportDatapointDiscovered(deviceStorageId, unitIdValue, index);
 
         if (unitIdValue.type !== BACNet.Enums.ObjectType.Device) {
@@ -344,6 +343,22 @@ export class EDEService {
                 opts.invokeId = invokeId;
                 return confirmedReqService.readProperty(opts, output, npduOpts)
             })
+    }
+
+    /**
+     * scanDevices - sends whoIs request with specified parameters
+     *
+     * @param  {IBACnetWhoIsOptions} opts - request options
+     * @param  {OutputSocket} output - output socket
+     * @return {void}
+     */
+    public scanDevices (opts: IBACnetWhoIsOptions,
+        output: OutputSocket): void {
+            const whoIsParams = {
+                lowLimit: new BACNet.Types.BACnetUnsignedInteger(opts.lowLimit),
+                hiLimit: new BACNet.Types.BACnetUnsignedInteger(opts.hiLimit)
+            }
+            return unconfirmedReqService.whoIs(whoIsParams, output);
     }
 }
 

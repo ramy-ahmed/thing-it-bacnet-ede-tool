@@ -1,11 +1,10 @@
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
-import * as BACNet from '@thing-it/bacnet-logic';
 
 import { InputSocket, OutputSocket, Server } from '../core/sockets';
 
-import { unconfirmedReqService } from '../services';
+import { edeService } from '../services';
 
 import { mainRouter } from '../routes';
 
@@ -59,24 +58,24 @@ export class AppManager {
                     port: addrInfo.port,
                 });
                 const whoIsParams = {
-                    lowLimit: new BACNet.Types.BACnetUnsignedInteger(0),
-                    hiLimit: new BACNet.Types.BACnetUnsignedInteger(4194303)
+                    lowLimit: 0,
+                    hiLimit: 4194303
                 }
-                return unconfirmedReqService.whoIs(whoIsParams, this.outputSocket);
-            })
-            .then(() => this.startNetworkMonitoring());
+                edeService.scanDevices(whoIsParams, this.outputSocket)
+                return this.startNetworkMonitoring();
+            });
     }
 
     public startNetworkMonitoring (): Bluebird<any> {
         logger.info('AppManager - startNetworkMonitoring: Start the monitoring');
-        if (this.appConfig.ede.file.timeout === 0) {
+        if (this.appConfig.ede.timeout === 0) {
             return Bluebird.resolve();
         }
         return this.stopNetworkMonitoring();
     }
 
     public stopNetworkMonitoring () {
-        return AsyncUtil.setTimeout(this.appConfig.ede.file.timeout)
+        return AsyncUtil.setTimeout(this.appConfig.ede.timeout)
             .then(() => {
                 return scanProgressService.getScanCompletePromise();
             })
