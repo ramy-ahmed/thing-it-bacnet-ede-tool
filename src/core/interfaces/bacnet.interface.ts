@@ -47,3 +47,8 @@ export interface IBACnetDelayedRequest {
     idDefer: Resolver<number>;
     rinfo: IBACnetRequestInfo|boolean;
 }
+
+export interface IBACnetWhoIsOptions {
+    lowLimit: number;
+    hiLimit: number;
+}
