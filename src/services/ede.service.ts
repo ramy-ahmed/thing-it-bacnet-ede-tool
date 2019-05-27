@@ -62,21 +62,21 @@ export class EDEService {
             const reqStore = new RequestsStore(ReqStoreConfig, { type: objType, instance: objInst });
             this.reqStoresMap.set(deviceStorageId, reqStore)
 
-            // this.sendReadProperty({
-            //     invokeId: 1,
-            //     objId: objId,
-            //     prop: {
-            //         id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
-            //     }
-            // }, outputSoc, npduOpts, reqStore);
+            this.sendReadProperty({
+                invokeId: 1,
+                objId: objId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
+                }
+            }, outputSoc, npduOpts, reqStore);
 
-            // this.sendReadProperty({
-            //     invokeId: 1,
-            //     objId: objId,
-            //     prop: {
-            //         id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
-            //     },
-            // }, outputSoc, npduOpts, reqStore);
+            this.sendReadProperty({
+                invokeId: 1,
+                objId: objId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
+                },
+            }, outputSoc, npduOpts, reqStore);
 
             this.sendReadProperty({
                 segAccepted: true,
