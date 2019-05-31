@@ -62,35 +62,8 @@ export class EDEService {
             const reqStore = new RequestsStore(ReqStoreConfig, { type: objType, instance: objInst });
             this.reqStoresMap.set(deviceStorageId, reqStore)
 
-            this.sendReadProperty({
-                invokeId: 1,
-                objId: objId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
-                }
-            }, outputSoc, npduOpts, reqStore, () => {
-                scanProgressService.reportPropertyProcessed(deviceStorageId, objIdValue, 'objectName')
-            });
+            this.getDeviceProps(edeStorage);
 
-            this.sendReadProperty({
-                invokeId: 1,
-                objId: objId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
-                },
-            }, outputSoc, npduOpts, reqStore, () => {
-                scanProgressService.reportPropertyProcessed(deviceStorageId, objIdValue, 'description')
-            });
-
-            this.sendReadProperty({
-                segAccepted: true,
-                invokeId: 1,
-                objId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
-                    index: new BACNet.Types.BACnetUnsignedInteger(0)
-                },
-            }, outputSoc, npduOpts, reqStore);
         } catch (error) {
             logger.info(`EDEService - iAm: ${objType}:${objInst}, ${error}`)
         }
@@ -372,6 +345,72 @@ export class EDEService {
                 hiLimit: new BACNet.Types.BACnetUnsignedInteger(opts.hiLimit)
             }
             return unconfirmedReqService.whoIs(whoIsParams, output);
+    }
+
+    /**
+     * getDeviceProps - sends `readProperty` request for device objectList length, objectName and description
+     *
+     * @param  {IBACnetWhoIsOptions} opts - request options
+     * @param  {OutputSocket} output - output socket
+     * @return {void}
+     */
+    public getDeviceProps (edeStorage: EDEStorageManager): void {
+
+        const deviceList = edeStorage.getDeviceList();
+
+        for (let device of deviceList) {
+            const deviceId = new BACNet.Types.BACnetObjectId(device.objId);
+
+            const outputSoc = device.outputSoc;
+
+            const rinfo = outputSoc.getAddressInfo();
+            let deviceStorageId = rinfo.address;
+            let npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {};
+            if (device.destParams) {
+                const destParams = device.destParams;
+                deviceStorageId = destParams.macAddress;
+                npduOpts = {
+                    control: {
+                        destSpecifier: true
+                    },
+                    hopCount: 0xff,
+                    destNetworkAddress: destParams.networkAddress,
+                    destMacAddress: destParams.macAddress
+                };
+            }
+
+            const reqStore = this.reqStoresMap.get(deviceStorageId);
+
+            this.sendReadProperty({
+                invokeId: 1,
+                objId: deviceId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
+                }
+            }, outputSoc, npduOpts, reqStore, () => {
+                scanProgressService.reportPropertyProcessed(deviceStorageId, device.objId, 'objectName')
+            });
+
+            this.sendReadProperty({
+                invokeId: 1,
+                objId: deviceId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
+                },
+            }, outputSoc, npduOpts, reqStore, () => {
+                scanProgressService.reportPropertyProcessed(deviceStorageId, device.objId, 'description')
+            });
+
+            this.sendReadProperty({
+                segAccepted: true,
+                invokeId: 1,
+                objId: deviceId,
+                prop: {
+                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
+                    index: new BACNet.Types.BACnetUnsignedInteger(0)
+                },
+            }, outputSoc, npduOpts, reqStore);
+        }
     }
 }
 
