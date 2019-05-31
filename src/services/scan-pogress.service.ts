@@ -37,13 +37,24 @@ export class ScanProgressService {
         }
         const deviceStatus: IDeviceProgress  = {
             processed: new BehaviorSubject(false),
-            objectsList: [],
-            units: new Map<string, IUnitProgress>()
+            objectsList: [new BehaviorSubject(false)],
+            units: new Map<string, IUnitProgress>(),
+            propsReceived: new BehaviorSubject(false)
         };
 
         this.devicesProgressMap.set(id, deviceStatus);
 
-        this.reportDatapointDiscovered(id, objId)
+        this.reportDatapointDiscovered(id, objId);
+
+        const unitId = this.getUnitId(objId);
+        const deviceUnit = deviceStatus.units.get(unitId);
+
+        Observable.combineLatest(deviceUnit.processed, deviceStatus.objectsList[0])
+            .pipe(
+                filter((isDevicePropsReceived) => isDevicePropsReceived.every(ready => ready)),
+                first()
+            ).subscribe(() => deviceStatus.propsReceived.next(true))
+
     }
 
     reportObjectListLength(deviceMapId: string, length: number) {
@@ -52,14 +63,18 @@ export class ScanProgressService {
         // this.statusNotificationsFlow.next(this.scanStatus);
 
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
-        deviceStatus.objectsList =  new Array(length).fill(null).map(() => new BehaviorSubject(false));
+
+        const oListLengthReceived = deviceStatus.objectsList[0];
+        oListLengthReceived.next(true);
+
+        const objectsList =  new Array(length).fill(null).map(() => new BehaviorSubject(false));
+        deviceStatus.objectsList = _.concat(oListLengthReceived, objectsList)
 
         Observable.combineLatest(deviceStatus.objectsList)
             .pipe(
                 filter((isObjListReadyArr) => isObjListReadyArr.every(ready => ready)),
                 first()
-            )
-            .subscribe(() => {
+            ).subscribe(() => {
                 deviceStatus.processed.next(true)
             });
     }
@@ -100,9 +115,8 @@ export class ScanProgressService {
                 .pipe(
                     filter((isUnitReady) => isUnitReady),
                     first()
-                )
-                .subscribe(() => {
-                    const oLEntryStatus = deviceStatus.objectsList[objectListIndex - 1];
+                ).subscribe(() => {
+                    const oLEntryStatus = deviceStatus.objectsList[objectListIndex];
                     oLEntryStatus.next(true);
                 });
         }
@@ -111,7 +125,7 @@ export class ScanProgressService {
     reportObjectListItemProcessed(deviceMapId: string, index) {
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
 
-        const oLEntryStatus = deviceStatus.objectsList[index - 1];
+        const oLEntryStatus = deviceStatus.objectsList[index];
         oLEntryStatus.next(true);
     }
 
@@ -154,6 +168,18 @@ export class ScanProgressService {
             first(),
             tap(() => {
                 console.log('FINISH');
+            })
+        ).toPromise()
+    }
+
+    getDevicesPropsReceivedPromise() {
+        const devicesPropsReceivedArr = Array.from(this.devicesProgressMap.values()).map(device => device.propsReceived)
+        const firstStepFinished = Observable.combineLatest(devicesPropsReceivedArr);
+        return  firstStepFinished.pipe(
+            filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
+            first(),
+            tap(() => {
+                console.log('FIRST STEP');
             })
         ).toPromise()
     }

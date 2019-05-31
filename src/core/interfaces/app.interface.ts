@@ -47,6 +47,7 @@ export interface IDeviceProgress {
     units: Map<string, IUnitProgress>;
     objectsList: BehaviorSubject<any>[];
     processed: BehaviorSubject<any>;
+    propsReceived: BehaviorSubject<any>;
 }
 
 export interface IReqStoreConfig {
