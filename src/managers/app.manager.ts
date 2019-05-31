@@ -69,13 +69,18 @@ export class AppManager {
     public startNetworkMonitoring (): Bluebird<any> {
         logger.info('AppManager - startNetworkMonitoring: Start the monitoring');
         if (this.appConfig.ede.timeout === 0) {
-            return Bluebird.resolve();
+            throw new ApiError ('Too small timeout!')
         }
-        return this.stopNetworkMonitoring();
+        return AsyncUtil.setTimeout(this.appConfig.ede.timeout)
+            .then(() => {
+                edeService.getDeviceProps(this.edeStorageManager);
+                return scanProgressService.getDevicesPropsReceivedPromise()
+            })
+            .then(() => this.stopNetworkMonitoring())
     }
 
     public stopNetworkMonitoring () {
-        return AsyncUtil.setTimeout(this.appConfig.ede.timeout)
+        return Bluebird.resolve()
             .then(() => {
                 return scanProgressService.getScanCompletePromise();
             })
