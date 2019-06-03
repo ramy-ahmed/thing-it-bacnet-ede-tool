@@ -25,6 +25,7 @@ export class RequestsStore {
     public registerRequest (rinfo: IBACnetRequestInfo): Bluebird<number> {
         const id = this.store.findIndex(storedItem => !storedItem);
         if (id !== -1 && (!this.config.thread || (this.store.length < this.config.thread))) {
+            rinfo.timestamp = Date.now();
             this.store[id] = rinfo;
             // We need to release id and clean requestInfo after timeout for the cases of network problems
             // It's needed to be sure that status check request will not stuck and successfully be sent after reconnection
@@ -60,6 +61,8 @@ export class RequestsStore {
         const curReleaseSub = this.releaseIdSubs[id];
         curReleaseSub.unsubscribe();
         if (request) {
+            const rinfo = request.rinfo;
+            rinfo.timestamp = Date.now();
             this.store[id] = request.rinfo;
             request.idDefer.resolve(id);
             this.releaseIdSubs[id] = RxTimer(this.config.timeout)

@@ -41,11 +41,12 @@ export interface IBACnetRequestInfo {
     choice: string
     opts: ConfirmedRequestOptions
     timeoutAction?: IBACNetRequestTimeoutHandler;
+    timestamp?: number;
 }
 
 export interface IBACnetDelayedRequest {
     idDefer: Resolver<number>;
-    rinfo: IBACnetRequestInfo|boolean;
+    rinfo: IBACnetRequestInfo;
 }
 
 export interface IBACnetWhoIsOptions {
