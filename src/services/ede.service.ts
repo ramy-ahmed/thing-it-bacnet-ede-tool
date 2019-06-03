@@ -49,7 +49,6 @@ export class EDEService {
             edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc, destParams);
 
             logger.info(`EDEService - iAm: ${objType}:${objInst}, Add device`);
-            const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
 
             const rinfo = outputSoc.getAddressInfo();
             let deviceStorageId = rinfo.address;
@@ -100,25 +99,6 @@ export class EDEService {
         }
         scanProgressService.reportObjectListLength(deviceStorageId, propValuePayload.value);
         edeStorage.addObjectListLength(deviceStorageId, propValuePayload.value)
-
-
-        const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
-        const reqStore = this.reqStoresMap.get(deviceStorageId);
-
-        for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
-            const timeoutAction = () => {
-                scanProgressService.reportObjectListItemProcessed(deviceStorageId, itemIndex)
-            }
-            this.sendReadProperty({
-                segAccepted: true,
-                invokeId: 1,
-                objId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
-                    index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
-                },
-            }, outputSoc, npduOpts, reqStore, timeoutAction);
-        }
 
         return Bluebird.resolve();
     }
@@ -411,6 +391,56 @@ export class EDEService {
             }, outputSoc, npduOpts, reqStore);
         }
     }
-}
+
+     /**
+     * scanDevices - sends whoIs request with specified parameters
+     *
+     * @param  {IBACnetWhoIsOptions} opts - request options
+     * @param  {OutputSocket} output - output socket
+     * @return {void}
+     */
+    public getDatapoints (edeStorage: EDEStorageManager): void {
+
+        const deviceList = edeStorage.getDeviceList();
+        deviceList.forEach((device) => {
+            const deviceId = new BACNet.Types.BACnetObjectId(device.objId);
+
+            const outputSoc = device.outputSoc;
+
+            const rinfo = outputSoc.getAddressInfo();
+            let deviceStorageId = rinfo.address;
+            let npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {};
+            if (device.destParams) {
+                const destParams = device.destParams;
+                deviceStorageId = destParams.macAddress;
+                npduOpts = {
+                    control: {
+                        destSpecifier: true
+                    },
+                    hopCount: 0xff,
+                    destNetworkAddress: destParams.networkAddress,
+                    destMacAddress: destParams.macAddress
+                };
+            }
+            const reqStore = this.reqStoresMap.get(deviceStorageId);
+
+            for (let itemIndex = 1; itemIndex <= device.objectListLength; itemIndex++) {
+                const timeoutAction = () => {
+                    scanProgressService.reportObjectListItemProcessed(deviceStorageId, itemIndex)
+                }
+                this.sendReadProperty({
+                    segAccepted: true,
+                    invokeId: 1,
+                    objId: deviceId,
+                    prop: {
+                        id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
+                        index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
+                    },
+                }, outputSoc, npduOpts, reqStore, timeoutAction);
+            }
+        });
+    }
+
+    }
 
 export const edeService: EDEService = new EDEService();

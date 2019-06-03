@@ -76,14 +76,14 @@ export class AppManager {
                 edeService.getDeviceProps(this.edeStorageManager);
                 return scanProgressService.getDevicesPropsReceivedPromise()
             })
-            .then(() => this.stopNetworkMonitoring())
+            .then(() => {
+                edeService.getDatapoints(this.edeStorageManager);
+                return this.stopNetworkMonitoring()
+            })
     }
 
     public stopNetworkMonitoring () {
-        return Bluebird.resolve()
-            .then(() => {
-                return scanProgressService.getScanCompletePromise();
-            })
+        return scanProgressService.getScanCompletePromise()
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Close the socket connection');
                 return this.server.destroy();
