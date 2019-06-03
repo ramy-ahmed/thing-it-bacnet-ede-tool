@@ -7,9 +7,11 @@ import { Enums, Interfaces } from '@thing-it/bacnet-logic';
 
 export class RequestsStore {
 
-    private store = new Array(256).fill(false);
+    private store: IBACnetRequestInfo[]|false[] = new Array(256).fill(false);
     private requestsQueue: IBACnetDelayedRequest[] = [];
     private releaseIdSubs: Subscription[] = [];
+    private sumRespTime: number = 0;
+    private requestsNumber: number = 0;
 
     constructor (
         private config: IReqStoreConfig,
@@ -54,17 +56,22 @@ export class RequestsStore {
      * Releases used id for future use and updates requests queue.
      *
      * @param {number} id - id to release
-     * @return {void}
+     * @return {number}
      */
-    public releaseInvokeId(id: number): void {
-        const request = this.requestsQueue.shift();
+    public releaseInvokeId(id: number): number {
+        const thisRequest = this.store[id] as IBACnetRequestInfo;
+        const reqStart = thisRequest.timestamp;
+        const thisMoment = Date.now();
+        const respTime = thisMoment - reqStart;
+
+        const nextRequest = this.requestsQueue.shift();
         const curReleaseSub = this.releaseIdSubs[id];
         curReleaseSub.unsubscribe();
-        if (request) {
-            const rinfo = request.rinfo;
-            rinfo.timestamp = Date.now();
-            this.store[id] = request.rinfo;
-            request.idDefer.resolve(id);
+        if (nextRequest) {
+            const { rinfo, idDefer } = nextRequest;
+            rinfo.timestamp = thisMoment;
+            this.store[id] = rinfo;
+            idDefer.resolve(id);
             this.releaseIdSubs[id] = RxTimer(this.config.timeout)
                 .subscribe(() => {
                     this.releaseInvokeId(id);
@@ -72,6 +79,30 @@ export class RequestsStore {
         } else {
             this.store[id] = false;
         }
+        return this.calcAvRespTime(respTime);
+    }
+
+    /**
+     * Releases used id for future use and updates requests queue.
+     *
+     * @param {number} id - id to release
+     * @return {number}
+     */
+    public calcAvRespTime(respTime: number): number {
+        if (respTime < this.config.timeout) {
+            this.sumRespTime += respTime;
+            this.requestsNumber += 1;
+        }
+        return this.getAvRespTime()
+    }
+
+    /**
+     * Releases used id for future use and updates requests queue.
+     *
+     * @return {number}
+     */
+    public getAvRespTime(): number {
+        return this.sumRespTime / this.requestsNumber
     }
 
     /**
@@ -81,6 +112,10 @@ export class RequestsStore {
      * @return {type}
      */
     public getRequestInfo (id: number): IBACnetRequestInfo {
-        return Number.isFinite(+id) ? this.store[id] : null;
+        if (Number.isFinite(+id)) {
+            const rinfo = this.store[id] as IBACnetRequestInfo;
+            return rinfo;
+        }
+        return null;
     }
 }
