@@ -6,6 +6,8 @@ import { IBACnetObjectIdentifier } from '../core/interfaces';
 import * as _ from 'lodash';
 import { first, filter, tap } from 'rxjs/operators';
 
+const reqDelay = 20;
+
 export class ScanProgressService {
     private scanStatus: IScanStatus = {
         devicesFound: 0,
@@ -154,6 +156,21 @@ export class ScanProgressService {
                 break;
         }
     }
+
+    reportAvRespTime(deviceMapId: string, avRespTime: number) {
+        const deviceStatus = this.devicesProgressMap.get(deviceMapId);
+        deviceStatus.avRespTime = avRespTime;
+    }
+
+    estimateScanTime() {
+        let totalScanTime = 0;
+        this.devicesProgressMap.forEach((device) => {
+            let devScanTime = (device.objectsList.length - 1) * reqDelay * 3 + device.avRespTime;
+            totalScanTime += devScanTime;
+       })
+       console.log(totalScanTime);
+    }
+
 
     getProgressNotificationsFlow() {
         return this.statusNotificationsFlow;

@@ -441,6 +441,20 @@ export class EDEService {
         });
     }
 
+    /**
+     * scanDevices - sends whoIs request with specified parameters
+     *
+     * @param  {IBACnetWhoIsOptions} opts - request options
+     * @param  {OutputSocket} output - output socket
+     * @return {void}
+     */
+    public estimateScanTime (): void {
+        this.reqStoresMap.forEach((store, id) => {
+            const avRespTime = store.getAvRespTime();
+            scanProgressService.reportAvRespTime(id, avRespTime);
+        });
+        scanProgressService.estimateScanTime();
     }
+}
 
 export const edeService: EDEService = new EDEService();

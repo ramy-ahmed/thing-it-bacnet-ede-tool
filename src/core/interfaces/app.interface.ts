@@ -31,6 +31,10 @@ export interface IScanStatus {
     devicesFound: number;
     datapointsDiscovered: number;
     datapointsReceived: number;
+    requestsPerformed?: number;
+    requestsTotal?: number;
+    progress?: number;
+    scanTime?: Date;
 }
 
 export interface IUnitPropsProgress {
@@ -48,6 +52,7 @@ export interface IDeviceProgress {
     objectsList: BehaviorSubject<any>[];
     processed: BehaviorSubject<any>;
     propsReceived: BehaviorSubject<any>;
+    avRespTime?: number;
 }
 
 export interface IReqStoreConfig {
