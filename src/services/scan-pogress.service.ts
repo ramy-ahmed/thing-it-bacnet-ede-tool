@@ -4,6 +4,7 @@ import { IScanStatus, IDeviceProgress, IUnitProgress, IUnitPropsProgress } from 
 import { logger } from '../core/utils';
 import { IBACnetObjectIdentifier } from '../core/interfaces';
 import * as _ from 'lodash';
+import * as moment from 'moment';
 import { first, filter, tap } from 'rxjs/operators';
 
 const reqDelay = 20;
@@ -18,6 +19,8 @@ export class ScanProgressService {
 
     private statusNotificationsFlow = new BehaviorSubject(this.scanStatus);
 
+    private scanFinishMoment: number;
+    private isSecondStage: boolean = false;
     /**
      * getObjId - returns the sting id by the object type and
      * object instance.
@@ -60,9 +63,6 @@ export class ScanProgressService {
     }
 
     reportObjectListLength(deviceMapId: string, length: number) {
-        // this.scanStatus.datapointsDiscovered += value;
-        // logger.info(`DATAPOINTS RECEIVED/DISVOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
-        // this.statusNotificationsFlow.next(this.scanStatus);
 
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
 
@@ -90,7 +90,7 @@ export class ScanProgressService {
         if (!deviceStatus.units.has(unitId)) {
 
             this.scanStatus.datapointsDiscovered += 1;
-            logger.info(`DATAPOINTS RECEIVED/DISVOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
+            this.logScanProgress();
             this.statusNotificationsFlow.next(this.scanStatus);
 
             const unitPropsStatus: IUnitPropsProgress = {
@@ -133,7 +133,7 @@ export class ScanProgressService {
 
     reportDatapointReceived(deviceMapId: string, unitId: IBACnetObjectIdentifier) {
         this.scanStatus.datapointsReceived += 1;
-        logger.info(`DATAPOINTS RECEIVED/DISVOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`)
+        this.logScanProgress();
         this.statusNotificationsFlow.next(this.scanStatus);
         this.reportPropertyProcessed(deviceMapId, unitId, 'objectName')
     }
@@ -165,10 +165,10 @@ export class ScanProgressService {
     estimateScanTime() {
         let totalScanTime = 0;
         this.devicesProgressMap.forEach((device) => {
-            let devScanTime = (device.objectsList.length - 1) * reqDelay * 3 + device.avRespTime;
+            let devScanTime = (device.objectsList.length - 1) * reqDelay * 3 + 1.1 * device.avRespTime;
             totalScanTime += devScanTime;
        })
-       console.log(totalScanTime);
+       this.scanFinishMoment = Date.now() + totalScanTime;
     }
 
 
@@ -196,6 +196,7 @@ export class ScanProgressService {
             filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
             first(),
             tap(() => {
+                this.isSecondStage = true;
                 console.log('FIRST STEP');
             })
         ).toPromise()
@@ -208,6 +209,15 @@ export class ScanProgressService {
             datapointsReceived: 0
         };
         this.devicesProgressMap.clear();
+    }
+
+    private logScanProgress() {
+        logger.info(`DATAPOINTS RECEIVED/DISVOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
+        if (this.isSecondStage) {
+            let timeRemaining = this.scanFinishMoment - Date.now();
+            timeRemaining = timeRemaining > 0 ? timeRemaining : 0;
+            logger.info(`TIME REMAINING: ${moment(timeRemaining).utc().format('HH:mm:ss.SSS')}`);
+        }
     }
 }
 
