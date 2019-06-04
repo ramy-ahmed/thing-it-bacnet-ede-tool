@@ -448,12 +448,12 @@ export class EDEService {
      * @param  {OutputSocket} output - output socket
      * @return {void}
      */
-    public estimateScanTime (): void {
+    public estimateScan (): void {
         this.reqStoresMap.forEach((store, id) => {
             const avRespTime = store.getAvRespTime();
             scanProgressService.reportAvRespTime(id, avRespTime);
         });
-        scanProgressService.estimateScanTime();
+        scanProgressService.estimateScan();
     }
 }
 

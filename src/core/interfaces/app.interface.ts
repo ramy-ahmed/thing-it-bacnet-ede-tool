@@ -34,7 +34,7 @@ export interface IScanStatus {
     requestsPerformed?: number;
     requestsTotal?: number;
     progress?: number;
-    scanTime?: Date;
+    timeRemaining?: string;
 }
 
 export interface IUnitPropsProgress {

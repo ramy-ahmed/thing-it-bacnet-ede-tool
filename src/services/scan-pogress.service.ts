@@ -13,7 +13,10 @@ export class ScanProgressService {
     private scanStatus: IScanStatus = {
         devicesFound: 0,
         datapointsDiscovered: 0,
-        datapointsReceived: 0
+        datapointsReceived: 0,
+        requestsTotal: 0,
+        requestsPerformed: 0,
+        progress: 0
     };
     private devicesProgressMap = new Map<string, IDeviceProgress>();
 
@@ -91,7 +94,6 @@ export class ScanProgressService {
 
             this.scanStatus.datapointsDiscovered += 1;
             this.logScanProgress();
-            this.statusNotificationsFlow.next(this.scanStatus);
 
             const unitPropsStatus: IUnitPropsProgress = {
                 objectName: new Subject(),
@@ -118,13 +120,16 @@ export class ScanProgressService {
                     filter((isUnitReady) => isUnitReady),
                     first()
                 ).subscribe(() => {
-                    const oLEntryStatus = deviceStatus.objectsList[objectListIndex];
-                    oLEntryStatus.next(true);
+                    this.reportObjectListItemProcessed(deviceMapId, objectListIndex)
+                    // const oLEntryStatus = deviceStatus.objectsList[objectListIndex];
+                    // oLEntryStatus.next(true);
                 });
         }
     }
 
     reportObjectListItemProcessed(deviceMapId: string, index) {
+        this.scanStatus.requestsPerformed += 1;
+        this.logScanProgress();
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
 
         const oLEntryStatus = deviceStatus.objectsList[index];
@@ -134,11 +139,12 @@ export class ScanProgressService {
     reportDatapointReceived(deviceMapId: string, unitId: IBACnetObjectIdentifier) {
         this.scanStatus.datapointsReceived += 1;
         this.logScanProgress();
-        this.statusNotificationsFlow.next(this.scanStatus);
         this.reportPropertyProcessed(deviceMapId, unitId, 'objectName')
     }
 
     reportPropertyProcessed(deviceMapId: string, objId: IBACnetObjectIdentifier, propName: string) {
+        this.scanStatus.requestsPerformed += 1;
+        this.logScanProgress();
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
 
         const unitId = this.getUnitId(objId);
@@ -162,13 +168,18 @@ export class ScanProgressService {
         deviceStatus.avRespTime = avRespTime;
     }
 
-    estimateScanTime() {
+    estimateScan() {
         let totalScanTime = 0;
         this.devicesProgressMap.forEach((device) => {
-            let devScanTime = (device.objectsList.length - 1) * (1.1 * reqDelay) * 3 + 1.1 * device.avRespTime;
+            const requestsTotal = (device.objectsList.length - 1) * 3;
+            this.scanStatus.requestsTotal += requestsTotal;
+            const devScanTime = requestsTotal * (1.1 * reqDelay) + 1.1 * device.avRespTime;
             totalScanTime += devScanTime;
+
        })
        this.scanFinishMoment = Date.now() + totalScanTime;
+       this.scanStatus.timeRemaining = moment(totalScanTime).utc().format('HH:mm:ss.SSS');
+       this.logScanProgress();
     }
 
 
@@ -184,7 +195,7 @@ export class ScanProgressService {
             filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
             first(),
             tap(() => {
-                console.log('FINISH');
+                logger.info('FINALIZING SCAN...');
             })
         ).toPromise()
     }
@@ -196,8 +207,8 @@ export class ScanProgressService {
             filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
             first(),
             tap(() => {
+                logger.info('DEVICE DISCOVERY COMPLETED');
                 this.isSecondStage = true;
-                console.log('FIRST STEP');
             })
         ).toPromise()
     }
@@ -214,10 +225,14 @@ export class ScanProgressService {
     private logScanProgress() {
         logger.info(`DATAPOINTS RECEIVED/DISVOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
         if (this.isSecondStage) {
+            this.scanStatus.progress = this.scanStatus.requestsPerformed / this.scanStatus.requestsTotal;
+            logger.info(`PROGRESS: ${this.scanStatus.progress}`)
             let timeRemaining = this.scanFinishMoment - Date.now();
             timeRemaining = timeRemaining > 0 ? timeRemaining : 0;
-            logger.info(`TIME REMAINING: ${moment(timeRemaining).utc().format('HH:mm:ss.SSS')}`);
+            this.scanStatus.timeRemaining = moment(timeRemaining).utc().format('HH:mm:ss.SSS');
+            logger.info(`TIME REMAINING: ${this.scanStatus.timeRemaining}`);
         }
+        this.statusNotificationsFlow.next(this.scanStatus);
     }
 }
 

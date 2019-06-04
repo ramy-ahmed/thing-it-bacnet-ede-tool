@@ -77,7 +77,7 @@ export class AppManager {
                 return scanProgressService.getDevicesPropsReceivedPromise()
             })
             .then(() => {
-                edeService.estimateScanTime();
+                edeService.estimateScan();
                 edeService.getDatapoints(this.edeStorageManager);
                 return this.stopNetworkMonitoring()
             })
