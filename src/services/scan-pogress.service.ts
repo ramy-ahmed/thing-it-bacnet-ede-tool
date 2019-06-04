@@ -165,7 +165,7 @@ export class ScanProgressService {
     estimateScanTime() {
         let totalScanTime = 0;
         this.devicesProgressMap.forEach((device) => {
-            let devScanTime = (device.objectsList.length - 1) * reqDelay * 3 + 1.1 * device.avRespTime;
+            let devScanTime = (device.objectsList.length - 1) * (1.1 * reqDelay) * 3 + 1.1 * device.avRespTime;
             totalScanTime += devScanTime;
        })
        this.scanFinishMoment = Date.now() + totalScanTime;
