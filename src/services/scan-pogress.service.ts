@@ -225,8 +225,8 @@ export class ScanProgressService {
     private logScanProgress() {
         logger.info(`DATAPOINTS RECEIVED/DISVOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
         if (this.isSecondStage) {
-            this.scanStatus.progress = this.scanStatus.requestsPerformed / this.scanStatus.requestsTotal;
-            logger.info(`PROGRESS: ${this.scanStatus.progress}`)
+            this.scanStatus.progress = _.round(this.scanStatus.requestsPerformed / this.scanStatus.requestsTotal, 2) * 100;
+            logger.info(`PROGRESS: ${this.scanStatus.progress}%`)
             let timeRemaining = this.scanFinishMoment - Date.now();
             timeRemaining = timeRemaining > 0 ? timeRemaining : 0;
             this.scanStatus.timeRemaining = moment(timeRemaining).utc().format('HH:mm:ss.SSS');
