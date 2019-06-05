@@ -5,7 +5,7 @@ import { IBACnetDelayedRequest, IBACnetRequestInfo, IReqStoreConfig, IBACnetObje
 import { logger } from '../core/utils';
 import { Enums, Interfaces } from '@thing-it/bacnet-logic';
 
-export class RequestsStore {
+export class RequestsService {
 
     private store: IBACnetRequestInfo[]|false[] = new Array(256).fill(false);
     private requestsQueue: IBACnetDelayedRequest[] = [];

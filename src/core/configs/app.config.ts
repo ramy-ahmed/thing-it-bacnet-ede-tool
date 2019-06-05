@@ -29,7 +29,7 @@ export const AppConfig: IAppConfig = {
     },
 }
 
-export const ReqStoreConfig = {
+export const ReqServiceConfig = {
     timeout: 2000,
     thread: 0
 };
