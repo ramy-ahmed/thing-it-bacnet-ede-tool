@@ -7,7 +7,7 @@ import { Enums, Interfaces } from '@thing-it/bacnet-logic';
 
 export class RequestsService {
 
-    private store: IBACnetRequestInfo[]|false[] = new Array(256).fill(false);
+    private store: IBACnetRequestInfo[] = new Array(256).fill(undefined);
     private requestsQueue: IBACnetDelayedRequest[] = [];
     private releaseIdSubs: Subscription[] = [];
     private sumRespTime: number = 0;
@@ -77,7 +77,7 @@ export class RequestsService {
                     this.releaseInvokeId(id);
                 });
         } else {
-            this.store[id] = false;
+            this.store[id] = undefined;
         }
         return this.calcAvRespTime(respTime);
     }
