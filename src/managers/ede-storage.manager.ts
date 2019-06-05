@@ -60,12 +60,7 @@ export class EDEStorageManager {
      * @param  {IBACnetAddressInfo} remote
      * @return {void}
      */
-    public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket, npduOpts?: Interfaces.NPDU.Write.Layer): void {
-        const rinfo = outputSoc.getAddressInfo();
-        let id =  rinfo.address;
-        if (npduOpts) {
-            id = npduOpts.destMacAddress
-        }
+    public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket, id: string, npduOpts?: Interfaces.NPDU.Write.Layer): void {
 
         if (this.devices.has(id)) {
             throw new ApiError('EDEStorageManager - addDevice: Device already exists!');
