@@ -60,20 +60,20 @@ export class EDEStorageManager {
      * @param  {IBACnetAddressInfo} remote
      * @return {void}
      */
-    public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket, destParams?: Interfaces.NPDU.Read.NetworkDest): void {
+    public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket, npduOpts?: Interfaces.NPDU.Write.Layer): void {
         const rinfo = outputSoc.getAddressInfo();
         let id =  rinfo.address;
-        if (destParams) {
-            id = destParams.macAddress
+        if (npduOpts) {
+            id = npduOpts.destMacAddress
         }
 
         if (this.devices.has(id)) {
             throw new ApiError('EDEStorageManager - addDevice: Device already exists!');
         }
-        const device = {
+        const device: IEDEDevice = {
             objId: deviceId,
             outputSoc: outputSoc,
-            destParams: destParams,
+            npduOpts: npduOpts,
             units: new Map()
         };
         const deviceUnitId = this.getObjId(deviceId.type, deviceId.instance)
@@ -183,10 +183,11 @@ export class EDEStorageManager {
             this.edeTableManager.clear();
             const deviceId = this.getObjId(device.objId.type, device.objId.instance)
 
-            this.edeTableManager.addHeader(this.config.header, !!device.destParams);
+            const npduOpts = _.isEmpty(device.npduOpts) ? undefined : device.npduOpts;
+            this.edeTableManager.addHeader(this.config.header, !!npduOpts);
 
             const deviceAddressInfo = device.outputSoc.getAddressInfo();
-            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo, device.destParams);
+            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo, npduOpts);
 
             const deviceUnit = device.units.get(deviceId);
 

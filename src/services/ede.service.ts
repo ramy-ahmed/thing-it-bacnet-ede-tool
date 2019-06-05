@@ -38,15 +38,8 @@ export class EDEService {
         const objInst = objIdValue.instance;
 
         try {
-            let destParams: BACNet.Interfaces.NPDU.Read.NetworkDest = null;
-            if (npduMessage.src) {
-                destParams = {
-                    networkAddress: npduMessage.src.networkAddress,
-                    macAddress: npduMessage.src.macAddress,
-                    macAddressLen: npduMessage.src.macAddressLen
-                };
-            }
-            edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc, destParams);
+            const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage)
+            edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc, npduOpts);
 
             logger.info(`EDEService - iAm: ${objType}:${objInst}, Add device`);
 
@@ -344,18 +337,9 @@ export class EDEService {
 
             const rinfo = outputSoc.getAddressInfo();
             let deviceStorageId = rinfo.address;
-            let npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {};
-            if (device.destParams) {
-                const destParams = device.destParams;
-                deviceStorageId = destParams.macAddress;
-                npduOpts = {
-                    control: {
-                        destSpecifier: true
-                    },
-                    hopCount: 0xff,
-                    destNetworkAddress: destParams.networkAddress,
-                    destMacAddress: destParams.macAddress
-                };
+            let npduOpts = device.npduOpts;
+            if (!_.isEmpty(npduOpts)) {
+                deviceStorageId = npduOpts.destMacAddress;
             }
 
             const reqService = this.reqServicesMap.get(deviceStorageId);
@@ -409,18 +393,9 @@ export class EDEService {
 
             const rinfo = outputSoc.getAddressInfo();
             let deviceStorageId = rinfo.address;
-            let npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {};
-            if (device.destParams) {
-                const destParams = device.destParams;
-                deviceStorageId = destParams.macAddress;
-                npduOpts = {
-                    control: {
-                        destSpecifier: true
-                    },
-                    hopCount: 0xff,
-                    destNetworkAddress: destParams.networkAddress,
-                    destMacAddress: destParams.macAddress
-                };
+            let npduOpts = device.npduOpts;
+            if (!_.isEmpty(npduOpts)) {
+                deviceStorageId = npduOpts.destMacAddress;
             }
             const reqService = this.reqServicesMap.get(deviceStorageId);
 

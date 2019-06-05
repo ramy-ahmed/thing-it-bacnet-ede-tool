@@ -22,7 +22,7 @@ export interface IEDEHeaderOptions {
 export interface IEDEDevice {
     objId: IBACnetObjectIdentifier;
     outputSoc: OutputSocket;
-    destParams?: BACNet.Interfaces.NPDU.Read.NetworkDest;
+    npduOpts?: BACNet.Interfaces.NPDU.Write.Layer;
     units: Map<string, IEDEUnit>;
     objectListLength?: number;
 }

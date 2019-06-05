@@ -107,13 +107,13 @@ export class EDETableManager {
      * @param  {IBACnetAddressInfo} rinfo - address info
      * @return {type}
      */
-    public setDeviceAddressInfo (rinfo: IBACnetAddressInfo, networkParams?: Interfaces.NPDU.Read.NetworkDest) {
+    public setDeviceAddressInfo (rinfo: IBACnetAddressInfo, npduOpts?: Interfaces.NPDU.Write.Layer) {
         const projectName = this.csvTable.getRowByAlias('ProjectName');
         projectName.setCellValue('DeviceAddress', rinfo.address);
         projectName.setCellValue('DevicePort', rinfo.port);
-        if (networkParams) {
-            projectName.setCellValue('Network_Number', networkParams.networkAddress);
-            projectName.setCellValue('MAC-address', networkParams.macAddress);
+        if (npduOpts) {
+            projectName.setCellValue('Network_Number', npduOpts.destNetworkAddress);
+            projectName.setCellValue('MAC-address', npduOpts.destMacAddress);
         }
     }
 
