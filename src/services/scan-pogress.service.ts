@@ -121,13 +121,11 @@ export class ScanProgressService {
                     first()
                 ).subscribe(() => {
                     this.reportObjectListItemProcessed(deviceMapId, objectListIndex)
-                    // const oLEntryStatus = deviceStatus.objectsList[objectListIndex];
-                    // oLEntryStatus.next(true);
                 });
         }
     }
 
-    reportObjectListItemProcessed(deviceMapId: string, index) {
+    reportObjectListItemProcessed(deviceMapId: string, index: number) {
         this.scanStatus.requestsPerformed += 1;
         this.logScanProgress();
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
@@ -195,7 +193,7 @@ export class ScanProgressService {
             filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
             first(),
             tap(() => {
-                logger.info('FINALIZING SCAN...');
+                logger.info('FINALIZING THE SCAN...');
             })
         ).toPromise()
     }
@@ -223,7 +221,7 @@ export class ScanProgressService {
     }
 
     private logScanProgress() {
-        logger.info(`DATAPOINTS RECEIVED/DISVOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
+        logger.info(`DATAPOINTS RECEIVED/DISCOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
         if (this.isSecondStage) {
             this.scanStatus.progress = _.round(this.scanStatus.requestsPerformed / this.scanStatus.requestsTotal, 2) * 100;
             logger.info(`PROGRESS: ${this.scanStatus.progress}%`)
