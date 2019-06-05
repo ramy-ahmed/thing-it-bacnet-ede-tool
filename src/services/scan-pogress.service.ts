@@ -215,7 +215,11 @@ export class ScanProgressService {
         this.scanStatus = {
             devicesFound: 0,
             datapointsDiscovered: 0,
-            datapointsReceived: 0
+            datapointsReceived: 0,
+            requestsPerformed: 0,
+            requestsTotal: 0,
+            progress: 0,
+            timeRemaining: ''
         };
         this.devicesProgressMap.clear();
     }
