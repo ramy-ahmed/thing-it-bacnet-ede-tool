@@ -1,4 +1,4 @@
-import { BehaviorSubject, Subject, Observable } from 'rxjs';
+import { BehaviorSubject, Subject, Observable, Subscription } from 'rxjs';
 
 import { IScanStatus, IDeviceProgress, IUnitProgress, IUnitPropsProgress } from '../core/interfaces';
 import { logger } from '../core/utils';
@@ -24,6 +24,11 @@ export class ScanProgressService {
 
     private scanFinishMoment: number;
     private isSecondStage: boolean = false;
+
+    // private noMoreIAmFlow = new Subject();
+
+    // private iAmTimeoutSub: Subscription;
+
     /**
      * getObjId - returns the sting id by the object type and
      * object instance.
@@ -63,6 +68,11 @@ export class ScanProgressService {
                 first()
             ).subscribe(() => deviceStatus.propsReceived.next(true))
 
+        // if (this.iAmTimeoutSub && this.iAmTimeoutSub.unsubscribe) {
+        //     this.iAmTimeoutSub.unsubscribe();
+        // }
+
+        // this.iAmTimeoutSub = Observable.timer(4000).subscribe(() => this.noMoreIAmFlow.next(true));
     }
 
     reportObjectListLength(deviceMapId: string, length: number) {
@@ -227,7 +237,7 @@ export class ScanProgressService {
     private logScanProgress() {
         logger.info(`DATAPOINTS RECEIVED/DISCOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
         if (this.isSecondStage) {
-            this.scanStatus.progress = _.round(this.scanStatus.requestsPerformed / this.scanStatus.requestsTotal, 2) * 100;
+            this.scanStatus.progress = _.round(this.scanStatus.requestsPerformed / this.scanStatus.requestsTotal * 100);
             logger.info(`PROGRESS: ${this.scanStatus.progress}%`)
             let timeRemaining = this.scanFinishMoment - Date.now();
             timeRemaining = timeRemaining > 0 ? timeRemaining : 0;
