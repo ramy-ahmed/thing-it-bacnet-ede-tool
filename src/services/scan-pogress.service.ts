@@ -146,7 +146,6 @@ export class ScanProgressService {
 
     reportDatapointReceived(deviceMapId: string, unitId: IBACnetObjectIdentifier) {
         this.scanStatus.datapointsReceived += 1;
-        this.logScanProgress();
         this.reportPropertyProcessed(deviceMapId, unitId, 'objectName')
     }
 
