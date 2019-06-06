@@ -19,7 +19,8 @@ export class ScanProgressService {
         datapointsReceived: 0,
         requestsTotal: 0,
         requestsPerformed: 0,
-        progress: 0
+        progress: 0,
+        timeRemaining: ''
     };
     private devicesProgressMap = new Map<string, IDeviceProgress>();
 
