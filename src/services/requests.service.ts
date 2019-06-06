@@ -26,7 +26,7 @@ export class RequestsService {
      */
     public registerRequest (rinfo: IBACnetRequestInfo): Bluebird<number> {
         const id = this.store.findIndex(storedItem => !storedItem);
-        if (id !== -1 && (!this.config.thread || (this.store.length < this.config.thread))) {
+        if ((id !== -1) && (!this.config.thread || (this.store.filter(item => item).length < this.config.thread))) {
             rinfo.timestamp = Date.now();
             this.store[id] = rinfo;
             // We need to release id and clean requestInfo after timeout for the cases of network problems
