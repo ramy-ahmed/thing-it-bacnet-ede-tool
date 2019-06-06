@@ -85,7 +85,7 @@ export class EDEService {
         const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
 
         scanProgressService.reportObjectListLength(deviceStorageId, propValuePayload.value);
-        edeStorage.addObjectListLength(deviceStorageId, propValuePayload.value)
+        edeStorage.addObjectListLength(deviceStorageId, propValuePayload.value);
 
         return Bluebird.resolve();
     }
@@ -367,7 +367,9 @@ export class EDEService {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
                     index: new BACNet.Types.BACnetUnsignedInteger(0)
                 },
-            }, outputSoc, npduOpts, reqService);
+            }, outputSoc, npduOpts, reqService, () => {
+                scanProgressService.reportObjectListLength(deviceStorageId, 0);
+            });
         }
     }
 
