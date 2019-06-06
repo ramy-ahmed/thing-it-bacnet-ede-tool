@@ -15,10 +15,10 @@ export const AppConfig: IAppConfig = {
         network: '255.255.255.255',
     },
     ede: {
+        timeout: 4000,
         file: {
             path: `${__dirname}/../../..`,
             name: `auto-ede`,
-            timeout: 15000,
         },
         header: {
             projectName: 'Thing-it',
@@ -27,9 +27,9 @@ export const AppConfig: IAppConfig = {
             versionOfLayout: 2,
         }
     },
-}
-
-export const ReqStoreConfig = {
+    reqService: {
     timeout: 5000,
     thread: 0
-};
+    }
+}
+

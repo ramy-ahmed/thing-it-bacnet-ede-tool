@@ -20,7 +20,7 @@ import {
     logger,
 } from '../core/utils';
 
-import { scanProgressService } from '../services';
+import { ScanProgressService } from '../services';
 import { Interfaces } from '@thing-it/bacnet-logic';
 
 export class EDEStorageManager {
@@ -45,26 +45,30 @@ export class EDEStorageManager {
     }
 
     /**
+     * getDeviceList -
+     *
+     * @return {IEDEDevice[]}
+     */
+    public getDeviceList (): IEDEDevice[] {
+        return Array.from(this.devices.values());
+    }
+
+    /**
      * addDevice - adds the EDE device into internal devices storage.
      *
      * @param  {IBACnetObjectIdentifier} deviceId - BACnet device identifier
      * @param  {IBACnetAddressInfo} remote
      * @return {void}
      */
-    public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket, destParams?: Interfaces.NPDU.Read.NetworkDest): void {
-        const rinfo = outputSoc.getAddressInfo();
-        let id =  rinfo.address;
-        if (destParams) {
-            id = destParams.macAddress
-        }
+    public addDevice (deviceId: IBACnetObjectIdentifier, outputSoc: OutputSocket, id: string, npduOpts?: Interfaces.NPDU.Write.Layer): void {
 
         if (this.devices.has(id)) {
             throw new ApiError('EDEStorageManager - addDevice: Device already exists!');
         }
-        const device = {
+        const device: IEDEDevice = {
             objId: deviceId,
             outputSoc: outputSoc,
-            destParams: destParams,
+            npduOpts: npduOpts,
             units: new Map()
         };
         const deviceUnitId = this.getObjId(deviceId.type, deviceId.instance)
@@ -78,6 +82,18 @@ export class EDEStorageManager {
         this.devices.set(id, device);
     }
 
+    /**
+     * addObjectListLength
+     *
+     * @param  {IBACnetObjectIdentifier} deviceId - BACnet device identifier
+     * @param  {IBACnetObjectIdentifier} unitId - BACnet unit identifier
+     * @return {void}
+     */
+    public addObjectListLength (deviceStorageId: string, length: number): void {
+        const device = this.devices.get(deviceStorageId);
+
+        device.objectListLength = length;
+    }
     /**
      * addUnit - adds the EDE unit into internal units storage.
      *
@@ -107,7 +123,7 @@ export class EDEStorageManager {
      * @return {void}
      */
     public setUnitProp (unitId: IBACnetObjectIdentifier,
-            propName: string, propValue: any, deviceStorageId: string): void {
+            propName: string, propValue: any, deviceStorageId: string, scanProgressService: ScanProgressService): void {
         const device = this.devices.get(deviceStorageId);
 
         const id = this.getObjId(unitId.type, unitId.instance);
@@ -115,8 +131,17 @@ export class EDEStorageManager {
 
         const newUnit = this.setObjectProperty(unit, propName, propValue);
 
-        if (propName === 'objectName') {
-            scanProgressService.reportDatapointReceived();
+        switch (propName) {
+            case 'objectName':
+            scanProgressService.reportDatapointReceived(deviceStorageId, unitId);
+                break;
+
+            case 'description':
+                scanProgressService.reportPropertyProcessed(deviceStorageId, unitId, 'description');
+                    break;
+
+            default:
+                break;
         }
 
         device.units.set(id, newUnit);
@@ -153,10 +178,11 @@ export class EDEStorageManager {
             this.edeTableManager.clear();
             const deviceId = this.getObjId(device.objId.type, device.objId.instance)
 
-            this.edeTableManager.addHeader(this.config.header, !!device.destParams);
+            const npduOpts = _.isEmpty(device.npduOpts) ? undefined : device.npduOpts;
+            this.edeTableManager.addHeader(this.config.header, !!npduOpts);
 
             const deviceAddressInfo = device.outputSoc.getAddressInfo();
-            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo, device.destParams);
+            this.edeTableManager.setDeviceAddressInfo(deviceAddressInfo, npduOpts);
 
             const deviceUnit = device.units.get(deviceId);
 

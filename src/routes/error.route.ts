@@ -2,13 +2,15 @@ import { logger } from '../core/utils';
 import * as BACNet from '@thing-it/bacnet-logic';
 import * as _ from 'lodash';
 
-import { edeService } from '../services';
+import { EDEService } from '../services';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 
 export function ErrorRouter (
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
     const apduMessage = inputSoc.apdu as BACNet.Interfaces.Error.Read.Layer;
+    const edeService: EDEService = serviceSocket.getService('edeService');
+
     const serviceChoice = apduMessage.serviceChoice;
     const error = apduMessage.service;
 

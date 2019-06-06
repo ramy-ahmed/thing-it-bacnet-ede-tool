@@ -1,11 +1,10 @@
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
-import * as BACNet from '@thing-it/bacnet-logic';
 
 import { InputSocket, OutputSocket, Server } from '../core/sockets';
 
-import { unconfirmedReqService } from '../services';
+import { EDEService } from '../services';
 
 import { mainRouter } from '../routes';
 
@@ -28,60 +27,76 @@ import {
     AsyncUtil,
 } from '../core/utils';
 
-import { scanProgressService } from '../services'
+import { ScanProgressService } from '../services'
 import { BehaviorSubject } from 'rxjs'
 
 export class AppManager {
     private server: Server;
     private edeStorageManager: EDEStorageManager;
     public progressReportsFlow: BehaviorSubject<IScanStatus>;
+    private outputSocket: OutputSocket;
+    private edeService: EDEService;
+    private scanProgressService: ScanProgressService;
 
     constructor (private appConfig: IAppConfig) {
         this.server = new Server(this.appConfig.server, mainRouter);
+        this.scanProgressService = new ScanProgressService(this.appConfig.server.outputSequence.delay)
         if (this.appConfig.reportProgress) {
-            this.progressReportsFlow = scanProgressService.getProgressNotificationsFlow();
+            this.progressReportsFlow = this.scanProgressService.getProgressNotificationsFlow();
         }
         this.initServices();
     }
 
     public initServices () {
+        this.edeService = new EDEService(this.appConfig.reqService);
         this.edeStorageManager = new EDEStorageManager(this.appConfig.ede);
         this.server.registerService('edeStorage', this.edeStorageManager);
+        this.server.registerService('edeService', this.edeService);
+        this.server.registerService('scanProgressService', this.scanProgressService);
     }
 
     public start (): Bluebird<any> {
         return this.server.startServer()
             .then((addrInfo: IBACnetAddressInfo) => {
                 // Generate OutputSocket instance
-                const outputSocket = this.server.genOutputSocket({
+                this.outputSocket = this.server.genOutputSocket({
                     address: this.appConfig.bacnet.network,
                     port: addrInfo.port,
                 });
                 const whoIsParams = {
-                    lowLimit: new BACNet.Types.BACnetUnsignedInteger(0),
-                    hiLimit: new BACNet.Types.BACnetUnsignedInteger(4194303)
+                    lowLimit: 0,
+                    hiLimit: 4194303
                 }
-                return unconfirmedReqService.whoIs(whoIsParams, outputSocket);
-            })
-            .then(() => this.startNetworkMonitoring());
+                this.edeService.scanDevices(whoIsParams, this.outputSocket)
+                return this.startNetworkMonitoring();
+            });
     }
 
     public startNetworkMonitoring (): Bluebird<any> {
         logger.info('AppManager - startNetworkMonitoring: Start the monitoring');
-        if (this.appConfig.ede.file.timeout === 0) {
-            return Bluebird.resolve();
+        if (this.appConfig.ede.timeout === 0) {
+            throw new ApiError ('Too small timeout!')
         }
-        return this.stopNetworkMonitoring();
+        return AsyncUtil.setTimeout(this.appConfig.ede.timeout)
+            .then(() => {
+                this.edeService.getDeviceProps(this.edeStorageManager, this.scanProgressService);
+                return this.scanProgressService.getDevicesPropsReceivedPromise()
+            })
+            .then(() => {
+                this.edeService.estimateScan(this.scanProgressService);
+                this.edeService.getDatapoints(this.edeStorageManager, this.scanProgressService);
+                return this.stopNetworkMonitoring()
+            })
     }
 
     public stopNetworkMonitoring () {
-        return AsyncUtil.setTimeout(this.appConfig.ede.file.timeout)
+        return this.scanProgressService.getScanCompletePromise()
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Close the socket connection');
-                this.server.destroy();
-                scanProgressService.clearData();
+                return this.server.destroy();
             })
             .then(() => {
+                this.scanProgressService.clearData();
                 logger.info('AppManager - stopNetworkMonitoring: Save EDE storage');
                 return this.edeStorageManager.saveEDEStorage();
             })
@@ -92,7 +107,7 @@ export class AppManager {
                 return Bluebird.resolve(resolvedPathArr);
             })
             .catch((err) => {
-                logger.error('AppManager - stopNetworkMonitoring: Close the socket connection');
+                logger.error('AppManager - stopNetworkMonitoring: ' + err);
             })
     }
 }

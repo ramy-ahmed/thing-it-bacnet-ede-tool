@@ -6,11 +6,11 @@ import { IBACnetObjectIdentifier } from './bacnet.interface';
 export interface IEDEConfig {
     file: IEDEFileConfig;
     header: IEDEHeaderOptions;
+    timeout: number;
 }
 export interface IEDEFileConfig {
     path: string;
     name: string;
-    timeout: number;
 }
 export interface IEDEHeaderOptions {
     projectName: string;
@@ -22,8 +22,9 @@ export interface IEDEHeaderOptions {
 export interface IEDEDevice {
     objId: IBACnetObjectIdentifier;
     outputSoc: OutputSocket;
-    destParams?: BACNet.Interfaces.NPDU.Read.NetworkDest;
+    npduOpts?: BACNet.Interfaces.NPDU.Write.Layer;
     units: Map<string, IEDEUnit>;
+    objectListLength?: number;
 }
 export interface IEDEUnit {
     props: IEDEUnitProps;
