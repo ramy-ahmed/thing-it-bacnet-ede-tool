@@ -8,7 +8,7 @@ export const AppConfig: IAppConfig = {
         port: 47808,
         outputSequence: {
             thread: 1,
-            delay: 100,
+            delay: 20,
         },
     },
     bacnet: {
@@ -30,6 +30,6 @@ export const AppConfig: IAppConfig = {
 }
 
 export const ReqServiceConfig = {
-    timeout: 10000,
-    thread: 50
+    timeout: 5000,
+    thread: 0
 };
