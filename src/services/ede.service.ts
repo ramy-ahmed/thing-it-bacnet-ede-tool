@@ -16,6 +16,7 @@ import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IBACnetAddressInfo }
 
 export class EDEService {
     private reqServicesMap: Map<string, RequestsService> = new Map();
+    private isStageTwo: boolean = false;
 
     /**
      * iAm - handles the "iAm" response.
@@ -26,6 +27,11 @@ export class EDEService {
      */
     public iAm (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
+
+        if (this.isStageTwo) {
+            return;
+        }
+        
         const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
@@ -422,6 +428,7 @@ export class EDEService {
             scanProgressService.reportAvRespTime(id, avRespTime);
         });
         scanProgressService.estimateScan();
+        this.isStageTwo = true;
     }
 }
 
