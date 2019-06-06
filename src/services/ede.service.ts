@@ -9,7 +9,7 @@ import { logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
 import { confirmedReqService, unconfirmedReqService } from './bacnet';
-import { scanProgressService } from './scan-pogress.service';
+import { ScanProgressService } from './scan-pogress.service';
 import { RequestsService } from './requests.service';
 import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IBACnetAddressInfo, IReqServiceConfig } from '../core/interfaces';
 
@@ -38,6 +38,7 @@ export class EDEService {
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
+        const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
 
         // Get object identifier
         const objId = apduService.objId;
@@ -77,6 +78,7 @@ export class EDEService {
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
+        const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
 
         // Get object identifier
         const objId = apduService.objId;
@@ -111,6 +113,7 @@ export class EDEService {
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
+        const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
 
         // Get object identifier
         const objId = apduService.objId;
@@ -173,6 +176,7 @@ export class EDEService {
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
         const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
+        const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
 
         // Get object identifier
         const objId = apduService.objId;
@@ -193,8 +197,13 @@ export class EDEService {
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
         const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
 
-        edeStorage.setUnitProp({ type: objType, instance: objInst },
-            BACNet.Enums.PropertyId[propIdPayload.value], propValuePayload, deviceStorageId);
+        edeStorage.setUnitProp(
+            { type: objType, instance: objInst },
+            BACNet.Enums.PropertyId[propIdPayload.value],
+            propValuePayload,
+            deviceStorageId,
+            scanProgressService
+        );
 
         return Bluebird.resolve();
     }
@@ -334,7 +343,7 @@ export class EDEService {
      * @param  {OutputSocket} output - output socket
      * @return {void}
      */
-    public getDeviceProps (edeStorage: EDEStorageManager): void {
+    public getDeviceProps (edeStorage: EDEStorageManager, scanProgressService: ScanProgressService): void {
 
         const deviceList = edeStorage.getDeviceList();
 
@@ -388,7 +397,7 @@ export class EDEService {
      * @param  {OutputSocket} output - output socket
      * @return {void}
      */
-    public getDatapoints (edeStorage: EDEStorageManager): void {
+    public getDatapoints (edeStorage: EDEStorageManager, scanProgressService: ScanProgressService): void {
 
         const deviceList = edeStorage.getDeviceList();
         deviceList.forEach((device) => {
@@ -424,7 +433,7 @@ export class EDEService {
      * @param  {OutputSocket} output - output socket
      * @return {void}
      */
-    public estimateScan (): void {
+    public estimateScan (scanProgressService: ScanProgressService): void {
         this.reqServicesMap.forEach((service, id) => {
             const avRespTime = service.getAvRespTime();
             scanProgressService.reportAvRespTime(id, avRespTime);

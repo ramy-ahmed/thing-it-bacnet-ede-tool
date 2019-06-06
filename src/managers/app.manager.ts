@@ -27,7 +27,7 @@ import {
     AsyncUtil,
 } from '../core/utils';
 
-import { scanProgressService } from '../services'
+import { ScanProgressService } from '../services'
 import { BehaviorSubject } from 'rxjs'
 
 export class AppManager {
@@ -36,11 +36,13 @@ export class AppManager {
     public progressReportsFlow: BehaviorSubject<IScanStatus>;
     private outputSocket: OutputSocket;
     private edeService: EDEService;
+    private scanProgressService: ScanProgressService;
 
     constructor (private appConfig: IAppConfig) {
         this.server = new Server(this.appConfig.server, mainRouter);
+        this.scanProgressService = new ScanProgressService(this.appConfig.server.outputSequence.delay)
         if (this.appConfig.reportProgress) {
-            this.progressReportsFlow = scanProgressService.getProgressNotificationsFlow();
+            this.progressReportsFlow = this.scanProgressService.getProgressNotificationsFlow();
         }
         this.initServices();
     }
@@ -49,7 +51,8 @@ export class AppManager {
         this.edeService = new EDEService(this.appConfig.reqService);
         this.edeStorageManager = new EDEStorageManager(this.appConfig.ede);
         this.server.registerService('edeStorage', this.edeStorageManager);
-        this.server.registerService('edeService', this.edeService)
+        this.server.registerService('edeService', this.edeService);
+        this.server.registerService('scanProgressService', this.scanProgressService);
     }
 
     public start (): Bluebird<any> {
@@ -76,24 +79,24 @@ export class AppManager {
         }
         return AsyncUtil.setTimeout(this.appConfig.ede.timeout)
             .then(() => {
-                this.edeService.getDeviceProps(this.edeStorageManager);
-                return scanProgressService.getDevicesPropsReceivedPromise()
+                this.edeService.getDeviceProps(this.edeStorageManager, this.scanProgressService);
+                return this.scanProgressService.getDevicesPropsReceivedPromise()
             })
             .then(() => {
-                this.edeService.estimateScan();
-                this.edeService.getDatapoints(this.edeStorageManager);
+                this.edeService.estimateScan(this.scanProgressService);
+                this.edeService.getDatapoints(this.edeStorageManager, this.scanProgressService);
                 return this.stopNetworkMonitoring()
             })
     }
 
     public stopNetworkMonitoring () {
-        return scanProgressService.getScanCompletePromise()
+        return this.scanProgressService.getScanCompletePromise()
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Close the socket connection');
                 return this.server.destroy();
             })
             .then(() => {
-                scanProgressService.clearData();
+                this.scanProgressService.clearData();
                 logger.info('AppManager - stopNetworkMonitoring: Save EDE storage');
                 return this.edeStorageManager.saveEDEStorage();
             })

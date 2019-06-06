@@ -7,9 +7,12 @@ import * as _ from 'lodash';
 import * as moment from 'moment';
 import { first, filter, tap } from 'rxjs/operators';
 
-const reqDelay = 20;
 
 export class ScanProgressService {
+    constructor(
+        private reqDelay: number
+    ) {}
+
     private scanStatus: IScanStatus = {
         devicesFound: 0,
         datapointsDiscovered: 0,
@@ -180,7 +183,7 @@ export class ScanProgressService {
         this.devicesProgressMap.forEach((device) => {
             const requestsTotal = (device.objectsList.length - 1) * 3;
             this.scanStatus.requestsTotal += requestsTotal;
-            const devScanTime = requestsTotal * (1.1 * reqDelay) + 1.1 * device.avRespTime;
+            const devScanTime = requestsTotal * (1.1 * this.reqDelay) + 1.1 * device.avRespTime;
             totalScanTime += devScanTime;
 
        })
@@ -246,5 +249,3 @@ export class ScanProgressService {
         this.statusNotificationsFlow.next(this.scanStatus);
     }
 }
-
-export const scanProgressService = new ScanProgressService();

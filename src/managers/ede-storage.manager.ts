@@ -20,7 +20,7 @@ import {
     logger,
 } from '../core/utils';
 
-import { scanProgressService } from '../services';
+import { ScanProgressService } from '../services';
 import { Interfaces } from '@thing-it/bacnet-logic';
 
 export class EDEStorageManager {
@@ -123,7 +123,7 @@ export class EDEStorageManager {
      * @return {void}
      */
     public setUnitProp (unitId: IBACnetObjectIdentifier,
-            propName: string, propValue: any, deviceStorageId: string): void {
+            propName: string, propValue: any, deviceStorageId: string, scanProgressService: ScanProgressService): void {
         const device = this.devices.get(deviceStorageId);
 
         const id = this.getObjId(unitId.type, unitId.instance);
