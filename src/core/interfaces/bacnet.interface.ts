@@ -34,21 +34,6 @@ export interface IBACnetObjectProperty {
     values: any;
 }
 
-type ConfirmedRequestOptions = BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
-
-export type IBACNetRequestTimeoutHandler = (opts: ConfirmedRequestOptions) => void;
-export interface IBACnetRequestInfo {
-    choice: string
-    opts: ConfirmedRequestOptions
-    timeoutAction?: IBACNetRequestTimeoutHandler;
-    timestamp?: number;
-}
-
-export interface IBACnetDelayedRequest {
-    idDefer: Resolver<number>;
-    rinfo: IBACnetRequestInfo;
-}
-
 export interface IBACnetWhoIsOptions {
     lowLimit: number;
     hiLimit: number;

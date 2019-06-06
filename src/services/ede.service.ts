@@ -297,9 +297,9 @@ export class EDEService {
         reqService: RequestsService,
         timeoutAction?: IBACNetRequestTimeoutHandler): Bluebird<any> {
         return reqService.registerRequest({ choice: 'readProperty', opts, timeoutAction })
-            .then((invokeId) => {
-                opts.invokeId = invokeId;
-                return confirmedReqService.readProperty(opts, output, npduOpts)
+            .then((serviceData) => {
+                opts.invokeId = serviceData.invokeId;
+                return confirmedReqService.readProperty(opts, output, npduOpts, serviceData.msgSentFlow)
             })
     }
 

@@ -23,7 +23,7 @@ export class OutputSocket {
      * @param  {string} reqMethodName - name of the BACnet service
      * @return {Bluebird<any>}
      */
-    private _send (msg: Buffer, reqMethodName: string): Bluebird<any> {
+    private _send (msg: Buffer, reqMethodName: string, msgSentFlow: Subject<any>): Bluebird<any> {
         const ucAddress = this.rinfo.address;
         const ucPort = this.rinfo.port;
 
@@ -33,6 +33,7 @@ export class OutputSocket {
                 if (error) {
                     return reject(error);
                 }
+                msgSentFlow.next(true)
                 resolve(data);
             });
         });
@@ -45,7 +46,7 @@ export class OutputSocket {
      * @param  {string} reqMethodName - name of the BACnet service
      * @return {Bluebird<any>}
      */
-    public send (msg: Buffer, reqMethodName: string): void {
+    public send (msg: Buffer, reqMethodName: string, msgSentFlow: Subject<any>): void {
         let id = `${this.rinfo.address}:${this.rinfo.port}`;
         if (this.rinfo.dest) {
             id += `${this.rinfo.dest.networkAddress}:${this.rinfo.dest.macAddress}`
@@ -54,7 +55,7 @@ export class OutputSocket {
             id,
             object: this,
             method: this._send,
-            params: [msg, reqMethodName],
+            params: [msg, reqMethodName, msgSentFlow]
         });
     }
 
