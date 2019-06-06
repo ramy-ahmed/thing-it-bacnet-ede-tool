@@ -4,7 +4,7 @@ import * as path from 'path';
 
 import { InputSocket, OutputSocket, Server } from '../core/sockets';
 
-import { edeService } from '../services';
+import { EDEService } from '../services';
 
 import { mainRouter } from '../routes';
 
@@ -35,6 +35,7 @@ export class AppManager {
     private edeStorageManager: EDEStorageManager;
     public progressReportsFlow: BehaviorSubject<IScanStatus>;
     private outputSocket: OutputSocket;
+    private edeService: EDEService;
 
     constructor (private appConfig: IAppConfig) {
         this.server = new Server(this.appConfig.server, mainRouter);
@@ -45,8 +46,10 @@ export class AppManager {
     }
 
     public initServices () {
+        this.edeService = new EDEService(this.appConfig.reqService);
         this.edeStorageManager = new EDEStorageManager(this.appConfig.ede);
         this.server.registerService('edeStorage', this.edeStorageManager);
+        this.server.registerService('edeService', this.edeService)
     }
 
     public start (): Bluebird<any> {
@@ -61,7 +64,7 @@ export class AppManager {
                     lowLimit: 0,
                     hiLimit: 4194303
                 }
-                edeService.scanDevices(whoIsParams, this.outputSocket)
+                this.edeService.scanDevices(whoIsParams, this.outputSocket)
                 return this.startNetworkMonitoring();
             });
     }
@@ -73,12 +76,12 @@ export class AppManager {
         }
         return AsyncUtil.setTimeout(this.appConfig.ede.timeout)
             .then(() => {
-                edeService.getDeviceProps(this.edeStorageManager);
+                this.edeService.getDeviceProps(this.edeStorageManager);
                 return scanProgressService.getDevicesPropsReceivedPromise()
             })
             .then(() => {
-                edeService.estimateScan();
-                edeService.getDatapoints(this.edeStorageManager);
+                this.edeService.estimateScan();
+                this.edeService.getDatapoints(this.edeStorageManager);
                 return this.stopNetworkMonitoring()
             })
     }

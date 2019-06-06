@@ -27,9 +27,9 @@ export const AppConfig: IAppConfig = {
             versionOfLayout: 2,
         }
     },
-}
-
-export const ReqServiceConfig = {
+    reqService: {
     timeout: 5000,
     thread: 0
-};
+    }
+}
+

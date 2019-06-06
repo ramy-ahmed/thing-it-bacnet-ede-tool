@@ -11,10 +11,13 @@ import { EDEStorageManager } from '../managers/ede-storage.manager';
 import { confirmedReqService, unconfirmedReqService } from './bacnet';
 import { scanProgressService } from './scan-pogress.service';
 import { RequestsService } from './requests.service';
-import { ReqServiceConfig } from '../core/configs'
-import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IBACnetAddressInfo } from '../core/interfaces';
+import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IBACnetAddressInfo, IReqServiceConfig } from '../core/interfaces';
 
 export class EDEService {
+    constructor(
+        private reqServiceConfig: IReqServiceConfig
+    ) {}
+
     private reqServicesMap: Map<string, RequestsService> = new Map();
     private isStageTwo: boolean = false;
 
@@ -31,7 +34,6 @@ export class EDEService {
         if (this.isStageTwo) {
             return;
         }
-        
         const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
@@ -53,7 +55,7 @@ export class EDEService {
 
             scanProgressService.reportDeviceFound(deviceStorageId, { type: objType, instance: objInst });
 
-            const reqService = new RequestsService(ReqServiceConfig, { type: objType, instance: objInst });
+            const reqService = new RequestsService(this.reqServiceConfig, { type: objType, instance: objInst });
             this.reqServicesMap.set(deviceStorageId, reqService)
 
 
@@ -432,4 +434,3 @@ export class EDEService {
     }
 }
 
-export const edeService: EDEService = new EDEService();

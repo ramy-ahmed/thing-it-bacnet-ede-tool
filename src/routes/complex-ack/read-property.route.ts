@@ -2,13 +2,14 @@ import { logger } from '../../core/utils';
 
 import * as BACNet from '@thing-it/bacnet-logic';
 
-import { edeService } from '../../services';
+import { EDEService } from '../../services';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../../core/sockets';
 
 export function ReadPropertyRouter (
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket): any {
     const apduMessage = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+    const edeService: EDEService = serviceSocket.getService('edeService');
 
     const serviceMap = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
     const propId = serviceMap.prop.id as BACNet.Types.BACnetEnumerated;

@@ -4,7 +4,7 @@ import { delay, first } from 'rxjs/operators';
 import {
     IBACnetDelayedRequest,
     IBACnetRequestInfo,
-    IReqStoreConfig,
+    IReqServiceConfig,
     IBACnetObjectIdentifier,
     IReqServiceRegisterData
 } from '../core/interfaces';
@@ -20,7 +20,7 @@ export class RequestsService {
     private requestsNumber: number = 0;
 
     constructor (
-        private config: IReqStoreConfig,
+        private config: IReqServiceConfig,
         public deviceId: IBACnetObjectIdentifier
     ) {}
 

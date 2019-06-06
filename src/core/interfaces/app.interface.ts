@@ -8,6 +8,11 @@ export interface IAppConfig {
     ede: IEDEConfig;
     bacnet: IBACnetConfig;
     reportProgress: boolean;
+    reqService: IReqServiceConfig;
+}
+export interface IReqServiceConfig {
+    timeout: number;
+    thread: number;
 }
 
 export interface IBACnetConfig {
@@ -55,11 +60,6 @@ export interface IDeviceProgress {
     processed: BehaviorSubject<any>;
     propsReceived: BehaviorSubject<any>;
     avRespTime?: number;
-}
-
-export interface IReqStoreConfig {
-    timeout: number;
-    thread: number;
 }
 
 export interface IReqServiceRegisterData {

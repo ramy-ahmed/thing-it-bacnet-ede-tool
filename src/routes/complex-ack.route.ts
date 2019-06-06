@@ -1,7 +1,6 @@
 import { logger } from '../core/utils';
 import * as BACNet from '@thing-it/bacnet-logic';
 
-import { edeService } from '../services';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 import { ReadPropertyRouter } from './complex-ack/read-property.route';
