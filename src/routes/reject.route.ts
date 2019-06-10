@@ -16,7 +16,7 @@ export function RejectRouter (
     logger.debug(`MainRouter - Request Service: RejectPDU, invokeId #${apduMessage.invokeId}`);
     logger.debug(`Reject reason: ${_.capitalize(BACNet.Enums.RejectReason[rejectMessage.reason])}`);
 
+    edeService.processError(inputSoc, outputSoc, serviceSocket);
     edeService.releaseInvokeId(inputSoc, outputSoc);
-    edeService.processError(inputSoc, outputSoc);
     return;
 }
