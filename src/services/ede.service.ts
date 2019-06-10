@@ -262,7 +262,7 @@ export class EDEService {
         const reqService = this.reqServicesMap.get(deviceStorageId);
 
         const invokeId = apduMessage.invokeId;
-        reqService.releaseInvokeId(invokeId)
+        reqService.releaseInvokeId(invokeId);
     }
 
     /**
@@ -272,29 +272,46 @@ export class EDEService {
      * @param  {OutputSocket} outputSoc - output socket
      * @return {void}
      */
-    public processError (inputSoc: InputSocket, outputSoc: OutputSocket): void {
+    public processError (inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket): void {
         const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
-        const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
-        const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
+        const apduMessage = npduMessage.apdu as BACNet.Interfaces.Error.Read.Layer;
+        const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
         const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
 
         const reqService = this.reqServicesMap.get(deviceStorageId);
 
-        const invokeId = apduService.invokeId;
+        const invokeId = apduMessage.invokeId;
         const reqInfo = reqService.getRequestInfo(invokeId);
         if (reqInfo.choice === 'readProperty') {
             const reqOpts = reqInfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
             const objId = reqOpts.objId.value;
             const prop = reqOpts.prop;
+            const propId = prop.id.value;
             const deviceId = reqService.deviceId;
             let logMessage = `Failed readProperty #${invokeId}: (${BACNet.Enums.ObjectType[deviceId.type]},${deviceId.instance}): `
-                + `(${BACNet.Enums.ObjectType[objId.type]},${objId.instance}) - ${BACNet.Enums.PropertyId[prop.id.value]}`;
+                + `(${BACNet.Enums.ObjectType[objId.type]},${objId.instance}) - ${BACNet.Enums.PropertyId[propId]}`;
             if (prop.index) {
                 logMessage += `[${prop.index.value}]`
             }
-            logger.error(logMessage)
+            logger.error(logMessage);
+            switch (propId) {
+                case BACNet.Enums.PropertyId.objectList: {
+                        const index = prop.index.value;
+                        if (index === 0) {
+                            scanProgressService.reportObjectListLength(deviceStorageId, 0)
+                        } else {
+                            scanProgressService.reportObjectListItemProcessed(deviceStorageId, index)
+                        }
+                        break;
+                    }
+
+                default: {
+                    scanProgressService.reportPropertyProcessed(deviceStorageId, objId, BACNet.Enums.PropertyId[propId])
+                    break;
+                }
+            }
         }
     }
 

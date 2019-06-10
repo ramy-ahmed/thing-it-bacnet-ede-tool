@@ -17,7 +17,7 @@ export function ErrorRouter (
     logger.debug(`MainRouter - Request Service: ErrorPDU - ${BACNet.Enums.ConfirmedServiceChoice[serviceChoice]}, invokeId #${apduMessage.invokeId}`);
     logger.debug(`MainRouter - Request Service: Reason: ${_.capitalize(BACNet.Enums.ErrorClass[error.class.value])}, error - ${BACNet.Enums.ErrorCode[error.code.value]}`);
 
+    edeService.processError(inputSoc, outputSoc, serviceSocket);
     edeService.releaseInvokeId(inputSoc, outputSoc);
-    edeService.processError(inputSoc, outputSoc);
     return;
 }
