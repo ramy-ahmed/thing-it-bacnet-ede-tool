@@ -45,3 +45,9 @@ if (argv.reqThread) {
 
 const appManager = new AppManager(appConfig);
 appManager.start();
+
+process.on('SIGINT', () => {
+    appManager.stopNetworkMonitoring().then(() => {
+        process.exit(0);
+    })
+});

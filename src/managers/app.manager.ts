@@ -56,41 +56,43 @@ export class AppManager {
     }
 
     public start (): Bluebird<any> {
+        return this.startNetworkMonitoring()
+            .then(() => {
+                return this.stopNetworkMonitoring()
+            });
+    }
+
+    public startNetworkMonitoring (): Bluebird<any> {
         return this.server.startServer()
             .then((addrInfo: IBACnetAddressInfo) => {
                 // Generate OutputSocket instance
                 this.outputSocket = this.server.genOutputSocket({
                     address: this.appConfig.bacnet.network,
-                    port: addrInfo.port,
+                    port: 47807,
                 });
                 const whoIsParams = {
                     lowLimit: 0,
                     hiLimit: 4194303
                 }
-                this.edeService.scanDevices(whoIsParams, this.outputSocket)
-                return this.startNetworkMonitoring();
+                this.edeService.scanDevices(whoIsParams, this.outputSocket);
+
+                logger.info('AppManager - startNetworkMonitoring: Start the monitoring');
+                if (this.appConfig.ede.timeout === 0) {
+                    throw new ApiError ('Too small timeout!')
+                }
+                return AsyncUtil.setTimeout(this.appConfig.ede.timeout)
+            }).then(() => {
+                this.edeService.getDeviceProps(this.edeStorageManager, this.scanProgressService);
+                return this.scanProgressService.getDevicesPropsReceivedPromise()
+            }).then(() => {
+                this.edeService.estimateScan(this.scanProgressService);
+                this.edeService.getDatapoints(this.edeStorageManager, this.scanProgressService);
+                return this.scanProgressService.getScanCompletePromise();
             });
     }
 
-    public startNetworkMonitoring (): Bluebird<any> {
-        logger.info('AppManager - startNetworkMonitoring: Start the monitoring');
-        if (this.appConfig.ede.timeout === 0) {
-            throw new ApiError ('Too small timeout!')
-        }
-        return AsyncUtil.setTimeout(this.appConfig.ede.timeout)
-            .then(() => {
-                this.edeService.getDeviceProps(this.edeStorageManager, this.scanProgressService);
-                return this.scanProgressService.getDevicesPropsReceivedPromise()
-            })
-            .then(() => {
-                this.edeService.estimateScan(this.scanProgressService);
-                this.edeService.getDatapoints(this.edeStorageManager, this.scanProgressService);
-                return this.stopNetworkMonitoring()
-            })
-    }
-
     public stopNetworkMonitoring () {
-        return this.scanProgressService.getScanCompletePromise()
+        return Bluebird.resolve()
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Close the socket connection');
                 return this.server.destroy();
