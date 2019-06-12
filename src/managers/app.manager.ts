@@ -68,7 +68,7 @@ export class AppManager {
                 // Generate OutputSocket instance
                 this.outputSocket = this.server.genOutputSocket({
                     address: this.appConfig.bacnet.network,
-                    port: 47807,
+                    port: addrInfo.port,
                 });
                 const whoIsParams = {
                     lowLimit: 0,
