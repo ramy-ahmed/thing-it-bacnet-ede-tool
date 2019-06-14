@@ -21,6 +21,11 @@ export interface IBACnetConfig {
 export interface IServerConfig {
     port: number;
     outputSequence: ISequenceConfig;
+    input?: IInputSocConfig;
+}
+
+export interface IInputSocConfig {
+    detectEncoding?: boolean;
 }
 export interface ISequenceConfig {
     thread: number;

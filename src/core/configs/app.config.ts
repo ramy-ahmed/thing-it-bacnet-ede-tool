@@ -10,6 +10,9 @@ export const AppConfig: IAppConfig = {
             thread: 1,
             delay: 20,
         },
+        input: {
+            detectEncoding: false
+        }
     },
     bacnet: {
         network: '255.255.255.255',

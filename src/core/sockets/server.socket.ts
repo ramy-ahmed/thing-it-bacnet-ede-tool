@@ -59,7 +59,7 @@ export class Server {
 
         this.sock.on('message', (msg: Buffer, rinfo: IBACnetAddressInfo) => {
             // Generate Request instance
-            const inputSoc = new InputSocket(msg);
+            const inputSoc = new InputSocket(msg, this.serverConfig.input);
             const srcInfo = _.get(inputSoc, 'npdu.src');
             let dest: IBACnetDestParams;
 
