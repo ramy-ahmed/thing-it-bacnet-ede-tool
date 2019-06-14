@@ -12,11 +12,11 @@ export class InputSocket {
     public npdu: BACNet.Interfaces.NPDU.Read.Layer;
     public apdu: BACNet.Interfaces.APDU.Read.Layer;
 
-    constructor (msg: Buffer) {
+    constructor (msg: Buffer, opts?: BACNet.Interfaces.ReaderOptions) {
         logger.debug(`${this.className} - message: ${msg.toString('hex')}`);
-        const reader = new BACNet.IO.Reader(msg);
+        const layer = BACNet.Helpers.Layer.bufferToLayer(msg, opts)
         try {
-            this.blvc = BACNet.Layers.Reader.BLVC.readLayer(reader);
+            this.blvc = layer.blvc;
         } catch (error) {
             logger.error(error);
         }
