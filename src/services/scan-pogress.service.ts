@@ -98,6 +98,7 @@ export class ScanProgressService {
         if (!deviceStatus.units.has(unitId)) {
 
             this.scanStatus.datapointsDiscovered += 1;
+            this.scanStatus.requestsPerformed += 1;
             this.logScanProgress();
 
             const unitPropsStatus: IUnitPropsProgress = {
@@ -125,7 +126,8 @@ export class ScanProgressService {
                     filter((isUnitReady) => isUnitReady),
                     first()
                 ).subscribe(() => {
-                    this.reportObjectListItemProcessed(deviceMapId, objectListIndex)
+                    const oLEntryStatus = deviceStatus.objectsList[objectListIndex];
+                    oLEntryStatus.next(true);
                 });
         }
     }
