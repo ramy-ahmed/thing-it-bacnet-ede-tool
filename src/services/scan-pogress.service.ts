@@ -29,10 +29,6 @@ export class ScanProgressService {
     private scanFinishMoment: number;
     private isSecondStage: boolean = false;
 
-    // private noMoreIAmFlow = new Subject();
-
-    // private iAmTimeoutSub: Subscription;
-
     /**
      * getObjId - returns the sting id by the object type and
      * object instance.
@@ -72,11 +68,6 @@ export class ScanProgressService {
                 first()
             ).subscribe(() => deviceStatus.propsReceived.next(true))
 
-        // if (this.iAmTimeoutSub && this.iAmTimeoutSub.unsubscribe) {
-        //     this.iAmTimeoutSub.unsubscribe();
-        // }
-
-        // this.iAmTimeoutSub = Observable.timer(4000).subscribe(() => this.noMoreIAmFlow.next(true));
     }
 
     reportObjectListLength(deviceMapId: string, length: number) {
@@ -184,7 +175,7 @@ export class ScanProgressService {
         this.devicesProgressMap.forEach((device) => {
             const requestsTotal = (device.objectsList.length - 1) * 3;
             this.scanStatus.requestsTotal += requestsTotal;
-            const devScanTime = requestsTotal * (1.1 * this.reqDelay) + 1.1 * device.avRespTime;
+            const devScanTime = requestsTotal * (1.05 * this.reqDelay + 5) + 1.1 * device.avRespTime;
             totalScanTime += devScanTime;
 
        })
