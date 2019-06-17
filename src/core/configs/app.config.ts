@@ -8,7 +8,7 @@ export const AppConfig: IAppConfig = {
         port: 47808,
         outputSequence: {
             thread: 1,
-            delay: 20,
+            delay: 50,
         },
         input: {
             detectEncoding: false
@@ -31,8 +31,8 @@ export const AppConfig: IAppConfig = {
         }
     },
     reqService: {
-    timeout: 5000,
-    thread: 0
+        timeout: 4000,
+        thread: 0
     }
 }
 
