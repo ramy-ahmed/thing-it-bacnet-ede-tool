@@ -66,7 +66,10 @@ export class ScanProgressService {
             .pipe(
                 filter((isDevicePropsReceived) => isDevicePropsReceived.every(ready => ready)),
                 first()
-            ).subscribe(() => deviceStatus.propsReceived.next(true))
+            ).subscribe(() => {
+                deviceStatus.propsReceived.next(true);
+                deviceStatus.avRespTime = 0;
+            })
 
     }
 
@@ -179,11 +182,18 @@ export class ScanProgressService {
             this.scanStatus.requestsTotal += requestsTotal;
             const devScanTime = requestsTotal * (1.05 * this.reqDelay + 5) + 1.1 * device.avRespTime;
             totalScanTime += devScanTime;
-
-       })
-       this.scanFinishMoment = Date.now() + totalScanTime;
+       });
        this.scanStatus.timeRemaining = moment(totalScanTime).utc().format('HH:mm:ss.SSS');
        this.logScanProgress();
+    }
+
+    calcScanTimeRemaining() {
+        let requestsRemaining = Math.max(this.scanStatus.requestsTotal - this.scanStatus.requestsPerformed, 0);
+        let timeRemaining = (requestsRemaining) * (1.05 * this.reqDelay + 5);
+        this.devicesProgressMap.forEach((device) => {
+            timeRemaining += 1.1 * device.avRespTime;
+       })
+       this.scanStatus.timeRemaining = moment(timeRemaining).utc().format('HH:mm:ss.SSS');
     }
 
 
@@ -235,9 +245,7 @@ export class ScanProgressService {
         if (this.isSecondStage) {
             this.scanStatus.progress = _.round(this.scanStatus.requestsPerformed / this.scanStatus.requestsTotal * 100);
             logger.info(`PROGRESS: ${this.scanStatus.progress}%`)
-            let timeRemaining = this.scanFinishMoment - Date.now();
-            timeRemaining = timeRemaining > 0 ? timeRemaining : 0;
-            this.scanStatus.timeRemaining = moment(timeRemaining).utc().format('HH:mm:ss.SSS');
+            this.calcScanTimeRemaining();
             logger.info(`TIME REMAINING: ${this.scanStatus.timeRemaining}`);
         }
         this.statusNotificationsFlow.next(this.scanStatus);
