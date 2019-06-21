@@ -68,7 +68,6 @@ export class ScanProgressService {
                 first()
             ).subscribe(() => {
                 deviceStatus.propsReceived.next(true);
-                deviceStatus.avRespTime = 0;
             })
 
     }
@@ -88,7 +87,8 @@ export class ScanProgressService {
                 filter((isObjListReadyArr) => isObjListReadyArr.every(ready => ready)),
                 first()
             ).subscribe(() => {
-                deviceStatus.processed.next(true)
+                deviceStatus.processed.next(true);
+                deviceStatus.avRespTime = 0;
             });
     }
 
