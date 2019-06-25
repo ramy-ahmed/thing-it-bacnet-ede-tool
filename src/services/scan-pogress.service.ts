@@ -27,7 +27,7 @@ export class ScanProgressService {
     private statusNotificationsFlow = new BehaviorSubject(this.scanStatus);
 
     private scanFinishMoment: number;
-    private isSecondStage: boolean = false;
+    public scanStage: number = 0;
 
     /**
      * getObjId - returns the sting id by the object type and
@@ -242,7 +242,7 @@ export class ScanProgressService {
 
     private logScanProgress() {
         logger.info(`DATAPOINTS RECEIVED/DISCOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
-        if (this.isSecondStage) {
+        if (this.scanStage > 2) {
             this.scanStatus.progress = _.round(this.scanStatus.requestsPerformed / this.scanStatus.requestsTotal * 100, 1);
             logger.info(`PROGRESS: ${this.scanStatus.progress}%`)
             this.calcScanTimeRemaining();

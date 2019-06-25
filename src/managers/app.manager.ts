@@ -75,6 +75,7 @@ export class AppManager {
                     hiLimit: 4194303
                 }
                 this.edeService.scanDevices(whoIsParams, this.outputSocket);
+                this.scanProgressService.scanStage = 1;
 
                 logger.info('AppManager - startNetworkMonitoring: Start the monitoring');
                 if (this.appConfig.ede.timeout === 0) {
@@ -83,10 +84,12 @@ export class AppManager {
                 return AsyncUtil.setTimeout(this.appConfig.ede.timeout)
             }).then(() => {
                 this.edeService.getDeviceProps(this.edeStorageManager, this.scanProgressService);
+                this.scanProgressService.scanStage = 2;
                 return this.scanProgressService.getDevicesPropsReceivedPromise()
             }).then(() => {
                 this.edeService.estimateScan(this.scanProgressService);
                 this.edeService.getDatapoints(this.edeStorageManager, this.scanProgressService);
+                this.scanProgressService.scanStage = 3;
                 return this.scanProgressService.getScanCompletePromise();
             });
     }

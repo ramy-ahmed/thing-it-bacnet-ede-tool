@@ -19,7 +19,7 @@ export class EDEService {
     ) {}
 
     private reqServicesMap: Map<string, RequestsService> = new Map();
-    private isStageTwo: boolean = false;
+    public scanStage: number = 0;
 
     /**
      * iAm - handles the "iAm" response.
@@ -405,6 +405,7 @@ export class EDEService {
                 scanProgressService.reportObjectListLength(deviceStorageId, 0);
             });
         }
+        this.scanStage = 2;
     }
 
      /**
@@ -441,6 +442,7 @@ export class EDEService {
                 }, outputSoc, npduOpts, reqService, timeoutAction);
             }
         });
+        this.scanStage = 3;
     }
 
     /**
