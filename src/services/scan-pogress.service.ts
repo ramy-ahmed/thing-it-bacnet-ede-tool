@@ -26,8 +26,13 @@ export class ScanProgressService {
 
     private statusNotificationsFlow = new BehaviorSubject(this.scanStatus);
 
-    private scanFinishMoment: number;
     public scanStage: number = 0;
+
+    private scanFinishedFlow = new BehaviorSubject(false);
+    private scanFinishedSub: Subscription;
+
+    private devicesPropsReceivedFlow = new BehaviorSubject(false);
+    private devicesPropsReceivedSub: Subscription
 
     /**
      * getObjId - returns the sting id by the object type and
@@ -68,8 +73,14 @@ export class ScanProgressService {
                 first()
             ).subscribe(() => {
                 deviceStatus.propsReceived.next(true);
-            })
+            });
+        if ( this.scanStage >= 2) {
+            this.calcDevicesPropsReceivedSub();
+        }
 
+        if ( this.scanStage === 3) {
+            this.calcScanCompleteSub();
+        }
     }
 
     reportObjectListLength(deviceMapId: string, length: number) {
@@ -77,8 +88,6 @@ export class ScanProgressService {
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
 
         const oListLengthReceived = deviceStatus.objectsList[0];
-        oListLengthReceived.next(true);
-
         const objectsList =  new Array(length).fill(null).map(() => new BehaviorSubject(false));
         deviceStatus.objectsList = _.concat(oListLengthReceived, objectsList)
 
@@ -90,6 +99,7 @@ export class ScanProgressService {
                 deviceStatus.processed.next(true);
                 deviceStatus.avRespTime = 0;
             });
+        oListLengthReceived.next(true);
     }
 
     reportDatapointDiscovered(deviceMapId: string, objId: IBACnetObjectIdentifier, objectListIndex?: number) {
@@ -201,30 +211,61 @@ export class ScanProgressService {
         return this.statusNotificationsFlow;
     }
 
-
-    getScanCompletePromise() {
+    calcScanCompleteSub() {
+        if (this.scanFinishedSub && this.scanFinishedSub.unsubscribe) {
+            this.scanFinishedSub.unsubscribe()
+        }
         const devicesProgressArr = Array.from(this.devicesProgressMap.values()).map(device => device.processed)
         const scanFinished = Observable.combineLatest(devicesProgressArr);
-        return  scanFinished.pipe(
+        this.scanFinishedSub = scanFinished.pipe(
             filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
-            first(),
-            tap(() => {
+            first()
+        ).subscribe(() => {
                 logger.info('FINALIZING THE SCAN...');
-            })
+            this.scanFinishedFlow.next(true);
+        });
+
+    }
+
+    getScanCompletePromise() {
+        if (this.devicesProgressMap.size === 0) {
+            return Promise.resolve(true);
+        }
+        this.calcScanCompleteSub();
+        return this.scanFinishedFlow.pipe(
+            filter(value => !!value),
+            first()
         ).toPromise()
     }
 
-    getDevicesPropsReceivedPromise() {
-        const devicesPropsReceivedArr = Array.from(this.devicesProgressMap.values()).map(device => device.propsReceived)
+    calcDevicesPropsReceivedSub() {
+        if (this.devicesPropsReceivedSub && this.devicesPropsReceivedSub.unsubscribe) {
+            this.devicesPropsReceivedSub.unsubscribe();
+        }
+        const devicesPropsReceivedArr = Array.from(this.devicesProgressMap.values()).map(device => device.propsReceived);
         const firstStepFinished = Observable.combineLatest(devicesPropsReceivedArr);
-        return  firstStepFinished.pipe(
-            filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
-            first(),
-            tap(() => {
+
+        this.devicesPropsReceivedSub = firstStepFinished.pipe(
+            filter((isDeviceReadyArr) => {
+                return isDeviceReadyArr.every(ready => ready)
+            }),
+            first()
+        ).subscribe(() => {
                 logger.info('DEVICE DISCOVERY COMPLETED');
-                this.isSecondStage = true;
-            })
-        ).toPromise()
+            this.estimateScan();
+            this.devicesPropsReceivedFlow.next(true);
+        });
+    }
+
+    getDevicesPropsReceivedPromise() {
+        if (this.devicesProgressMap.size === 0) {
+            return Promise.resolve(true);
+        }
+        this.calcDevicesPropsReceivedSub();
+        return  this.devicesPropsReceivedFlow.pipe(
+            filter(value => !!value),
+            first()
+        ).toPromise();
     }
 
     clearData() {
@@ -238,6 +279,8 @@ export class ScanProgressService {
             timeRemaining: ''
         };
         this.devicesProgressMap.clear();
+        this.scanFinishedFlow.next(false);
+        this.devicesPropsReceivedFlow.next(false)
     }
 
     private logScanProgress() {
