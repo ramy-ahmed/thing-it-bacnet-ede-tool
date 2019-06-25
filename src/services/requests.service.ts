@@ -1,6 +1,6 @@
 import * as Bluebird from 'bluebird';
 import { Subscription, Subject, BehaviorSubject} from 'rxjs';
-import { delay, first } from 'rxjs/operators';
+import { delay, first, tap } from 'rxjs/operators';
 import {
     IBACnetDelayedRequest,
     IBACnetRequestInfo,
@@ -50,10 +50,13 @@ export class RequestsService {
     public reserveInvokeId (id: number, rinfo: IBACnetRequestInfo): Subject<any> {
         rinfo.timestamp = Date.now();
         this.store[id] = rinfo;
-        const msgSentFlow = new Subject();
+        const msgSentFlow = new Subject<number>();
         // We need to release id and clean requestInfo after timeout for the cases of network problems
         // It's needed to be sure that status check request will not stuck and successfully be sent after reconnection
         this.releaseIdSubs[id] = msgSentFlow.pipe(
+            tap((timestamp) => {
+                rinfo.timestamp = timestamp;
+            }),
             delay(this.config.timeout),
             first()
         ).subscribe(() => {

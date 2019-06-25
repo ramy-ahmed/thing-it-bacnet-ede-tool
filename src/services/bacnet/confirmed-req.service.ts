@@ -15,7 +15,7 @@ export class ConfirmedReqService {
     public readProperty (
         opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty,
         output: OutputSocket, npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {},
-        msgSentFlow: Subject<any>): void {
+        msgSentFlow: Subject<number>): void {
 
         const msgBACnet = BACNet.Services.ConfirmedReqService.readProperty(opts, npduOpts)
         return output.send(msgBACnet, `readProperty #${opts.invokeId}`, msgSentFlow);

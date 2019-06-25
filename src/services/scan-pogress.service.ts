@@ -186,20 +186,19 @@ export class ScanProgressService {
     }
 
     estimateScan() {
-        let totalScanTime = 0;
+        let requestsTotal = 0;
         this.devicesProgressMap.forEach((device) => {
-            const requestsTotal = (device.objectsList.length - 1) * 3;
-            this.scanStatus.requestsTotal += requestsTotal;
-            const devScanTime = requestsTotal * (1.05 * this.reqDelay + 5) + 1.1 * device.avRespTime;
-            totalScanTime += devScanTime;
+            const deviceRequests = (device.objectsList.length - 1) * 3;
+            requestsTotal += deviceRequests;
        });
-       this.scanStatus.timeRemaining = moment(totalScanTime).utc().format('HH:mm:ss.SSS');
-       this.logScanProgress();
+       this.scanStatus.requestsTotal = requestsTotal;
+
+       this.calcScanTimeRemaining();
     }
 
     calcScanTimeRemaining() {
         let requestsRemaining = Math.max(this.scanStatus.requestsTotal - this.scanStatus.requestsPerformed, 0);
-        let timeRemaining = (requestsRemaining) * (1.05 * this.reqDelay + 5);
+        let timeRemaining = requestsRemaining * (1.05 * this.reqDelay + 5);
         this.devicesProgressMap.forEach((device) => {
             timeRemaining += 1.1 * device.avRespTime;
        })
@@ -221,7 +220,7 @@ export class ScanProgressService {
             filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
             first()
         ).subscribe(() => {
-                logger.info('FINALIZING THE SCAN...');
+            logger.info('FINALIZING THE SCAN...');
             this.scanFinishedFlow.next(true);
         });
 
@@ -251,7 +250,7 @@ export class ScanProgressService {
             }),
             first()
         ).subscribe(() => {
-                logger.info('DEVICE DISCOVERY COMPLETED');
+            logger.info('DEVICE DISCOVERY COMPLETED');
             this.estimateScan();
             this.devicesPropsReceivedFlow.next(true);
         });

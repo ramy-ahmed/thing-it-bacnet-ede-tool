@@ -301,9 +301,10 @@ export class EDEService {
      * @param  {OutputSocket} outputSoc - output socket
      * @return {void}
      */
-    public releaseInvokeId (inputSoc: InputSocket, outputSoc: OutputSocket): void {
+    public releaseInvokeId (inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket): void {
         const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+        const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
         const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
@@ -311,7 +312,8 @@ export class EDEService {
         const reqService = this.reqServicesMap.get(deviceStorageId);
 
         const invokeId = apduMessage.invokeId;
-        reqService.releaseInvokeId(invokeId);
+        const avRespTime = reqService.releaseInvokeId(invokeId);
+        scanProgressService.reportAvRespTime(deviceStorageId, avRespTime);
     }
 
     /**
@@ -394,10 +396,10 @@ export class EDEService {
      * @return {void}
      */
     public scanDevices (opts: IBACnetWhoIsOptions, output: OutputSocket): void {
-            const whoIsParams = {
-                lowLimit: new BACNet.Types.BACnetUnsignedInteger(opts.lowLimit),
-                hiLimit: new BACNet.Types.BACnetUnsignedInteger(opts.hiLimit)
-            }
+        const whoIsParams = {
+            lowLimit: new BACNet.Types.BACnetUnsignedInteger(opts.lowLimit),
+            hiLimit: new BACNet.Types.BACnetUnsignedInteger(opts.hiLimit)
+        }
         unconfirmedReqService.whoIs(whoIsParams, output);
         this.scanStage = 1;
     }
@@ -492,22 +494,6 @@ export class EDEService {
             }
         });
         this.scanStage = 3;
-    }
-
-    /**
-     * scanDevices - sends whoIs request with specified parameters
-     *
-     * @param  {IBACnetWhoIsOptions} opts - request options
-     * @param  {OutputSocket} output - output socket
-     * @return {void}
-     */
-    public estimateScan (scanProgressService: ScanProgressService): void {
-        this.reqServicesMap.forEach((service, id) => {
-            const avRespTime = service.getAvRespTime();
-            scanProgressService.reportAvRespTime(id, avRespTime);
-        });
-        scanProgressService.estimateScan();
-        this.isStageTwo = true;
     }
 }
 
