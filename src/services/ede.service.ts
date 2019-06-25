@@ -31,9 +31,6 @@ export class EDEService {
     public iAm (
             inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
 
-        if (this.isStageTwo) {
-            return;
-        }
         const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
@@ -57,7 +54,41 @@ export class EDEService {
             scanProgressService.reportDeviceFound(deviceStorageId, { type: objType, instance: objInst });
 
             const reqService = new RequestsService(this.reqServiceConfig, { type: objType, instance: objInst });
-            this.reqServicesMap.set(deviceStorageId, reqService)
+            this.reqServicesMap.set(deviceStorageId, reqService);
+
+            if (this.scanStage > 1) {
+                this.sendReadProperty({
+                    invokeId: 1,
+                    objId: objId,
+                    prop: {
+                        id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
+                    }
+                }, outputSoc, npduOpts, reqService, () => {
+                    scanProgressService.reportPropertyProcessed(deviceStorageId, objIdValue, 'objectName')
+                });
+
+                this.sendReadProperty({
+                    invokeId: 1,
+                    objId: objId,
+                    prop: {
+                        id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
+                    },
+                }, outputSoc, npduOpts, reqService, () => {
+                    scanProgressService.reportPropertyProcessed(deviceStorageId, objIdValue, 'description')
+                });
+
+                this.sendReadProperty({
+                    segAccepted: true,
+                    invokeId: 1,
+                    objId: objId,
+                    prop: {
+                        id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
+                        index: new BACNet.Types.BACnetUnsignedInteger(0)
+                    },
+                }, outputSoc, npduOpts, reqService, () => {
+                    scanProgressService.reportObjectListLength(deviceStorageId, 0);
+                });
+            }
 
 
         } catch (error) {
@@ -93,9 +124,27 @@ export class EDEService {
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
         const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
+        const reqService = this.reqServicesMap.get(deviceStorageId);
 
         scanProgressService.reportObjectListLength(deviceStorageId, propValuePayload.value);
         edeStorage.addObjectListLength(deviceStorageId, propValuePayload.value);
+
+        if (this.scanStage === 3) {
+            for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
+                const timeoutAction = () => {
+                    scanProgressService.reportObjectListItemProcessed(deviceStorageId, itemIndex)
+                }
+                this.sendReadProperty({
+                    segAccepted: true,
+                    invokeId: 1,
+                    objId: objId,
+                    prop: {
+                        id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
+                        index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
+                    },
+                }, outputSoc, npduOpts, reqService, timeoutAction);
+            }
+        }
 
         return Bluebird.resolve();
     }
@@ -344,13 +393,13 @@ export class EDEService {
      * @param  {OutputSocket} output - output socket
      * @return {void}
      */
-    public scanDevices (opts: IBACnetWhoIsOptions,
-        output: OutputSocket): void {
+    public scanDevices (opts: IBACnetWhoIsOptions, output: OutputSocket): void {
             const whoIsParams = {
                 lowLimit: new BACNet.Types.BACnetUnsignedInteger(opts.lowLimit),
                 hiLimit: new BACNet.Types.BACnetUnsignedInteger(opts.hiLimit)
             }
-            return unconfirmedReqService.whoIs(whoIsParams, output);
+        unconfirmedReqService.whoIs(whoIsParams, output);
+        this.scanStage = 1;
     }
 
     /**
