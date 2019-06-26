@@ -6,6 +6,7 @@ import { IBACnetObjectIdentifier } from '../core/interfaces';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 import { first, filter, tap } from 'rxjs/operators';
+import { Enums } from '@thing-it/bacnet-logic';
 
 
 export class ScanProgressService {
@@ -26,8 +27,13 @@ export class ScanProgressService {
 
     private statusNotificationsFlow = new BehaviorSubject(this.scanStatus);
 
-    private scanFinishMoment: number;
-    private isSecondStage: boolean = false;
+    public scanStage: number = 0;
+
+    private scanFinishedFlow = new BehaviorSubject(false);
+    private scanFinishedSub: Subscription;
+
+    private devicesPropsReceivedFlow = new BehaviorSubject(false);
+    private devicesPropsReceivedSub: Subscription
 
     /**
      * getObjId - returns the sting id by the object type and
@@ -43,6 +49,7 @@ export class ScanProgressService {
 
     public reportDeviceFound(id: string, objId: IBACnetObjectIdentifier) {
         this.scanStatus.devicesFound += 1;
+        this.scanStatus.requestsTotal += 3; // add 'device' requests to total amount
         logger.info(`DEVICES FOUND: ${this.scanStatus.devicesFound}`)
         this.statusNotificationsFlow.next(this.scanStatus);
         if (this.devicesProgressMap.has(id)) {
@@ -68,18 +75,22 @@ export class ScanProgressService {
                 first()
             ).subscribe(() => {
                 deviceStatus.propsReceived.next(true);
-                deviceStatus.avRespTime = 0;
-            })
+            });
+        if ( this.scanStage >= 2) {
+            this.calcDevicesPropsReceivedSub();
+        }
 
+        if ( this.scanStage === 3) {
+            this.calcScanCompleteSub();
+        }
     }
 
     reportObjectListLength(deviceMapId: string, length: number) {
 
+        this.scanStatus.requestsPerformed += 1;
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
 
         const oListLengthReceived = deviceStatus.objectsList[0];
-        oListLengthReceived.next(true);
-
         const objectsList =  new Array(length).fill(null).map(() => new BehaviorSubject(false));
         deviceStatus.objectsList = _.concat(oListLengthReceived, objectsList)
 
@@ -88,8 +99,10 @@ export class ScanProgressService {
                 filter((isObjListReadyArr) => isObjListReadyArr.every(ready => ready)),
                 first()
             ).subscribe(() => {
-                deviceStatus.processed.next(true)
+                deviceStatus.processed.next(true);
+                deviceStatus.avRespTime = 0;
             });
+        oListLengthReceived.next(true);
     }
 
     reportDatapointDiscovered(deviceMapId: string, objId: IBACnetObjectIdentifier, objectListIndex?: number) {
@@ -101,8 +114,6 @@ export class ScanProgressService {
         if (!deviceStatus.units.has(unitId)) {
 
             this.scanStatus.datapointsDiscovered += 1;
-            this.scanStatus.requestsPerformed += 1;
-            this.logScanProgress();
 
             const unitPropsStatus: IUnitPropsProgress = {
                 objectName: new Subject(),
@@ -124,6 +135,12 @@ export class ScanProgressService {
 
 
         if (_.isFinite(objectListIndex)) {
+            // increase performed requests amount only when we reseive objectList entry
+            this.scanStatus.requestsPerformed += 1;
+            if (objId.type === Enums.ObjectType.Device) {
+                //remove requests related to 'device' datapoint properties from total amount - already counted as 'device' requests and received
+                this.scanStatus.requestsTotal -= 2;
+            }
             unitStatus.processed
                 .pipe(
                     filter((isUnitReady) => isUnitReady),
@@ -133,6 +150,7 @@ export class ScanProgressService {
                     oLEntryStatus.next(true);
                 });
         }
+        this.logScanProgress();
     }
 
     reportObjectListItemProcessed(deviceMapId: string, index: number) {
@@ -176,20 +194,19 @@ export class ScanProgressService {
     }
 
     estimateScan() {
-        let totalScanTime = 0;
+        let requestsTotal = 0;
         this.devicesProgressMap.forEach((device) => {
-            const requestsTotal = (device.objectsList.length - 1) * 3;
-            this.scanStatus.requestsTotal += requestsTotal;
-            const devScanTime = requestsTotal * (1.05 * this.reqDelay + 5) + 1.1 * device.avRespTime;
-            totalScanTime += devScanTime;
+            const deviceRequests = (device.objectsList.length - 1) * 3 + 3; // add 'device' related requests to count
+            requestsTotal += deviceRequests;
        });
-       this.scanStatus.timeRemaining = moment(totalScanTime).utc().format('HH:mm:ss.SSS');
-       this.logScanProgress();
+       this.scanStatus.requestsTotal = requestsTotal;
+
+       this.calcScanTimeRemaining();
     }
 
     calcScanTimeRemaining() {
         let requestsRemaining = Math.max(this.scanStatus.requestsTotal - this.scanStatus.requestsPerformed, 0);
-        let timeRemaining = (requestsRemaining) * (1.05 * this.reqDelay + 5);
+        let timeRemaining = requestsRemaining * (1.05 * this.reqDelay + 5);
         this.devicesProgressMap.forEach((device) => {
             timeRemaining += 1.1 * device.avRespTime;
        })
@@ -201,30 +218,60 @@ export class ScanProgressService {
         return this.statusNotificationsFlow;
     }
 
-
-    getScanCompletePromise() {
+    calcScanCompleteSub() {
+        if (this.scanFinishedSub && this.scanFinishedSub.unsubscribe) {
+            this.scanFinishedSub.unsubscribe()
+        }
         const devicesProgressArr = Array.from(this.devicesProgressMap.values()).map(device => device.processed)
         const scanFinished = Observable.combineLatest(devicesProgressArr);
-        return  scanFinished.pipe(
+        this.scanFinishedSub = scanFinished.pipe(
             filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
-            first(),
-            tap(() => {
-                logger.info('FINALIZING THE SCAN...');
-            })
+            first()
+        ).subscribe(() => {
+            logger.info('FINALIZING THE SCAN...');
+            this.scanFinishedFlow.next(true);
+        });
+
+    }
+
+    getScanCompletePromise() {
+        if (this.devicesProgressMap.size === 0) {
+            return Promise.resolve(true);
+        }
+        this.calcScanCompleteSub();
+        return this.scanFinishedFlow.pipe(
+            filter(value => !!value),
+            first()
         ).toPromise()
     }
 
-    getDevicesPropsReceivedPromise() {
-        const devicesPropsReceivedArr = Array.from(this.devicesProgressMap.values()).map(device => device.propsReceived)
+    calcDevicesPropsReceivedSub() {
+        if (this.devicesPropsReceivedSub && this.devicesPropsReceivedSub.unsubscribe) {
+            this.devicesPropsReceivedSub.unsubscribe();
+        }
+        const devicesPropsReceivedArr = Array.from(this.devicesProgressMap.values()).map(device => device.propsReceived);
         const firstStepFinished = Observable.combineLatest(devicesPropsReceivedArr);
-        return  firstStepFinished.pipe(
-            filter((isDeviceReadyArr) => isDeviceReadyArr.every(ready => ready)),
-            first(),
-            tap(() => {
-                logger.info('DEVICE DISCOVERY COMPLETED');
-                this.isSecondStage = true;
-            })
-        ).toPromise()
+
+        this.devicesPropsReceivedSub = firstStepFinished.pipe(
+            filter((isDeviceReadyArr) => {
+                return isDeviceReadyArr.every(ready => ready)
+            }),
+            first()
+        ).subscribe(() => {
+            this.estimateScan();
+            this.devicesPropsReceivedFlow.next(true);
+        });
+    }
+
+    getDevicesPropsReceivedPromise() {
+        if (this.devicesProgressMap.size === 0) {
+            return Promise.resolve(true);
+        }
+        this.calcDevicesPropsReceivedSub();
+        return  this.devicesPropsReceivedFlow.pipe(
+            filter(value => !!value),
+            first()
+        ).toPromise();
     }
 
     clearData() {
@@ -238,11 +285,13 @@ export class ScanProgressService {
             timeRemaining: ''
         };
         this.devicesProgressMap.clear();
+        this.scanFinishedFlow.next(false);
+        this.devicesPropsReceivedFlow.next(false)
     }
 
     private logScanProgress() {
         logger.info(`DATAPOINTS RECEIVED/DISCOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
-        if (this.isSecondStage) {
+        if (this.scanStage > 2) {
             this.scanStatus.progress = _.round(this.scanStatus.requestsPerformed / this.scanStatus.requestsTotal * 100, 1);
             logger.info(`PROGRESS: ${this.scanStatus.progress}%`)
             this.calcScanTimeRemaining();
