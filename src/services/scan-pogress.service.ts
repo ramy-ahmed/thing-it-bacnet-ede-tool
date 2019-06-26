@@ -6,6 +6,7 @@ import { IBACnetObjectIdentifier } from '../core/interfaces';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 import { first, filter, tap } from 'rxjs/operators';
+import { Enums } from '@thing-it/bacnet-logic';
 
 
 export class ScanProgressService {
@@ -48,6 +49,7 @@ export class ScanProgressService {
 
     public reportDeviceFound(id: string, objId: IBACnetObjectIdentifier) {
         this.scanStatus.devicesFound += 1;
+        this.scanStatus.requestsTotal += 3; // add 'device' requests to total amount
         logger.info(`DEVICES FOUND: ${this.scanStatus.devicesFound}`)
         this.statusNotificationsFlow.next(this.scanStatus);
         if (this.devicesProgressMap.has(id)) {
@@ -85,6 +87,7 @@ export class ScanProgressService {
 
     reportObjectListLength(deviceMapId: string, length: number) {
 
+        this.scanStatus.requestsPerformed += 1;
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
 
         const oListLengthReceived = deviceStatus.objectsList[0];
@@ -111,8 +114,6 @@ export class ScanProgressService {
         if (!deviceStatus.units.has(unitId)) {
 
             this.scanStatus.datapointsDiscovered += 1;
-            this.scanStatus.requestsPerformed += 1;
-            this.logScanProgress();
 
             const unitPropsStatus: IUnitPropsProgress = {
                 objectName: new Subject(),
@@ -134,6 +135,12 @@ export class ScanProgressService {
 
 
         if (_.isFinite(objectListIndex)) {
+            // increase performed requests amount only when we reseive objectList entry
+            this.scanStatus.requestsPerformed += 1;
+            if (objId.type === Enums.ObjectType.Device) {
+                //remove requests related to 'device' datapoint properties from total amount - already counted as 'device' requests and received
+                this.scanStatus.requestsTotal -= 2;
+            }
             unitStatus.processed
                 .pipe(
                     filter((isUnitReady) => isUnitReady),
@@ -143,6 +150,7 @@ export class ScanProgressService {
                     oLEntryStatus.next(true);
                 });
         }
+        this.logScanProgress();
     }
 
     reportObjectListItemProcessed(deviceMapId: string, index: number) {
@@ -188,7 +196,7 @@ export class ScanProgressService {
     estimateScan() {
         let requestsTotal = 0;
         this.devicesProgressMap.forEach((device) => {
-            const deviceRequests = (device.objectsList.length - 1) * 3;
+            const deviceRequests = (device.objectsList.length - 1) * 3 + 3; // add 'device' related requests to count
             requestsTotal += deviceRequests;
        });
        this.scanStatus.requestsTotal = requestsTotal;
@@ -250,7 +258,6 @@ export class ScanProgressService {
             }),
             first()
         ).subscribe(() => {
-            logger.info('DEVICE DISCOVERY COMPLETED');
             this.estimateScan();
             this.devicesPropsReceivedFlow.next(true);
         });

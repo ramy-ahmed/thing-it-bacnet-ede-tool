@@ -87,6 +87,7 @@ export class AppManager {
                 this.scanProgressService.scanStage = 2;
                 return this.scanProgressService.getDevicesPropsReceivedPromise()
             }).then(() => {
+                logger.info('DEVICE DISCOVERY COMPLETED');
                 this.edeService.getDatapoints(this.edeStorageManager, this.scanProgressService);
                 this.scanProgressService.scanStage = 3;
                 return this.scanProgressService.getScanCompletePromise();
