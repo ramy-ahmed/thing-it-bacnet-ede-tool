@@ -179,14 +179,14 @@ export class EDEService {
 
         const reqService = this.reqServicesMap.get(deviceStorageId);
 
-        edeStorage.addUnit({ type: objType, instance: objInst }, unitIdValue, deviceStorageId);
-
         logger.info(`EDEService - readPropertyObjectListItem: Device ${objType}:${objInst},`
             + `Unit ${unitIdValue.type}:${unitIdValue.instance}`);
 
         scanProgressService.reportDatapointDiscovered(deviceStorageId, unitIdValue, index);
 
         if (unitIdValue.type !== BACNet.Enums.ObjectType.Device) {
+
+            edeStorage.addUnit({ type: objType, instance: objInst }, unitIdValue, deviceStorageId);
 
             this.sendReadProperty({
                 invokeId: 1,
