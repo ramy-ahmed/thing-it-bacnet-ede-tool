@@ -32,5 +32,5 @@ export function ReadPropertyRouter (
             edeService.readPropertyAll(inputSoc, outputSoc, serviceSocket);
             break;
     }
-    edeService.releaseInvokeId(inputSoc, outputSoc);
+    edeService.releaseInvokeId(inputSoc, outputSoc, serviceSocket);
 }

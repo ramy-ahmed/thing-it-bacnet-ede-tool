@@ -69,7 +69,7 @@ export interface IDeviceProgress {
 
 export interface IReqServiceRegisterData {
     invokeId: number;
-    msgSentFlow: Subject<any>;
+    msgSentFlow: Subject<number>;
 }
 
 
