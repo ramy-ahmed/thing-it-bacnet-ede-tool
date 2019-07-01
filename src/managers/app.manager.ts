@@ -95,6 +95,8 @@ export class AppManager {
     }
 
     public stopNetworkMonitoring () {
+        this.edeService.destroy();
+        this.scanProgressService.scanStage = 4;
         return Bluebird.resolve()
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Close the socket connection');

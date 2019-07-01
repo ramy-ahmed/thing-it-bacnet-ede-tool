@@ -139,4 +139,16 @@ export class RequestsService {
         }
         return null;
     }
+
+    /**
+     * Destroys request service
+     *
+     * @return {void}
+     */
+    public destroy (): void {
+        this.releaseIdSubs.forEach((releseSub) => {
+            releseSub && releseSub.unsubscribe();
+        });
+        this.requestsQueue = [];
+    }
 }
