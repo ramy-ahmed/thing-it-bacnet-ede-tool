@@ -1,84 +1,128 @@
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
-import { Subject, Subscription } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
+import { filter, first } from 'rxjs/operators';
+import { logger } from '../core/utils';
 
-import {
-    ApiError,
-} from '../core/errors';
+import * as Errors from '../core/errors';
 
 import {
     ISequenceConfig,
-    ISequenceFlow,
+    ISequenceFlowHandler,
+    ISequenceState
 } from '../core/interfaces';
 
-import {
-    logger,
-} from '../core/utils';
+import * as Entities from '../core/entities';
 
-type TObjectID = string;
+type TFlowID = string;
 
 export class SequenceManager {
-    private subDataFlow: Subscription;
-    private freeFlows: Map<TObjectID, ISequenceFlow[]>;
-    private busyFlows: Map<TObjectID, number>;
 
-    constructor (private seqConfig: ISequenceConfig,
-        dataFlow: Subject<ISequenceFlow>) {
-        this.freeFlows = new Map();
-        this.busyFlows = new Map();
+    private flows: Map<TFlowID, Entities.Flow<ISequenceFlowHandler>>;
+    private state: BehaviorSubject<ISequenceState>;
+    private isDestroying = false;
 
-        this.subDataFlow = dataFlow.subscribe((flow) => {
-            if (!this.busyFlows.has(flow.id)) {
-                this.busyFlows.set(flow.id, 0);
-                this.freeFlows.set(flow.id, []);
-            }
+    constructor (private config: ISequenceConfig) {
 
-            const freeFlows = this.freeFlows.get(flow.id);
-            freeFlows.push(flow);
+        this.flows = new Map();
 
-            this.updateQueue(flow);
+        this.state = new BehaviorSubject({
+            free: true,
         });
     }
 
-
     /**
-     * destroy - unsubscribes from the data flow.
+     * Adds the new flow handler to the flow queue by the flow ID.
      *
+     * @param  {string} flowId - flow ID
+     * @param  {Interfaces.SequenceManager.FlowHandler} flowHandler - flow handler
      * @return {void}
      */
-    public destroy (): void {
-        if (_.get(this, 'subDataFlow.unsubscribe')) {
-            this.subDataFlow.unsubscribe();
+    public next (flowId: string, flowHandler: ISequenceFlowHandler): void {
+        if (!this.isDestroying) {
+            let flow = this.flows.get(flowId);
+
+            if (_.isNil(flow)) {
+                flow = new Entities.Flow<ISequenceFlowHandler>();
+            }
+
+            flow.add(flowHandler);
+
+            this.flows.set(flowId, flow);
+
+            this.updateQueue(flowId);
         }
     }
 
     /**
-     * updateQueue - handles the changes of data flow.
+     * Destroy the manager. Steps:
+     * - wipes out existing flow queues
+     * - waits until manager does not set the `free` state;
+     * - releases the flow storage;
      *
-     * @param  {ISequenceFlow} flow - data flow
      * @return {void}
      */
-    private updateQueue (flow: ISequenceFlow): void {
-        const busyFlows = this.busyFlows.get(flow.id);
-        const freeFlows = this.freeFlows.get(flow.id);
+    public destroy (): Promise<void> {
+        this.isDestroying = true;
+        this.flows.forEach((flow) => {
+            flow.clear()
+        });
+        return this.state
+            .pipe(
+                filter((state) => !_.isNil(state) && state.free),
+                first(),
+            )
+            .toPromise()
+            .then(() => {
+                this.flows.clear();
+                this.flows = null;
+            });
+    }
 
-        if (busyFlows >= this.seqConfig.thread || !freeFlows.length) {
+    /**
+     * Calls the handler of the flow by flow ID.
+     *
+     * @param  {TFlowID} flowId - flow ID
+     * @return {void}
+     */
+    private updateQueue (flowId: TFlowID): void {
+        this.updateState();
+
+        let flow = this.flows.get(flowId);
+
+        if (flow.isFree() || flow.active >= this.config.thread) {
             return;
         }
-        this.busyFlows.set(flow.id, busyFlows + 1);
-
-        const freeFlow = freeFlows.shift();
+        const flowHandler = flow.hold();
 
         let endPromise;
         try {
-            endPromise = freeFlow.method.apply(freeFlow.object, freeFlow.params);
+            endPromise = flowHandler.method.apply(flowHandler.object, flowHandler.params);
         } catch (error) {
-            logger.error(`SequenceManager - updateQueue: ${error}`);
+            throw new Errors.ApiError(`SequenceManager - updateQueue: ${error}`);
         }
 
-        Bluebird.resolve(endPromise).delay(this.seqConfig.delay).then(() => {
-            this.busyFlows.set(flow.id, busyFlows);
-            this.updateQueue(flow);
+        Bluebird.resolve(endPromise)
+            .delay(this.config.delay).then(() => {
+                flow.release();
+                this.updateQueue(flowId);
+            });
+    }
+
+    /**
+     * Updates the state of the `Sequence` manager.
+     *
+     * @return {void}
+     */
+    private updateState (): void {
+        let free = true;
+
+        this.flows.forEach((flow) => {
+            free = free && flow.isFree();
+        })
+
+        this.state.next({
+            free: free,
         });
     }
 }

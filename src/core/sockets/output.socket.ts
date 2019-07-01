@@ -6,14 +6,15 @@ import { Subject } from 'rxjs';
 
 import { logger } from '../utils';
 
-import { IBACnetAddressInfo, ISequenceFlow } from '../interfaces';
+import { IBACnetAddressInfo } from '../interfaces';
+import { SequenceManager } from '../../managers/sequence.manager';
 
 export class OutputSocket {
     public className: string = 'OutputSocket';
 
     constructor (private app: dgram.Socket,
         private rinfo: IBACnetAddressInfo,
-        private reqFlow: Subject<ISequenceFlow>) {
+        private sequenceManager: SequenceManager) {
     }
 
     /**
@@ -51,8 +52,7 @@ export class OutputSocket {
         if (this.rinfo.dest) {
             id += `${this.rinfo.dest.networkAddress}:${this.rinfo.dest.macAddress}`
         }
-        this.reqFlow.next({
-            id,
+        this.sequenceManager.next(id, {
             object: this,
             method: this._send,
             params: [msg, reqMethodName, msgSentFlow]
@@ -95,8 +95,7 @@ export class OutputSocket {
         if (this.rinfo.dest) {
             id += `${this.rinfo.dest.networkAddress}:${this.rinfo.dest.macAddress}`
         }
-        this.reqFlow.next({
-            id,
+        this.sequenceManager.next(id, {
             object: this,
             method: this._sendBroadcast,
             params: [msg, reqMethodName],
