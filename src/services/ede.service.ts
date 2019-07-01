@@ -405,7 +405,9 @@ export class EDEService {
             hiLimit: new BACNet.Types.BACnetUnsignedInteger(opts.hiLimit)
         }
         unconfirmedReqService.whoIs(whoIsParams, output);
-        this.scanStage = 1;
+        if (!this.scanStage) {
+            this.scanStage = 1;
+        }
     }
 
     /**
@@ -460,7 +462,9 @@ export class EDEService {
                 scanProgressService.reportObjectListLength(deviceStorageId, 0);
             });
         }
-        this.scanStage = 2;
+        if (this.scanStage < 4) {
+            this.scanStage = 2;
+        }
     }
 
      /**
@@ -497,7 +501,9 @@ export class EDEService {
                 }, outputSoc, npduOpts, reqService, timeoutAction);
             }
         });
-        this.scanStage = 3;
+        if (this.scanStage < 4) {
+            this.scanStage = 3;
+        }
     }
 
     public destroy() {
