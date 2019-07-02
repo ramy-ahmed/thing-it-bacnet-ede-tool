@@ -68,7 +68,7 @@ export class AppManager {
                 // Generate OutputSocket instance
                 this.outputSocket = this.server.genOutputSocket({
                     address: this.appConfig.bacnet.network,
-                    port: addrInfo.port,
+                    port: 47807,
                 });
                 const whoIsParams = {
                     lowLimit: 0,
@@ -97,11 +97,8 @@ export class AppManager {
     public stopNetworkMonitoring () {
         this.edeService.destroy();
         this.scanProgressService.scanStage = 4;
-        return Bluebird.resolve()
-            .then(() => {
-                logger.info('AppManager - stopNetworkMonitoring: Close the socket connection');
-                return this.server.destroy();
-            })
+        logger.info('AppManager - stopNetworkMonitoring: Close the socket connection');
+        return this.server.destroy()
             .then(() => {
                 this.scanProgressService.clearData();
                 logger.info('AppManager - stopNetworkMonitoring: Save EDE storage');
