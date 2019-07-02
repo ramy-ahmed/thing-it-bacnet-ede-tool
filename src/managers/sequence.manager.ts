@@ -99,7 +99,7 @@ export class SequenceManager {
         try {
             endPromise = flowHandler.method.apply(flowHandler.object, flowHandler.params);
         } catch (error) {
-            throw new Errors.ApiError(`SequenceManager - updateQueue: ${error}`);
+            logger.error(`SequenceManager - updateQueue: ${error}`);
         }
 
         Bluebird.resolve(endPromise)
