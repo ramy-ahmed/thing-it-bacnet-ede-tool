@@ -28,6 +28,7 @@ export class Server {
             private mainRouter: any) {
         this.serviceSocket = new ServiceSocket();
         this.sequenceManager = new SequenceManager(this.serverConfig.outputSequence);
+        this.registerService('sequenceManager', this.sequenceManager);
     }
 
     /**
