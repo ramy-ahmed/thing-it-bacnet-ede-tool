@@ -3,9 +3,7 @@ import * as dgram from 'dgram';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
-import { Subject } from 'rxjs';
-
-import { IServerConfig, IBACnetAddressInfo, ISequenceFlow, IBACnetDestParams } from '../interfaces';
+import { IServerConfig, IBACnetAddressInfo, IBACnetDestParams } from '../interfaces';
 
 import { ApiError } from '../errors';
 import { logger } from '../utils';
@@ -21,7 +19,6 @@ export class Server {
     private sock: dgram.Socket;
     private serviceSocket: ServiceSocket;
     private sequenceManager: SequenceManager;
-    private reqFlow: Subject<ISequenceFlow>;
 
     /**
      * @constructor
@@ -29,9 +26,8 @@ export class Server {
      */
     constructor (private serverConfig: IServerConfig,
             private mainRouter: any) {
-        this.reqFlow = new Subject();
         this.serviceSocket = new ServiceSocket();
-        this.sequenceManager = new SequenceManager(this.serverConfig.outputSequence, this.reqFlow);
+        this.sequenceManager = new SequenceManager(this.serverConfig.outputSequence);
     }
 
     /**
@@ -40,9 +36,12 @@ export class Server {
      * @return {Bluebird<any>}
      */
     public destroy (): Bluebird<any> {
-        return new Bluebird((resolve, reject) => {
-            this.sock.close(() => { resolve(); });
-        });
+        return Bluebird.resolve(this.sequenceManager.destroy())
+            .then(() => {
+                return new Bluebird((resolve, reject) => {
+                    this.sock.close(() => { resolve(); });
+                });
+            });
     }
 
     /**
@@ -105,7 +104,7 @@ export class Server {
      * @return {OutputSocket}
      */
     public genOutputSocket (rinfo: IBACnetAddressInfo): OutputSocket {
-        return new OutputSocket(this.sock, rinfo, this.reqFlow);
+        return new OutputSocket(this.sock, rinfo, this.sequenceManager);
     }
 
     public registerService (serviceName: string, service: any) {

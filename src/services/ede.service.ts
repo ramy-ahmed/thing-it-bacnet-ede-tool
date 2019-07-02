@@ -90,9 +90,8 @@ export class EDEService {
                 });
             }
 
-
         } catch (error) {
-            logger.info(`EDEService - iAm: ${objType}:${objInst}, ${error}`)
+            logger.info(`EDEService - iAm: ${objType}:${objInst}, ${error}`);
         }
     }
 
@@ -381,11 +380,16 @@ export class EDEService {
         npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {},
         reqService: RequestsService,
         timeoutAction?: IBACNetRequestTimeoutHandler): Bluebird<any> {
-        return reqService.registerRequest({ choice: 'readProperty', opts, timeoutAction })
+        if (this.scanStage < 4) {
+            return reqService.registerRequest({ choice: 'readProperty', opts, timeoutAction })
             .then((serviceData) => {
-                opts.invokeId = serviceData.invokeId;
-                return confirmedReqService.readProperty(opts, output, npduOpts, serviceData.msgSentFlow)
-            })
+                if (this.scanStage < 4) {
+                    opts.invokeId = serviceData.invokeId;
+                    return confirmedReqService.readProperty(opts, output, npduOpts, serviceData.msgSentFlow);
+                }
+            });
+        }
+        return Bluebird.resolve();
     }
 
     /**
@@ -401,7 +405,9 @@ export class EDEService {
             hiLimit: new BACNet.Types.BACnetUnsignedInteger(opts.hiLimit)
         }
         unconfirmedReqService.whoIs(whoIsParams, output);
-        this.scanStage = 1;
+        if (!this.scanStage) {
+            this.scanStage = 1;
+        }
     }
 
     /**
@@ -456,7 +462,9 @@ export class EDEService {
                 scanProgressService.reportObjectListLength(deviceStorageId, 0);
             });
         }
-        this.scanStage = 2;
+        if (this.scanStage < 4) {
+            this.scanStage = 2;
+        }
     }
 
      /**
@@ -493,7 +501,16 @@ export class EDEService {
                 }, outputSoc, npduOpts, reqService, timeoutAction);
             }
         });
-        this.scanStage = 3;
+        if (this.scanStage < 4) {
+            this.scanStage = 3;
+        }
+    }
+
+    public destroy() {
+        this.scanStage = 4;
+        this.reqServicesMap.forEach((reqService) => {
+            reqService.destroy();
+        })
     }
 }
 

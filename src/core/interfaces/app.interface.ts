@@ -32,11 +32,14 @@ export interface ISequenceConfig {
     delay: number;
 }
 
-export interface ISequenceFlow {
-    id: string;
+export interface ISequenceFlowHandler {
     object: any;
     method: any;
     params: any[];
+}
+
+export interface ISequenceState {
+    free: boolean;
 }
 
 export interface IScanStatus {
