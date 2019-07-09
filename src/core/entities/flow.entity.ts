@@ -15,10 +15,33 @@ export class Flow <T> {
      * Free data of the flow
      */
     private data: T[];
+    private minDelay: number;
 
-    constructor () {
+    constructor (private _delay: number) {
+        if (!this._delay) {
+            this._delay = 50;
+        }
+        this.minDelay = this._delay;
         this._active = 0;
         this.data = [];
+    }
+
+    public get delay(): number {
+        return this._delay >= this.minDelay ? this._delay : this.minDelay;
+    }
+
+    public set delay(_delay: number) {
+        if (_delay >= this.minDelay) {
+            this._delay = _delay;
+        }
+    }
+
+    public increaseDelay() {
+        this.delay += 5;
+    }
+
+    public set decreaseDelay(_delay: number) {
+        this.delay -= 5;
     }
 
     /**
