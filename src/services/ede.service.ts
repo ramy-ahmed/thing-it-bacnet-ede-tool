@@ -286,9 +286,9 @@ export class EDEService {
      */
     private getdeviceStorageId (outputSoc: OutputSocket, npduOpts: BACNet.Interfaces.NPDU.Write.Layer): string {
         const rinfo = outputSoc.getAddressInfo();
-        let deviceStorageId = rinfo.address
+        let deviceStorageId = `${rinfo.address}:${rinfo.port}`
         if (npduOpts.destMacAddress) {
-            deviceStorageId = npduOpts.destMacAddress;
+            deviceStorageId = `${npduOpts.destNetworkAddress}:${npduOpts.destMacAddress}`;
         }
         return deviceStorageId;
     }
