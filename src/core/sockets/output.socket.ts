@@ -48,10 +48,7 @@ export class OutputSocket {
      * @return {Bluebird<any>}
      */
     public send (msg: Buffer, reqMethodName: string, msgSentFlow: Subject<number>): void {
-        let id = `${this.rinfo.address}:${this.rinfo.port}`;
-        if (this.rinfo.dest) {
-            id += `${this.rinfo.dest.networkAddress}:${this.rinfo.dest.macAddress}`
-        }
+        let id = this.getFlowId();
         this.sequenceManager.next(id, {
             object: this,
             method: this._send,
@@ -91,10 +88,7 @@ export class OutputSocket {
      * @return {Bluebird<any>}
      */
     public sendBroadcast (msg: Buffer, reqMethodName: string): void {
-        let id = `${this.rinfo.address}:${this.rinfo.port}`;
-        if (this.rinfo.dest) {
-            id += `${this.rinfo.dest.networkAddress}:${this.rinfo.dest.macAddress}`
-        }
+        let id = this.getFlowId();
         this.sequenceManager.next(id, {
             object: this,
             method: this._sendBroadcast,
@@ -129,5 +123,17 @@ export class OutputSocket {
      */
     public getAddressInfo (): IBACnetAddressInfo {
         return _.cloneDeep(this.rinfo);
+    }
+
+    /**
+     * getFlowId - returns id of the output Sequence Manager's flow
+     *
+     * @return {string}
+     */
+    private getFlowId (): string {
+        if (this.rinfo.dest) {
+            return `${this.rinfo.dest.networkAddress}:${this.rinfo.dest.macAddress}`
+        }
+        return `${this.rinfo.address}:${this.rinfo.port}`;
     }
 }
