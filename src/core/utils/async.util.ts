@@ -22,7 +22,7 @@ export class AsyncUtil {
                 if (error.code === 'EXDEV') {
                     AsyncUtil.copyFile(oldPath, newPath);
                 }
-                throw new ApiError(`AsyncUtil - moveFile: ${error}`);
+                reject(new ApiError(`AsyncUtil - moveFile: ${error}`));
             });
         });
     }
@@ -33,10 +33,10 @@ export class AsyncUtil {
             const writeStream = fs.createWriteStream(newPath);
 
             readStream.on('error', (error) => {
-                throw new ApiError(`AsyncUtil - copyFile: ${error}`);
+                reject(new ApiError(`AsyncUtil - copyFile: ${error}`))
             });
             writeStream.on('error', (error) => {
-                throw new ApiError(`AsyncUtil - copyFile: ${error}`);
+                reject(new ApiError(`AsyncUtil - copyFile: ${error}`));
             });
 
             readStream.on('close', () => {
