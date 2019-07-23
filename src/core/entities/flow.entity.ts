@@ -40,7 +40,7 @@ export class Flow <T> {
         this.delay += 5;
     }
 
-    public set decreaseDelay(_delay: number) {
+    public decreaseDelay() {
         this.delay -= 5;
     }
 
