@@ -80,6 +80,28 @@ export class SequenceManager {
     }
 
     /**
+     * Increases requests delay for specific flow for 5 ms
+     *
+     * @param  {TFlowID} flowId - flow ID
+     * @return {void}
+     */
+    public increaseDelay (flowId: string): void {
+        const flow = this.flows.get(flowId);
+        flow.increaseDelay();
+    }
+
+    /**
+     * Decreases requests delay for specific flow for 5 ms
+     *
+     * @param  {TFlowID} flowId - flow ID
+     * @return {void}
+     */
+    public decreaseDelay (flowId: string): void {
+        const flow = this.flows.get(flowId);
+        flow.decreaseDelay();
+    }
+
+    /**
      * Calls the handler of the flow by flow ID.
      *
      * @param  {TFlowID} flowId - flow ID
