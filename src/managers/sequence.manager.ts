@@ -43,7 +43,7 @@ export class SequenceManager {
             let flow = this.flows.get(flowId);
 
             if (_.isNil(flow)) {
-                flow = new Entities.Flow<ISequenceFlowHandler>();
+                flow = new Entities.Flow<ISequenceFlowHandler>(this.config.delay);
             }
 
             flow.add(flowHandler);
@@ -103,7 +103,7 @@ export class SequenceManager {
         }
 
         Bluebird.resolve(endPromise)
-            .delay(this.config.delay).then(() => {
+            .delay(flow.delay).then(() => {
                 flow.release();
                 this.updateQueue(flowId);
             });
