@@ -11,11 +11,11 @@ import { EDEStorageManager } from '../managers/ede-storage.manager';
 import { confirmedReqService, unconfirmedReqService } from './bacnet';
 import { ScanProgressService } from './scan-pogress.service';
 import { RequestsService } from './requests.service';
-import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IBACnetAddressInfo, IReqServiceConfig } from '../core/interfaces';
+import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IEDEServiceConfig } from '../core/interfaces';
 
 export class EDEService {
     constructor(
-        private reqServiceConfig: IReqServiceConfig
+        private config: IEDEServiceConfig
     ) {}
 
     private reqServicesMap: Map<string, RequestsService> = new Map();
@@ -53,7 +53,7 @@ export class EDEService {
 
             scanProgressService.reportDeviceFound(deviceStorageId, { type: objType, instance: objInst });
 
-            const reqService = new RequestsService(this.reqServiceConfig, { type: objType, instance: objInst });
+            const reqService = new RequestsService(this.config.requests, { type: objType, instance: objInst });
             this.reqServicesMap.set(deviceStorageId, reqService);
 
             if (this.scanStage > 1) {

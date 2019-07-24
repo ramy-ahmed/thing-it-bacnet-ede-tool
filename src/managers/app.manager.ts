@@ -48,8 +48,8 @@ export class AppManager {
     }
 
     public initServices () {
-        this.edeService = new EDEService(this.appConfig.reqService);
-        this.edeStorageManager = new EDEStorageManager(this.appConfig.ede);
+        this.edeService = new EDEService(this.appConfig.ede.service);
+        this.edeStorageManager = new EDEStorageManager(this.appConfig.ede.manager);
         this.server.registerService('edeStorage', this.edeStorageManager);
         this.server.registerService('edeService', this.edeService);
         this.server.registerService('scanProgressService', this.scanProgressService);
@@ -78,10 +78,10 @@ export class AppManager {
                 this.scanProgressService.scanStage = 1;
 
                 logger.info('AppManager - startNetworkMonitoring: Start the monitoring');
-                if (this.appConfig.ede.timeout === 0) {
+                if (this.appConfig.discoveryTimeout === 0) {
                     throw new ApiError ('Too small timeout!')
                 }
-                return AsyncUtil.setTimeout(this.appConfig.ede.timeout)
+                return AsyncUtil.setTimeout(this.appConfig.discoveryTimeout)
             }).then(() => {
                 this.edeService.getDeviceProps(this.edeStorageManager, this.scanProgressService);
                 this.scanProgressService.scanStage = 2;
@@ -107,12 +107,12 @@ export class AppManager {
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Move EDE logs');
 
-                return AsyncUtil.moveFile('all-logs.log', `${this.appConfig.ede.file.path}/${this.appConfig.ede.file.name}-logs.log`); 
+                return AsyncUtil.moveFile('all-logs.log', `${this.appConfig.ede.manager.file.path}/${this.appConfig.ede.manager.file.name}-logs.log`); 
             })
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Move errors log');
 
-                return AsyncUtil.moveFile('all-errors.log', `${this.appConfig.ede.file.path}/${this.appConfig.ede.file.name}-errors.log`)
+                return AsyncUtil.moveFile('all-errors.log', `${this.appConfig.ede.manager.file.path}/${this.appConfig.ede.manager.file.name}-errors.log`)
                     .catch(() => {
                         logger.info('AppManager - Move errors log: errors log file is missing')
                     });

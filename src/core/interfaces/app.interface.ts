@@ -1,4 +1,4 @@
-import { IEDEConfig } from './ede.interface';
+import { IEDEManagerConfig } from './ede.interface';
 import { Subject, BehaviorSubject } from 'rxjs';
 import * as Bluebird from 'bluebird';
 import * as BACNet from '@thing-it/bacnet-logic';
@@ -8,8 +8,17 @@ export interface IAppConfig {
     ede: IEDEConfig;
     bacnet: IBACnetConfig;
     reportProgress: boolean;
-    reqService: IReqServiceConfig;
+    discoveryTimeout: number;
 }
+
+export interface IEDEConfig {
+    manager: IEDEManagerConfig;
+    service: IEDEServiceConfig;
+}
+export interface IEDEServiceConfig {
+    requests: IReqServiceConfig
+}
+
 export interface IReqServiceConfig {
     timeout: number;
     thread: number;
