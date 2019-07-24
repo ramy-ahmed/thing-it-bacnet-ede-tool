@@ -8,10 +8,11 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 import { logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
+import { SequenceManager } from '../managers/sequence.manager';
 import { confirmedReqService, unconfirmedReqService } from './bacnet';
 import { ScanProgressService } from './scan-pogress.service';
 import { RequestsService } from './requests.service';
-import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IBACnetAddressInfo, IReqServiceConfig } from '../core/interfaces';
+import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IReqServiceConfig } from '../core/interfaces';
 
 export class EDEService {
     constructor(
@@ -304,6 +305,7 @@ export class EDEService {
         const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
+        const sequenceManger: SequenceManager = serviceSocket.getService('sequenceManager');
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
         const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
@@ -313,6 +315,7 @@ export class EDEService {
         const invokeId = apduMessage.invokeId;
         const avRespTime = reqService.releaseInvokeId(invokeId);
         scanProgressService.reportAvRespTime(deviceStorageId, avRespTime);
+        sequenceManger.reportAvRespTime(deviceStorageId, avRespTime);
     }
 
     /**

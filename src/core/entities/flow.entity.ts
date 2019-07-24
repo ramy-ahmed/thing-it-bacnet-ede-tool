@@ -16,11 +16,11 @@ export class Flow <T> {
      */
     private data: T[];
     private minDelay: number;
+    private isDelayAdjusted: boolean = false;
 
-    constructor (private _delay: number) {
-        if (!this._delay) {
-            this._delay = 50;
-        }
+    constructor (
+        private _delay: number
+        ) {
         this.minDelay = this._delay;
         this._active = 0;
         this.data = [];
@@ -38,10 +38,19 @@ export class Flow <T> {
 
     public increaseDelay() {
         this.delay += 5;
+        this.blockDelayAdjustment();
     }
 
     public decreaseDelay() {
         this.delay -= 5;
+        this.blockDelayAdjustment();
+    }
+
+    private blockDelayAdjustment() {
+        this.isDelayAdjusted = true;
+        setTimeout(() => {
+            this.isDelayAdjusted = false;
+        }, this.delay * 500);
     }
 
     /**

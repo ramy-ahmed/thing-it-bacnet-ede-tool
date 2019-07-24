@@ -30,6 +30,7 @@ export interface IInputSocConfig {
 export interface ISequenceConfig {
     thread: number;
     delay: number;
+    timeout?: number; // max request timeout for auto delay adjustment
 }
 
 export interface ISequenceFlowHandler {

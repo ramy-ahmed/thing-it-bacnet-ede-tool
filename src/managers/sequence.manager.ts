@@ -85,7 +85,22 @@ export class SequenceManager {
      * @param  {TFlowID} flowId - flow ID
      * @return {void}
      */
-    public increaseDelay (flowId: string): void {
+    public reportAvRespTime (flowId: string, avRespTime: number): void {
+        if (avRespTime / this.config.timeout >= 0.7) {
+            this.increaseDelay(flowId);
+        }
+        if (avRespTime / this.config.timeout <= 0.2) {
+            this.decreaseDelay(flowId);
+        }
+    }
+
+    /**
+     * Increases requests delay for specific flow for 5 ms
+     *
+     * @param  {TFlowID} flowId - flow ID
+     * @return {void}
+     */
+    private increaseDelay (flowId: string): void {
         const flow = this.flows.get(flowId);
         flow.increaseDelay();
     }
@@ -96,7 +111,7 @@ export class SequenceManager {
      * @param  {TFlowID} flowId - flow ID
      * @return {void}
      */
-    public decreaseDelay (flowId: string): void {
+    private decreaseDelay (flowId: string): void {
         const flow = this.flows.get(flowId);
         flow.decreaseDelay();
     }
