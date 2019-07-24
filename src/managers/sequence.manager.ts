@@ -80,9 +80,10 @@ export class SequenceManager {
     }
 
     /**
-     * Increases requests delay for specific flow for 5 ms
+     * Processes response time for specific flow
      *
      * @param  {TFlowID} flowId - flow ID
+     * @param {number} avRespTime - average response time for specific flow's messages
      * @return {void}
      */
     public reportAvRespTime (flowId: string, avRespTime: number): void {
