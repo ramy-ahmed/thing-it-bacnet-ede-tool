@@ -105,11 +105,18 @@ export class AppManager {
                 logger.info('AppManager - stopNetworkMonitoring: Save EDE storage');
                 return this.edeStorageManager.saveEDEStorage();
             })
-            .then((pathArr: string[]) => {
+            .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Move EDE logs');
 
-                const resolvedPathArr = pathArr.map(pathValue => path.resolve(pathValue));
-                return Bluebird.resolve(resolvedPathArr);
+                return AsyncUtil.moveFile('all-logs.log', `${this.appConfig.ede.file.path}/${this.appConfig.ede.file.name}-logs.log`); 
+            })
+            .then(() => {
+                logger.info('AppManager - stopNetworkMonitoring: Move errors log');
+
+                return AsyncUtil.moveFile('all-errors.log', `${this.appConfig.ede.file.path}/${this.appConfig.ede.file.name}-errors.log`)
+                    .catch(() => {
+                        logger.info('AppManager - Move errors log: errors log file is missing')
+                    });
             })
             .catch((err) => {
                 logger.error('AppManager - stopNetworkMonitoring: ' + err);
