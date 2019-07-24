@@ -32,6 +32,7 @@ export const AppConfig: IAppConfig = {
             }
         },
         service: {
+            retriesNumber: 10,
             requests: {
                 timeout: 4000,
                 thread: 0

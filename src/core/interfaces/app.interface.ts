@@ -16,6 +16,7 @@ export interface IEDEConfig {
     service: IEDEServiceConfig;
 }
 export interface IEDEServiceConfig {
+    retriesNumber: number;
     requests: IReqServiceConfig
 }
 
