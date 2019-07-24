@@ -36,14 +36,28 @@ export class Flow <T> {
         }
     }
 
+    /**
+     * Increases flow's requests delay for 5 ms
+     *
+     * @return {void}
+     */
     public increaseDelay() {
-        this.delay += 5;
-        this.blockDelayAdjustment();
+        if (!this.isDelayAdjusted) {
+            this.delay += 5;
+            this.blockDelayAdjustment();
+        }
     }
 
+    /**
+     * Decreases flow's requests delay for 5 ms
+     *
+     * @return {void}
+     */
     public decreaseDelay() {
-        this.delay -= 5;
-        this.blockDelayAdjustment();
+        if (!this.isDelayAdjusted) {
+            this.delay -= 5;
+            this.blockDelayAdjustment();
+        }
     }
 
     private blockDelayAdjustment() {
