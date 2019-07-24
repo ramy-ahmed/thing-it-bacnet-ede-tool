@@ -131,9 +131,6 @@ export class OutputSocket {
      * @return {string}
      */
     private getFlowId (): string {
-        if (this.rinfo.dest) {
-            return `${this.rinfo.dest.networkAddress}:${this.rinfo.dest.macAddress}`
-        }
         return `${this.rinfo.address}:${this.rinfo.port}`;
     }
 }
