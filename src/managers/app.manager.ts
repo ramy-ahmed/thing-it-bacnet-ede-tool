@@ -39,7 +39,7 @@ export class AppManager {
     private scanProgressService: ScanProgressService;
 
     constructor (private appConfig: IAppConfig) {
-        this.appConfig.server.outputSequence.timeout = this.appConfig.reqService.timeout;
+        this.appConfig.server.outputSequence.timeout = this.appConfig.ede.service.requests.timeout;
         this.server = new Server(this.appConfig.server, mainRouter);
         this.scanProgressService = new ScanProgressService(this.appConfig.server.outputSequence.delay)
         if (this.appConfig.reportProgress) {
@@ -108,7 +108,7 @@ export class AppManager {
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Move EDE logs');
 
-                return AsyncUtil.moveFile('all-logs.log', `${this.appConfig.ede.manager.file.path}/${this.appConfig.ede.manager.file.name}-logs.log`); 
+                return AsyncUtil.moveFile('all-logs.log', `${this.appConfig.ede.manager.file.path}/${this.appConfig.ede.manager.file.name}-logs.log`);
             })
             .then(() => {
                 logger.info('AppManager - stopNetworkMonitoring: Move errors log');
