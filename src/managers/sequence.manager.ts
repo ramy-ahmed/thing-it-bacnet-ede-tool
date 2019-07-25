@@ -84,7 +84,7 @@ export class SequenceManager {
      *
      * @param  {TFlowID} flowId - flow ID
      * @param {number} avRespTime - average response time for specific flow's messages
-     * @return {void}
+     * @return {number} - flow's requests delay after adjusctment
      */
     public reportAvRespTime (flowId: string, avRespTime: number): number {
         if (avRespTime / this.config.timeout >= 0.7) {
@@ -103,7 +103,7 @@ export class SequenceManager {
      * @param  {TFlowID} flowId - flow ID
      * @return {void}
      */
-    private increaseDelay (flowId: string):void {
+    private increaseDelay (flowId: string): void {
         const flow = this.flows.get(flowId);
         flow.increaseDelay();
     }
