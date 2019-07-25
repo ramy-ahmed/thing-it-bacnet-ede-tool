@@ -95,12 +95,14 @@ type ConfirmedRequestOptions = BACNet.Interfaces.ConfirmedRequest.Write.ReadProp
 export type IBACNetRequestTimeoutHandler = (opts: ConfirmedRequestOptions) => void;
 export interface IBACnetRequestInfo {
     choice: string
-    opts: ConfirmedRequestOptions
+    opts: ConfirmedRequestOptions;
+    method: Function;
+    retriesCounter?: number;
     timeoutAction?: IBACNetRequestTimeoutHandler;
     timestamp?: number;
 }
 
 export interface IBACnetDelayedRequest {
-    idDefer: Bluebird.Resolver<IReqServiceRegisterData>;
+    idDefer: Bluebird.Resolver<any>;
     rinfo: IBACnetRequestInfo;
 }

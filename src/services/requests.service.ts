@@ -13,7 +13,7 @@ import { Enums, Interfaces } from '@thing-it/bacnet-logic';
 
 export class RequestsService {
 
-    private store: IBACnetRequestInfo[] = new Array(256).fill(undefined);
+    private activeRequestsStore: IBACnetRequestInfo[] = new Array(256).fill(undefined);
     private requestsQueue: IBACnetDelayedRequest[] = [];
     private releaseIdSubs: Subscription[] = [];
     private sumRespTime: number = 0;
@@ -25,31 +25,36 @@ export class RequestsService {
     ) {}
 
     /**
-     * Stores request info and generates invokeId for request.
+     * Stores request info and generates invokeId for request and performs it/puts into queue.
      *
      * @param {object} rinfo - request metadata
      * @return {Bluebird<number>} - free Invoke Id
      */
-    public registerRequest (rinfo: IBACnetRequestInfo): Bluebird<IReqServiceRegisterData> {
-        const id = this.store.findIndex(storedItem => !storedItem);
-        if ((id !== -1) && (!this.config.thread || (this.store.filter(item => item).length < this.config.thread))) {
-            const msgSentFlow = this.reserveInvokeId(id, rinfo);
-            return Bluebird.resolve({ invokeId: id, msgSentFlow });
+    public registerRequest (rinfo: IBACnetRequestInfo): Bluebird<void> {
+        const id = this.activeRequestsStore.findIndex(storedItem => !storedItem);
+        rinfo.retriesCounter = 0
+        if ((id !== -1) && (!this.config.thread || (this.activeRequestsStore.filter(item => item).length < this.config.thread))) {
+            this.performRequest(id, rinfo)
+            return Bluebird.resolve();
         }
-        const idDefer: Bluebird.Resolver<IReqServiceRegisterData> = Bluebird.defer();
+        const idDefer: Bluebird.Resolver<void> = Bluebird.defer();
         this.requestsQueue.push({ idDefer, rinfo });
         return idDefer.promise;
     }
 
+    private performRequest(id, rinfo) {
+        const msgSentFlow = this.reserveInvokeId(id, rinfo);
+        rinfo.method({ msgSentFlow, invokeId: id });
+    }
+
      /**
-     * Stores request info and generates invokeId for request.
+     * Saves request info to store, assigns handler for request timeout processing/retry.
      *
      * @param {object} rinfo - request metadata
      * @return {Bluebird<number>} - free Invoke Id
      */
     public reserveInvokeId (id: number, rinfo: IBACnetRequestInfo): Subject<any> {
-        rinfo.timestamp = Date.now();
-        this.store[id] = rinfo;
+        this.activeRequestsStore[id] = rinfo;
         const msgSentFlow = new Subject<number>();
         // We need to release id and clean requestInfo after timeout for the cases of network problems
         // It's needed to be sure that status check request will not stuck and successfully be sent after reconnection
@@ -61,16 +66,21 @@ export class RequestsService {
             first()
         ).subscribe(() => {
             const reqOpts = rinfo.opts as Interfaces.ConfirmedRequest.Write.ReadProperty;
-            const objId = reqOpts.objId.value;
-            const prop = reqOpts.prop;
-            let logMessage = `Timeout has exceeded for readProperty #${id}: (${Enums.ObjectType[this.deviceId.type]},${this.deviceId.instance}): `
-                + `(${Enums.ObjectType[objId.type]},${objId.instance}) - ${Enums.PropertyId[prop.id.value]}`;
-            if (prop.index) {
-                logMessage += `[${prop.index.value}]`
+            if (rinfo.retriesCounter < 10) {
+                rinfo.retriesCounter += 1;
+                this.performRequest(id, rinfo);
+            } else {
+                const objId = reqOpts.objId.value;
+                const prop = reqOpts.prop;
+                let logMessage = `Timeout has exceeded for readProperty #${id}: (${Enums.ObjectType[this.deviceId.type]},${this.deviceId.instance}): `
+                    + `(${Enums.ObjectType[objId.type]},${objId.instance}) - ${Enums.PropertyId[prop.id.value]}`;
+                if (prop.index) {
+                    logMessage += `[${prop.index.value}]`
+                }
+                logger.error(logMessage);
+                rinfo.timeoutAction && rinfo.timeoutAction(reqOpts);
+                this.releaseInvokeId(id);
             }
-            logger.error(logMessage);
-            rinfo.timeoutAction && rinfo.timeoutAction(reqOpts);
-            this.releaseInvokeId(id);
         });
         return msgSentFlow;
     }
@@ -82,7 +92,7 @@ export class RequestsService {
      * @return {number}
      */
     public releaseInvokeId(id: number): number {
-        const thisRequest = this.store[id] as IBACnetRequestInfo;
+        const thisRequest = this.activeRequestsStore[id] as IBACnetRequestInfo;
         const reqStart = thisRequest.timestamp;
         const thisMoment = Date.now();
         const respTime = thisMoment - reqStart;
@@ -92,13 +102,10 @@ export class RequestsService {
         curReleaseSub.unsubscribe();
         if (nextRequest) {
             const { rinfo, idDefer } = nextRequest;
-            const msgSentFlow = this.reserveInvokeId(id, rinfo)
-            idDefer.resolve({
-                invokeId: id,
-                msgSentFlow
-            });
+            this.performRequest(id, rinfo);
+            idDefer.resolve();
         } else {
-            this.store[id] = undefined;
+            this.activeRequestsStore[id] = undefined;
         }
         return this.calcAvRespTime(respTime);
     }
@@ -134,7 +141,7 @@ export class RequestsService {
      */
     public getRequestInfo (id: number): IBACnetRequestInfo {
         if (Number.isFinite(+id)) {
-            const rinfo = this.store[id] as IBACnetRequestInfo;
+            const rinfo = this.activeRequestsStore[id] as IBACnetRequestInfo;
             return rinfo;
         }
         return null;

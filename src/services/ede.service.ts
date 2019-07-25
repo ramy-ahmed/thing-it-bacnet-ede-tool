@@ -8,7 +8,6 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 import { logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
-import { SequenceManager } from '../managers/sequence.manager';
 import { confirmedReqService, unconfirmedReqService } from './bacnet';
 import { ScanProgressService } from './scan-pogress.service';
 import { RequestsService } from './requests.service';
@@ -385,11 +384,15 @@ export class EDEService {
         reqService: RequestsService,
         timeoutAction?: IBACNetRequestTimeoutHandler): Bluebird<any> {
         if (this.scanStage < 4) {
-            return reqService.registerRequest({ choice: 'readProperty', opts, timeoutAction })
-            .then((serviceData) => {
-                if (this.scanStage < 4) {
-                    opts.invokeId = serviceData.invokeId;
-                    return confirmedReqService.readProperty(opts, output, npduOpts, serviceData.msgSentFlow);
+            return reqService.registerRequest({
+                choice: 'readProperty',
+                opts,
+                timeoutAction,
+                method: (serviceData) => {
+                    if (this.scanStage < 4) {
+                        opts.invokeId = serviceData.invokeId;
+                        return confirmedReqService.readProperty(opts, output, npduOpts, serviceData.msgSentFlow);
+                    }
                 }
             });
         }
