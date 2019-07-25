@@ -289,7 +289,7 @@ export class EDEService {
         const rinfo = outputSoc.getAddressInfo();
         let deviceStorageId = `${rinfo.address}:${rinfo.port}`
         if (npduOpts.destMacAddress) {
-            deviceStorageId = `${npduOpts.destNetworkAddress}:${npduOpts.destMacAddress}`;
+            deviceStorageId += `${npduOpts.destNetworkAddress}:${npduOpts.destMacAddress}`;
         }
         return deviceStorageId;
     }
@@ -314,7 +314,9 @@ export class EDEService {
         const invokeId = apduMessage.invokeId;
         const avRespTime = reqService.releaseInvokeId(invokeId);
         scanProgressService.reportAvRespTime(deviceStorageId, avRespTime);
-        outputSoc.adjustDelay(avRespTime);
+        const delay = outputSoc.adjustDelay(avRespTime);
+        const flowId = outputSoc.getFlowId();
+        scanProgressService.reportReqDelay(flowId, delay)
     }
 
     /**

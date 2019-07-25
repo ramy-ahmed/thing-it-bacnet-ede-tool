@@ -69,6 +69,9 @@ export interface IDeviceProgress {
     processed: BehaviorSubject<any>;
     propsReceived: BehaviorSubject<any>;
     avRespTime?: number;
+    requestsTotal: number;
+    requestsPerformed: number;
+    reqDelay: number;
 }
 
 export interface IReqServiceRegisterData {
