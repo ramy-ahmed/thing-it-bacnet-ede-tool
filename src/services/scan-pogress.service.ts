@@ -304,7 +304,7 @@ export class ScanProgressService {
         logger.info(`DATAPOINTS RECEIVED/DISCOVERED: ${this.scanStatus.datapointsReceived}/${this.scanStatus.datapointsDiscovered}`);
         if (this.scanStage > 2) {
             this.scanStatus.progress = _.round(this.scanStatus.requestsPerformed / this.scanStatus.requestsTotal * 100, 1);
-            logger.info(`PROGRESS: ${this.scanStatus.requestsPerformed}/${this.scanStatus.requestsTotal}`)
+            logger.info(`PROGRESS: ${this.scanStatus.progress}%`)
             logger.info(`TIME REMAINING: ${this.scanStatus.timeRemaining}`);
         }
         this.statusNotificationsFlow.next(this.scanStatus);
