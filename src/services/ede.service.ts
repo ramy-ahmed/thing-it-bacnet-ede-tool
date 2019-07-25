@@ -8,6 +8,7 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 import { logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
+import { SequenceManager } from '../managers/sequence.manager';
 import { confirmedReqService, unconfirmedReqService } from './bacnet';
 import { ScanProgressService } from './scan-pogress.service';
 import { RequestsService } from './requests.service';
@@ -286,9 +287,9 @@ export class EDEService {
      */
     private getdeviceStorageId (outputSoc: OutputSocket, npduOpts: BACNet.Interfaces.NPDU.Write.Layer): string {
         const rinfo = outputSoc.getAddressInfo();
-        let deviceStorageId = rinfo.address
+        let deviceStorageId = `${rinfo.address}:${rinfo.port}`
         if (npduOpts.destMacAddress) {
-            deviceStorageId = npduOpts.destMacAddress;
+            deviceStorageId += `${npduOpts.destNetworkAddress}:${npduOpts.destMacAddress}`;
         }
         return deviceStorageId;
     }
@@ -313,6 +314,9 @@ export class EDEService {
         const invokeId = apduMessage.invokeId;
         const avRespTime = reqService.releaseInvokeId(invokeId);
         scanProgressService.reportAvRespTime(deviceStorageId, avRespTime);
+        const delay = outputSoc.adjustDelay(avRespTime);
+        const flowId = outputSoc.getFlowId();
+        scanProgressService.reportReqDelay(flowId, delay)
     }
 
     /**

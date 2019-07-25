@@ -43,7 +43,7 @@ export class SequenceManager {
             let flow = this.flows.get(flowId);
 
             if (_.isNil(flow)) {
-                flow = new Entities.Flow<ISequenceFlowHandler>();
+                flow = new Entities.Flow<ISequenceFlowHandler>(this.config.delay);
             }
 
             flow.add(flowHandler);
@@ -80,6 +80,46 @@ export class SequenceManager {
     }
 
     /**
+     * Processes response time for specific flow
+     *
+     * @param  {TFlowID} flowId - flow ID
+     * @param {number} avRespTime - average response time for specific flow's messages
+     * @return {number} - flow's requests delay after adjusctment
+     */
+    public reportAvRespTime (flowId: string, avRespTime: number): number {
+        if (avRespTime / this.config.timeout >= 0.7) {
+           this.increaseDelay(flowId);
+        }
+        if (avRespTime / this.config.timeout <= 0.2) {
+            this.decreaseDelay(flowId);
+        }
+        const flow = this.flows.get(flowId)
+        return flow.delay
+    }
+
+    /**
+     * Increases requests delay for specific flow for 5 ms
+     *
+     * @param  {TFlowID} flowId - flow ID
+     * @return {void}
+     */
+    private increaseDelay (flowId: string): void {
+        const flow = this.flows.get(flowId);
+        flow.increaseDelay();
+    }
+
+    /**
+     * Decreases requests delay for specific flow for 5 ms
+     *
+     * @param  {TFlowID} flowId - flow ID
+     * @return {void}
+     */
+    private decreaseDelay (flowId: string): void {
+        const flow = this.flows.get(flowId);
+        flow.decreaseDelay();
+    }
+
+    /**
      * Calls the handler of the flow by flow ID.
      *
      * @param  {TFlowID} flowId - flow ID
@@ -103,7 +143,7 @@ export class SequenceManager {
         }
 
         Bluebird.resolve(endPromise)
-            .delay(this.config.delay).then(() => {
+            .delay(flow.delay).then(() => {
                 flow.release();
                 this.updateQueue(flowId);
             });

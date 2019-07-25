@@ -40,6 +40,7 @@ export interface IInputSocConfig {
 export interface ISequenceConfig {
     thread: number;
     delay: number;
+    timeout?: number; // max request timeout for auto delay adjustment
 }
 
 export interface ISequenceFlowHandler {
@@ -78,6 +79,9 @@ export interface IDeviceProgress {
     processed: BehaviorSubject<any>;
     propsReceived: BehaviorSubject<any>;
     avRespTime?: number;
+    requestsTotal: number;
+    requestsPerformed: number;
+    reqDelay: number;
 }
 
 export interface IReqServiceRegisterData {

@@ -10,6 +10,7 @@ export const AppConfig: IAppConfig = {
         outputSequence: {
             thread: 1,
             delay: 50,
+            timeout: 4000
         },
         input: {
             detectEncoding: false
