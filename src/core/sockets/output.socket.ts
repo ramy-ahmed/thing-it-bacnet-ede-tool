@@ -130,7 +130,20 @@ export class OutputSocket {
      *
      * @return {string}
      */
-    private getFlowId (): string {
+    public getFlowId (): string {
         return `${this.rinfo.address}:${this.rinfo.port}`;
+    }
+
+    /**
+     * adjustDelay - sends avRespTime to sequennce manager
+     * to get this flow's requests delay adjusted according to it
+     *
+     * @param {number} avRespTime - average response time for the flow's messages
+     * @return {void}
+     */
+    public adjustDelay(avRespTime: number): number {
+        const flowId = this.getFlowId();
+        const delay = this.sequenceManager.reportAvRespTime(flowId, avRespTime);
+        return delay;
     }
 }

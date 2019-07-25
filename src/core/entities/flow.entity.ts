@@ -15,10 +15,56 @@ export class Flow <T> {
      * Free data of the flow
      */
     private data: T[];
+    private minDelay: number;
+    private isDelayAdjusted: boolean = false;
 
-    constructor () {
+    constructor (
+        private _delay: number
+        ) {
+        this.minDelay = this._delay;
         this._active = 0;
         this.data = [];
+    }
+
+    public get delay(): number {
+        return this._delay >= this.minDelay ? this._delay : this.minDelay;
+    }
+
+    public set delay(_delay: number) {
+        if (_delay >= this.minDelay) {
+            this._delay = _delay;
+        }
+    }
+
+    /**
+     * Increases flow's requests delay for 5 ms
+     *
+     * @return {void}
+     */
+    public increaseDelay() {
+        if (!this.isDelayAdjusted) {
+            this.delay += 5;
+            this.blockDelayAdjustment();
+        }
+    }
+
+    /**
+     * Decreases flow's requests delay for 5 ms
+     *
+     * @return {void}
+     */
+    public decreaseDelay() {
+        if (!this.isDelayAdjusted) {
+            this.delay -= 5;
+            this.blockDelayAdjustment();
+        }
+    }
+
+    private blockDelayAdjustment() {
+        this.isDelayAdjusted = true;
+        setTimeout(() => {
+            this.isDelayAdjusted = false;
+        }, this.delay * 500);
     }
 
     /**

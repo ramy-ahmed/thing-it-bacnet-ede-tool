@@ -39,6 +39,7 @@ export class AppManager {
     private scanProgressService: ScanProgressService;
 
     constructor (private appConfig: IAppConfig) {
+        this.appConfig.server.outputSequence.timeout = this.appConfig.reqService.timeout;
         this.server = new Server(this.appConfig.server, mainRouter);
         this.scanProgressService = new ScanProgressService(this.appConfig.server.outputSequence.delay)
         if (this.appConfig.reportProgress) {
