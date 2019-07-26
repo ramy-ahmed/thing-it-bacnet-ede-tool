@@ -1,4 +1,4 @@
-import { IEDEConfig } from './ede.interface';
+import { IEDEManagerConfig } from './ede.interface';
 import { Subject, BehaviorSubject } from 'rxjs';
 import * as Bluebird from 'bluebird';
 import * as BACNet from '@thing-it/bacnet-logic';
@@ -8,11 +8,21 @@ export interface IAppConfig {
     ede: IEDEConfig;
     bacnet: IBACnetConfig;
     reportProgress: boolean;
-    reqService: IReqServiceConfig;
+    discoveryTimeout: number;
 }
+
+export interface IEDEConfig {
+    manager: IEDEManagerConfig;
+    service: IEDEServiceConfig;
+}
+export interface IEDEServiceConfig {
+    requests: IReqServiceConfig
+}
+
 export interface IReqServiceConfig {
     timeout: number;
     thread: number;
+    retriesNumber: number;
 }
 
 export interface IBACnetConfig {
@@ -85,12 +95,14 @@ type ConfirmedRequestOptions = BACNet.Interfaces.ConfirmedRequest.Write.ReadProp
 export type IBACNetRequestTimeoutHandler = (opts: ConfirmedRequestOptions) => void;
 export interface IBACnetRequestInfo {
     choice: string
-    opts: ConfirmedRequestOptions
+    opts: ConfirmedRequestOptions;
+    method: Function;
+    retriesCounter?: number;
     timeoutAction?: IBACNetRequestTimeoutHandler;
     timestamp?: number;
 }
 
 export interface IBACnetDelayedRequest {
-    idDefer: Bluebird.Resolver<IReqServiceRegisterData>;
+    idDefer: Bluebird.Resolver<any>;
     rinfo: IBACnetRequestInfo;
 }

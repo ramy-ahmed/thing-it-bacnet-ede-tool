@@ -8,15 +8,14 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 import { logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
-import { SequenceManager } from '../managers/sequence.manager';
 import { confirmedReqService, unconfirmedReqService } from './bacnet';
 import { ScanProgressService } from './scan-pogress.service';
 import { RequestsService } from './requests.service';
-import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IReqServiceConfig } from '../core/interfaces';
+import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IEDEServiceConfig } from '../core/interfaces';
 
 export class EDEService {
     constructor(
-        private reqServiceConfig: IReqServiceConfig
+        private config: IEDEServiceConfig
     ) {}
 
     private reqServicesMap: Map<string, RequestsService> = new Map();
@@ -54,7 +53,7 @@ export class EDEService {
 
             scanProgressService.reportDeviceFound(deviceStorageId, { type: objType, instance: objInst });
 
-            const reqService = new RequestsService(this.reqServiceConfig, { type: objType, instance: objInst });
+            const reqService = new RequestsService(this.config.requests, { type: objType, instance: objInst });
             this.reqServicesMap.set(deviceStorageId, reqService);
 
             if (this.scanStage > 1) {
@@ -385,11 +384,15 @@ export class EDEService {
         reqService: RequestsService,
         timeoutAction?: IBACNetRequestTimeoutHandler): Bluebird<any> {
         if (this.scanStage < 4) {
-            return reqService.registerRequest({ choice: 'readProperty', opts, timeoutAction })
-            .then((serviceData) => {
-                if (this.scanStage < 4) {
-                    opts.invokeId = serviceData.invokeId;
-                    return confirmedReqService.readProperty(opts, output, npduOpts, serviceData.msgSentFlow);
+            return reqService.registerRequest({
+                choice: 'readProperty',
+                opts,
+                timeoutAction,
+                method: (serviceData) => {
+                    if (this.scanStage < 4) {
+                        opts.invokeId = serviceData.invokeId;
+                        return confirmedReqService.readProperty(opts, output, npduOpts, serviceData.msgSentFlow);
+                    }
                 }
             });
         }

@@ -4,6 +4,7 @@ import {
 
 export const AppConfig: IAppConfig = {
     reportProgress: false,
+    discoveryTimeout: 4000,
     server: {
         port: 47808,
         outputSequence: {
@@ -19,21 +20,25 @@ export const AppConfig: IAppConfig = {
         network: '255.255.255.255',
     },
     ede: {
-        timeout: 4000,
-        file: {
-            path: `${__dirname}/../../..`,
-            name: `auto-ede`,
+        manager: {
+            file: {
+                path: `${__dirname}/../../..`,
+                name: `auto-ede`,
+            },
+            header: {
+                projectName: 'Thing-it',
+                authorOfLastChange: '',
+                versionOfRefFile: 1,
+                versionOfLayout: 2,
+            }
         },
-        header: {
-            projectName: 'Thing-it',
-            authorOfLastChange: '',
-            versionOfRefFile: 1,
-            versionOfLayout: 2,
+        service: {
+            requests: {
+                timeout: 4000,
+                thread: 0,
+                retriesNumber: 10
+            }
         }
     },
-    reqService: {
-        timeout: 4000,
-        thread: 0
-    }
 }
 

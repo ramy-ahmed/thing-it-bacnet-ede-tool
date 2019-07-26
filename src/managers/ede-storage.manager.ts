@@ -6,7 +6,7 @@ import { EDETableManager } from './ede-table.manager';
 import { OutputSocket } from '../core/sockets';
 
 import {
-    IEDEConfig,
+    IEDEManagerConfig,
     IBACnetObjectIdentifier,
     IEDEDevice,
     IEDEUnit,
@@ -27,7 +27,7 @@ export class EDEStorageManager {
     private devices: Map<string, IEDEDevice>;
     private edeTableManager: EDETableManager;
 
-    constructor (private config: IEDEConfig) {
+    constructor (private config: IEDEManagerConfig) {
         this.devices = new Map();
         this.edeTableManager = new EDETableManager();
     }

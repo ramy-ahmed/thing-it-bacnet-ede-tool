@@ -16,7 +16,7 @@ if (argv.filePath) {
     if (!path.isAbsolute(argv.filePath)) {
         throw new ApiError('AppManager - handleArgs: Path must be absolute!');
     }
-    appConfig.ede.file.path = argv.filePath;
+    appConfig.ede.manager.file.path = argv.filePath;
 }
 
 if (argv.network) {
@@ -24,7 +24,7 @@ if (argv.network) {
 }
 
 if (argv.fileName) {
-    appConfig.ede.file.name = argv.fileName;
+    appConfig.ede.manager.file.name = argv.fileName;
 }
 
 if (argv.port) {
@@ -32,7 +32,7 @@ if (argv.port) {
 }
 
 if (argv.timeout) {
-    appConfig.ede.timeout = +argv.timeout;
+    appConfig.discoveryTimeout = +argv.timeout;
 }
 
 if (argv.reqDelay) {

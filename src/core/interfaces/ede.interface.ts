@@ -3,10 +3,9 @@ import { OutputSocket } from '../sockets';
 import * as BACNet from '@thing-it/bacnet-logic';
 import { IBACnetObjectIdentifier } from './bacnet.interface';
 
-export interface IEDEConfig {
+export interface IEDEManagerConfig {
     file: IEDEFileConfig;
     header: IEDEHeaderOptions;
-    timeout: number;
 }
 export interface IEDEFileConfig {
     path: string;
