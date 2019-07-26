@@ -16,13 +16,13 @@ export interface IEDEConfig {
     service: IEDEServiceConfig;
 }
 export interface IEDEServiceConfig {
-    retriesNumber: number;
     requests: IReqServiceConfig
 }
 
 export interface IReqServiceConfig {
     timeout: number;
     thread: number;
+    retriesNumber: number;
 }
 
 export interface IBACnetConfig {

@@ -66,7 +66,7 @@ export class RequestsService {
             first()
         ).subscribe(() => {
             const reqOpts = rinfo.opts as Interfaces.ConfirmedRequest.Write.ReadProperty;
-            if (rinfo.retriesCounter < 10) {
+            if (rinfo.retriesCounter < this.config.retriesNumber) {
                 rinfo.retriesCounter += 1;
                 this.performRequest(id, rinfo);
             } else {
