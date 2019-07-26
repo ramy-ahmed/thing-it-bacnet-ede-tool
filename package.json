@@ -12,7 +12,7 @@
         "type": "git",
         "url": "git+https://github.com/thing-it/thing-it-bacnet-ede-tool.git"
     },
-    "author": "Andrey Shuleiko",
+    "author": "Andrey Shuleiko, Nikita Mikhaliuk",
     "license": "ISC",
     "bugs": {
         "url": "https://github.com/thing-it/thing-it-bacnet-ede-tool/issues"
