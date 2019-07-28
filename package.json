@@ -7,7 +7,7 @@
         "test": "gulp watch:test:unit",
         "start": "gulp build:code && node ./dist/start.js",
         "build": "gulp build:prod",
-        "postversion": "npm run build && git push && git push --tags && npm publish /dist"
+        "postversion": "npm run build && git push && git push --tags && npm publish dist"
     },
     "repository": {
         "type": "git",
