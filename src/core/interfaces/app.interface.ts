@@ -19,6 +19,13 @@ export interface IEDEServiceConfig {
     requests: IReqServiceConfig
 }
 
+export interface IDeviceServiceConfig {
+    deviceId: BACNet.Types.BACnetObjectId;
+    storageId: string;
+    npduOpts: BACNet.Interfaces.NPDU.Write.Layer,
+    objectListLength?: number
+}
+
 export interface IReqServiceConfig {
     timeout: number;
     thread: number;
