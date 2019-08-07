@@ -45,7 +45,7 @@ export class EDEService {
 
         try {
             const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
-            const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
+            const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
 
             edeStorage.addDevice({ type: objType, instance: objInst }, outputSoc, deviceStorageId, npduOpts);
 
@@ -122,7 +122,7 @@ export class EDEService {
         logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValuePayload.value}`);
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
-        const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
+        const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
         const reqService = this.reqServicesMap.get(deviceStorageId);
 
         scanProgressService.reportObjectListLength(deviceStorageId, propValuePayload.value);
@@ -174,7 +174,7 @@ export class EDEService {
         const index = apduService.prop.index.value;
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
-        const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
+        const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
 
         const reqService = this.reqServicesMap.get(deviceStorageId);
 
@@ -243,7 +243,7 @@ export class EDEService {
         logger.info(`EDEService - readPropertyAll: (${objType}:${objInst}) Property (${BACNet.Enums.PropertyId[propIdPayload.value]}): ${propValuePayload.value}`);
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
-        const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
+        const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
 
         edeStorage.setUnitProp(
             { type: objType, instance: objInst },
@@ -284,7 +284,7 @@ export class EDEService {
      * @param  {BACNet.Interfaces.NPDU.Read.Layer} npduMessage - incoming message's NPDU Layer
      * @return {BACNet.Interfaces.NPDU.Write.Layer}
      */
-    private getdeviceStorageId (outputSoc: OutputSocket, npduOpts: BACNet.Interfaces.NPDU.Write.Layer): string {
+    private getDeviceStorageId (outputSoc: OutputSocket, npduOpts: BACNet.Interfaces.NPDU.Write.Layer): string {
         const rinfo = outputSoc.getAddressInfo();
         let deviceStorageId = `${rinfo.address}:${rinfo.port}`
         if (npduOpts.destMacAddress) {
@@ -306,7 +306,7 @@ export class EDEService {
         const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
-        const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
+        const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
 
         const reqService = this.reqServicesMap.get(deviceStorageId);
 
@@ -331,7 +331,7 @@ export class EDEService {
         const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
-        const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
+        const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
 
         const reqService = this.reqServicesMap.get(deviceStorageId);
 
@@ -433,7 +433,7 @@ export class EDEService {
 
             const outputSoc = device.outputSoc;
             const npduOpts = device.npduOpts;
-            const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
+            const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
 
             const reqService = this.reqServicesMap.get(deviceStorageId);
 
@@ -458,7 +458,6 @@ export class EDEService {
             });
 
             this.sendReadProperty({
-                segAccepted: true,
                 invokeId: 1,
                 objId: deviceId,
                 prop: {
@@ -489,7 +488,7 @@ export class EDEService {
 
             const outputSoc = device.outputSoc;
             const npduOpts = device.npduOpts;
-            const deviceStorageId = this.getdeviceStorageId(outputSoc, npduOpts);
+            const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
 
             const reqService = this.reqServicesMap.get(deviceStorageId);
 
