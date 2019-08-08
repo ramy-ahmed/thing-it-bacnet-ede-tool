@@ -20,7 +20,6 @@ import {
     logger,
 } from '../core/utils';
 
-import { ScanProgressService } from '../services';
 import { Interfaces } from '@thing-it/bacnet-logic';
 
 export class EDEStorageManager {
@@ -42,15 +41,6 @@ export class EDEStorageManager {
      */
     public getObjId (objType: number, objInst: number): string {
         return `${objType}:${objInst}`;
-    }
-
-    /**
-     * getDeviceList -
-     *
-     * @return {IEDEDevice[]}
-     */
-    public getDeviceList (): IEDEDevice[] {
-        return Array.from(this.devices.values());
     }
 
     /**
@@ -82,18 +72,6 @@ export class EDEStorageManager {
         this.devices.set(id, device);
     }
 
-    /**
-     * addObjectListLength
-     *
-     * @param  {IBACnetObjectIdentifier} deviceId - BACnet device identifier
-     * @param  {IBACnetObjectIdentifier} unitId - BACnet unit identifier
-     * @return {void}
-     */
-    public addObjectListLength (deviceStorageId: string, length: number): void {
-        const device = this.devices.get(deviceStorageId);
-
-        device.objectListLength = length;
-    }
     /**
      * addUnit - adds the EDE unit into internal units storage.
      *

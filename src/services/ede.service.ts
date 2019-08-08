@@ -8,11 +8,11 @@ import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 import { logger } from '../core/utils';
 
 import { EDEStorageManager } from '../managers/ede-storage.manager';
-import { confirmedReqService, unconfirmedReqService } from './bacnet';
+import { unconfirmedReqService } from './bacnet';
 import { ScanProgressService } from './scan-pogress.service';
 import { RequestsService } from './requests.service';
 import { DeviceService } from './device.service';
-import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IEDEServiceConfig } from '../core/interfaces';
+import { IBACnetWhoIsOptions, IEDEServiceConfig } from '../core/interfaces';
 
 export class EDEService {
     constructor(
