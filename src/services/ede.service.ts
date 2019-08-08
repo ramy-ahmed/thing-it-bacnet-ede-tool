@@ -11,6 +11,7 @@ import { EDEStorageManager } from '../managers/ede-storage.manager';
 import { confirmedReqService, unconfirmedReqService } from './bacnet';
 import { ScanProgressService } from './scan-pogress.service';
 import { RequestsService } from './requests.service';
+import { DeviceService } from './device.service';
 import { IBACNetRequestTimeoutHandler, IBACnetWhoIsOptions, IEDEServiceConfig } from '../core/interfaces';
 
 export class EDEService {
@@ -18,7 +19,7 @@ export class EDEService {
         private config: IEDEServiceConfig
     ) {}
 
-    private reqServicesMap: Map<string, RequestsService> = new Map();
+    private deviceServicesMap: Map<string, DeviceService> = new Map();
     public scanStage: number = 0;
 
     /**
@@ -54,40 +55,20 @@ export class EDEService {
             scanProgressService.reportDeviceFound(deviceStorageId, { type: objType, instance: objInst });
 
             const reqService = new RequestsService(this.config.requests, { type: objType, instance: objInst });
-            this.reqServicesMap.set(deviceStorageId, reqService);
+            const deviceService = new DeviceService(
+                {
+                    deviceId: objId,
+                    storageId: deviceStorageId,
+                    npduOpts: npduOpts
+                },
+                outputSoc,
+                reqService,
+                scanProgressService
+            );
+            this.deviceServicesMap.set(deviceStorageId, deviceService);
 
             if (this.scanStage > 1) {
-                this.sendReadProperty({
-                    invokeId: 1,
-                    objId: objId,
-                    prop: {
-                        id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
-                    }
-                }, outputSoc, npduOpts, reqService, () => {
-                    scanProgressService.reportPropertyRequestFailed(deviceStorageId, objIdValue, {id: BACNet.Enums.PropertyId.objectName})
-                });
-
-                this.sendReadProperty({
-                    invokeId: 1,
-                    objId: objId,
-                    prop: {
-                        id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
-                    },
-                }, outputSoc, npduOpts, reqService, () => {
-                    scanProgressService.reportPropertyRequestFailed(deviceStorageId, objIdValue, {id: BACNet.Enums.PropertyId.description})
-                });
-
-                this.sendReadProperty({
-                    segAccepted: true,
-                    invokeId: 1,
-                    objId: objId,
-                    prop: {
-                        id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
-                        index: new BACNet.Types.BACnetUnsignedInteger(0)
-                    },
-                }, outputSoc, npduOpts, reqService, () => {
-                    scanProgressService.reportPropertyRequestFailed(deviceStorageId, objIdValue, {id: BACNet.Enums.PropertyId.objectList, index: 0});
-                });
+                deviceService.getDeviceProps();
             }
 
         } catch (error) {
@@ -107,7 +88,6 @@ export class EDEService {
         const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
         const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
         const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadProperty;
-        const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
         const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
 
         // Get object identifier
@@ -123,26 +103,13 @@ export class EDEService {
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
         const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
-        const reqService = this.reqServicesMap.get(deviceStorageId);
+        const deviceService = this.deviceServicesMap.get(deviceStorageId);
 
         scanProgressService.reportObjectListLength(deviceStorageId, propValuePayload.value);
-        edeStorage.addObjectListLength(deviceStorageId, propValuePayload.value);
+        deviceService.reportObjectListLength(propValuePayload.value);
 
         if (this.scanStage === 3) {
-            for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
-                const timeoutAction = () => {
-                    scanProgressService.reportPropertyRequestFailed(deviceStorageId, objIdPayload, {id: BACNet.Enums.PropertyId.objectList, index: itemIndex})
-                }
-                this.sendReadProperty({
-                    segAccepted: true,
-                    invokeId: 1,
-                    objId: objId,
-                    prop: {
-                        id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
-                        index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
-                    },
-                }, outputSoc, npduOpts, reqService, timeoutAction);
-            }
+            deviceService.getDatapoints();
         }
 
         return Bluebird.resolve();
@@ -176,7 +143,7 @@ export class EDEService {
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
         const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
 
-        const reqService = this.reqServicesMap.get(deviceStorageId);
+        const deviceService = this.deviceServicesMap.get(deviceStorageId);
 
         logger.info(`EDEService - readPropertyObjectListItem: Device ${objType}:${objInst},`
             + `Unit ${unitIdValue.type}:${unitIdValue.instance}`);
@@ -187,25 +154,10 @@ export class EDEService {
 
             edeStorage.addUnit({ type: objType, instance: objInst }, unitIdValue, deviceStorageId);
 
-            this.sendReadProperty({
-                invokeId: 1,
-                objId: unitId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
-                }
-            }, outputSoc, npduOpts, reqService, () => {
-                scanProgressService.reportPropertyRequestFailed(deviceStorageId, unitIdValue, {id: BACNet.Enums.PropertyId.objectName})
-            });
-
-            this.sendReadProperty({
-                invokeId: 1,
-                objId: unitId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
-                },
-            }, outputSoc, npduOpts, reqService, () => {
-                scanProgressService.reportPropertyRequestFailed(deviceStorageId, unitIdValue, {id: BACNet.Enums.PropertyId.description})
-            });
+            deviceService.requestObjectProperties(unitId, [
+                {id: BACNet.Enums.PropertyId.objectName},
+                {id: BACNet.Enums.PropertyId.description}
+            ]);
         }
 
         return Bluebird.resolve();
@@ -323,7 +275,8 @@ export class EDEService {
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
         const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
 
-        const reqService = this.reqServicesMap.get(deviceStorageId);
+        const deviceService = this.deviceServicesMap.get(deviceStorageId);
+        const reqService = deviceService.reqService;
 
         const invokeId = apduMessage.invokeId;
         const avRespTime = reqService.releaseInvokeId(invokeId);
@@ -348,7 +301,8 @@ export class EDEService {
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
         const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
 
-        const reqService = this.reqServicesMap.get(deviceStorageId);
+        const deviceService = this.deviceServicesMap.get(deviceStorageId);
+        const reqService = deviceService.reqService;
 
         const invokeId = apduMessage.invokeId;
         const reqInfo = reqService.getRequestInfo(invokeId);
@@ -368,37 +322,6 @@ export class EDEService {
             logger.error(logMessage);
             scanProgressService.reportPropertyRequestFailed(deviceStorageId, objId, {id: propId, index: index});
         }
-    }
-
-    /**
-     * sendReadProperty - gets invokeId from req store and sends requests via confirmedReqService
-     *
-     * @param  {BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty} opts - request options
-     * @param  {OutputSocket} output - output socket
-     * @param  {BACNet.Interfaces.NPDU.Write.Layer} npduOpts - NPDU layer options
-     * @param  {RequestsService} reqService - requests store
-     * @param  {IBACNetRequestTimeoutHandler} timeoutAction - handler for the requests with expired timeout
-     * @return {Bluebird<any>}
-     */
-    private sendReadProperty (opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty,
-        output: OutputSocket,
-        npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {},
-        reqService: RequestsService,
-        timeoutAction?: IBACNetRequestTimeoutHandler): Bluebird<any> {
-        if (this.scanStage < 4) {
-            return reqService.registerRequest({
-                choice: 'readProperty',
-                opts,
-                timeoutAction,
-                method: (serviceData) => {
-                    if (this.scanStage < 4) {
-                        opts.invokeId = serviceData.invokeId;
-                        return confirmedReqService.readProperty(opts, output, npduOpts, serviceData.msgSentFlow);
-                    }
-                }
-            });
-        }
-        return Bluebird.resolve();
     }
 
     /**
@@ -422,54 +345,13 @@ export class EDEService {
     /**
      * getDeviceProps - sends `readProperty` request for device objectList length, objectName and description
      *
-     * @param  {IBACnetWhoIsOptions} opts - request options
-     * @param  {OutputSocket} output - output socket
      * @return {void}
      */
-    public getDeviceProps (edeStorage: EDEStorageManager, scanProgressService: ScanProgressService): void {
+    public getDeviceProps (): void {
 
-        const deviceList = edeStorage.getDeviceList();
-
-        for (let device of deviceList) {
-            const deviceId = new BACNet.Types.BACnetObjectId(device.objId);
-
-            const outputSoc = device.outputSoc;
-            const npduOpts = device.npduOpts;
-            const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
-
-            const reqService = this.reqServicesMap.get(deviceStorageId);
-
-            this.sendReadProperty({
-                invokeId: 1,
-                objId: deviceId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
-                }
-            }, outputSoc, npduOpts, reqService, () => {
-                scanProgressService.reportPropertyRequestFailed(deviceStorageId, device.objId, { id: BACNet.Enums.PropertyId.objectName})
-            });
-
-            this.sendReadProperty({
-                invokeId: 1,
-                objId: deviceId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
-                },
-            }, outputSoc, npduOpts, reqService, () => {
-                scanProgressService.reportPropertyRequestFailed(deviceStorageId, device.objId, { id: BACNet.Enums.PropertyId.description })
-            });
-
-            this.sendReadProperty({
-                invokeId: 1,
-                objId: deviceId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
-                    index: new BACNet.Types.BACnetUnsignedInteger(0)
-                },
-            }, outputSoc, npduOpts, reqService, () => {
-                scanProgressService.reportPropertyRequestFailed(deviceStorageId, device.objId, {id: BACNet.Enums.PropertyId.objectList, index: 0});
-            });
-        }
+        this.deviceServicesMap.forEach((deviceService) => {
+            deviceService.getDeviceProps();
+        });
         if (this.scanStage < 4) {
             this.scanStage = 2;
         }
@@ -478,36 +360,12 @@ export class EDEService {
      /**
      * scanDevices - sends whoIs request with specified parameters
      *
-     * @param  {IBACnetWhoIsOptions} opts - request options
-     * @param  {OutputSocket} output - output socket
      * @return {void}
      */
-    public getDatapoints (edeStorage: EDEStorageManager, scanProgressService: ScanProgressService): void {
+    public getDatapoints (): void {
 
-        const deviceList = edeStorage.getDeviceList();
-        deviceList.forEach((device) => {
-            const deviceId = new BACNet.Types.BACnetObjectId(device.objId);
-
-            const outputSoc = device.outputSoc;
-            const npduOpts = device.npduOpts;
-            const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
-
-            const reqService = this.reqServicesMap.get(deviceStorageId);
-
-            for (let itemIndex = 1; itemIndex <= device.objectListLength; itemIndex++) {
-                const timeoutAction = () => {
-                    scanProgressService.reportPropertyRequestFailed(deviceStorageId, device.objId, {id: BACNet.Enums.PropertyId.objectList, index: itemIndex})
-                }
-                this.sendReadProperty({
-                    segAccepted: true,
-                    invokeId: 1,
-                    objId: deviceId,
-                    prop: {
-                        id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
-                        index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
-                    },
-                }, outputSoc, npduOpts, reqService, timeoutAction);
-            }
+        this.deviceServicesMap.forEach((deviceService) => {
+            deviceService.getDatapoints();
         });
         if (this.scanStage < 4) {
             this.scanStage = 3;
@@ -516,8 +374,8 @@ export class EDEService {
 
     public destroy() {
         this.scanStage = 4;
-        this.reqServicesMap.forEach((reqService) => {
-            reqService.destroy();
+        this.deviceServicesMap.forEach((deviceService) => {
+            deviceService.destroy();
         })
     }
 }
