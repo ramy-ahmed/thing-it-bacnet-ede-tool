@@ -3,12 +3,13 @@ import { OutputSocket } from '../core/sockets';
 import { RequestsService } from './requests.service';
 import {
     IDeviceServiceConfig,
-    IBACNetRequestTimeoutHandler
+    IBACNetRequestTimeoutHandler,
+    IPropertyReference
 } from '../core/interfaces';
 import { ScanProgressService } from './scan-pogress.service';
 import * as BACNet from '@thing-it/bacnet-logic';
 import * as Bluebird from 'bluebird';
-confirmedReqService
+import * as _ from 'lodash';
 
 export class DeviceService {
     constructor(
@@ -62,20 +63,26 @@ export class DeviceService {
      * @return {Bluebird<any>}
      */
     public requestObjectProperty (objId: BACNet.Types.BACnetObjectId,
-        propId: BACNet.Enums.PropertyId): Bluebird<any> {
+        prop: IPropertyReference): Bluebird<any> {
+            let indexInt;
+            if (_.isFinite(prop.index)) {
+                indexInt = new BACNet.Types.BACnetUnsignedInteger(prop.index);
+            }
 
         return this.sendReadProperty({
-            invokeId: 1,
+                invokeId: 1,
                 objId: objId,
                 prop: {
-                    id: new BACNet.Types.BACnetEnumerated(propId)
+                    id: new BACNet.Types.BACnetEnumerated(prop.id),
+                    index: indexInt
                 }
             },
             () => {
-                this.scanProgressService.reportPropertyProcessed(
+                this.scanProgressService.reportPropertyRequestFailed(
                     this.config.storageId,
                     this.config.deviceId.value,
-                   BACNet.Enums.PropertyId[propId]);
+                    prop
+                );
             });
     }
 
@@ -87,10 +94,10 @@ export class DeviceService {
      * @return {Bluebird<any>}
      */
     public requestObjectProperties (objId: BACNet.Types.BACnetObjectId,
-        propsList: BACNet.Enums.PropertyId[]): Bluebird<any> {
+        propsList: IPropertyReference[]): Bluebird<any> {
 
-        const reqObjectPropList = propsList.map((propId) => {
-            return this.requestObjectProperty(objId, propId)
+        const reqObjectPropList = propsList.map((prop) => {
+            return this.requestObjectProperty(objId, prop)
         });
         return Bluebird.all(reqObjectPropList);
     }
@@ -104,20 +111,34 @@ export class DeviceService {
      */
     public getDeviceProps (): void {
 
-        this.requestObjectProperty(this.config.deviceId, BACNet.Enums.PropertyId.objectName);
+        this.requestObjectProperties(this.config.deviceId, [
+            { id: BACNet.Enums.PropertyId.objectName },
+            { id: BACNet.Enums.PropertyId.description },
+            { id: BACNet.Enums.PropertyId.objectList, index: 0 }
+        ]);
+    }
 
-        this.requestObjectProperty(this.config.deviceId, BACNet.Enums.PropertyId.description);
+     /**
+     * scanDevices - sends whoIs request with specified parameters
+     *
+     * @param  {IBACnetWhoIsOptions} opts - request options
+     * @param  {OutputSocket} output - output socket
+     * @return {void}
+     */
+    public getObjectListEntry (deviceId: BACNet.Types.BACnetObjectId, itemIndex: number): void {
 
+        const timeoutAction = () => {
+            this.scanProgressService.reportObjectListItemProcessed(this.config.storageId, itemIndex)
+        }
         this.sendReadProperty({
+            segAccepted: true,
             invokeId: 1,
-            objId: this.config.deviceId,
+            objId: deviceId,
             prop: {
                 id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
-                index: new BACNet.Types.BACnetUnsignedInteger(0)
+                index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
             },
-        }, () => {
-            this.scanProgressService.reportObjectListLength(this.config.storageId, 0);
-        });
+        }, timeoutAction);
     }
 
      /**
@@ -129,18 +150,7 @@ export class DeviceService {
      */
     public getDatapoints (): void {
         for (let itemIndex = 1; itemIndex <= this.config.objectListLength; itemIndex++) {
-            const timeoutAction = () => {
-                this.scanProgressService.reportObjectListItemProcessed(this.config.storageId, itemIndex)
-            }
-            this.sendReadProperty({
-                segAccepted: true,
-                invokeId: 1,
-                objId: this.config.deviceId,
-                prop: {
-                    id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
-                    index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
-                },
-            }, timeoutAction);
+            this.getObjectListEntry(this.config.deviceId, itemIndex);
         }
     }
 }
