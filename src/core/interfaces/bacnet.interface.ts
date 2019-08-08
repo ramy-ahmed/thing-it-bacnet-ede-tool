@@ -38,3 +38,8 @@ export interface IBACnetWhoIsOptions {
     lowLimit: number;
     hiLimit: number;
 }
+
+export interface IPropertyReference {
+    id: BACNet.Enums.PropertyId;
+    index?: number;
+}
