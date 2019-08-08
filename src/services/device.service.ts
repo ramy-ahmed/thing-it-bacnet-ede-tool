@@ -15,7 +15,7 @@ export class DeviceService {
     constructor(
         private config: IDeviceServiceConfig,
         private outputSoc: OutputSocket,
-        private reqService: RequestsService,
+        public reqService: RequestsService,
         private scanProgressService: ScanProgressService
     ) {}
 
@@ -89,7 +89,7 @@ export class DeviceService {
             () => {
                 this.scanProgressService.reportPropertyRequestFailed(
                     this.config.storageId,
-                    this.config.deviceId.value,
+                    objId.value,
                     prop
                 );
             });
@@ -134,32 +134,9 @@ export class DeviceService {
      * @param  {OutputSocket} output - output socket
      * @return {void}
      */
-    public getObjectListEntry (deviceId: BACNet.Types.BACnetObjectId, itemIndex: number): void {
-
-        const timeoutAction = () => {
-            this.scanProgressService.reportObjectListItemProcessed(this.config.storageId, itemIndex)
-        }
-        this.sendReadProperty({
-            segAccepted: true,
-            invokeId: 1,
-            objId: deviceId,
-            prop: {
-                id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectList),
-                index: new BACNet.Types.BACnetUnsignedInteger(itemIndex)
-            },
-        }, timeoutAction);
-    }
-
-     /**
-     * scanDevices - sends whoIs request with specified parameters
-     *
-     * @param  {IBACnetWhoIsOptions} opts - request options
-     * @param  {OutputSocket} output - output socket
-     * @return {void}
-     */
     public getDatapoints (): void {
         for (let itemIndex = 1; itemIndex <= this.config.objectListLength; itemIndex++) {
-            this.getObjectListEntry(this.config.deviceId, itemIndex);
+            this.requestObjectProperty(this.config.deviceId, {id: BACNet.Enums.PropertyId.objectList, index: itemIndex});
         }
     }
 }
