@@ -20,6 +20,15 @@ export class DeviceService {
     ) {}
 
      /**
+     * destroys device service
+     *
+     * @return {void}
+     */
+    public destroy (): void {
+        this.reqService.destroy();
+    }
+
+     /**
      * saves received objectList length value
      *
      * @param  {numbуr} length - request options
