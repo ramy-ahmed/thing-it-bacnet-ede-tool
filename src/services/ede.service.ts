@@ -64,7 +64,7 @@ export class EDEService {
                         id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
                     }
                 }, outputSoc, npduOpts, reqService, () => {
-                    scanProgressService.reportPropertyProcessed(deviceStorageId, objIdValue, 'objectName')
+                    scanProgressService.reportPropertyRequestFailed(deviceStorageId, objIdValue, {id: BACNet.Enums.PropertyId.objectName})
                 });
 
                 this.sendReadProperty({
@@ -74,7 +74,7 @@ export class EDEService {
                         id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
                     },
                 }, outputSoc, npduOpts, reqService, () => {
-                    scanProgressService.reportPropertyProcessed(deviceStorageId, objIdValue, 'description')
+                    scanProgressService.reportPropertyRequestFailed(deviceStorageId, objIdValue, {id: BACNet.Enums.PropertyId.description})
                 });
 
                 this.sendReadProperty({
@@ -86,7 +86,7 @@ export class EDEService {
                         index: new BACNet.Types.BACnetUnsignedInteger(0)
                     },
                 }, outputSoc, npduOpts, reqService, () => {
-                    scanProgressService.reportObjectListLength(deviceStorageId, 0);
+                    scanProgressService.reportPropertyRequestFailed(deviceStorageId, objIdValue, {id: BACNet.Enums.PropertyId.objectList, index: 0});
                 });
             }
 
@@ -131,7 +131,7 @@ export class EDEService {
         if (this.scanStage === 3) {
             for (let itemIndex = 1; itemIndex <= propValuePayload.value; itemIndex++) {
                 const timeoutAction = () => {
-                    scanProgressService.reportObjectListItemProcessed(deviceStorageId, itemIndex)
+                    scanProgressService.reportPropertyRequestFailed(deviceStorageId, objIdPayload, {id: BACNet.Enums.PropertyId.objectList, index: itemIndex})
                 }
                 this.sendReadProperty({
                     segAccepted: true,
@@ -194,7 +194,7 @@ export class EDEService {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
                 }
             }, outputSoc, npduOpts, reqService, () => {
-                scanProgressService.reportPropertyProcessed(deviceStorageId, unitIdValue, 'objectName')
+                scanProgressService.reportPropertyRequestFailed(deviceStorageId, unitIdValue, {id: BACNet.Enums.PropertyId.objectName})
             });
 
             this.sendReadProperty({
@@ -204,7 +204,7 @@ export class EDEService {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
                 },
             }, outputSoc, npduOpts, reqService, () => {
-                scanProgressService.reportPropertyProcessed(deviceStorageId, unitIdValue, 'description')
+                scanProgressService.reportPropertyRequestFailed(deviceStorageId, unitIdValue, {id: BACNet.Enums.PropertyId.description})
             });
         }
 
@@ -235,6 +235,7 @@ export class EDEService {
         // Get prop identifier
         const propId = apduService.prop.id;
         const propIdPayload = propId as BACNet.Types.BACnetEnumerated;
+        const PropIdValue = propIdPayload.value;
 
         // Get prop value
         const propValues = apduService.prop.values;
@@ -244,14 +245,28 @@ export class EDEService {
 
         const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
         const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
+        const propName = BACNet.Enums.PropertyId[PropIdValue];
+        const unitId = { type: objType, instance: objInst };
 
         edeStorage.setUnitProp(
-            { type: objType, instance: objInst },
-            BACNet.Enums.PropertyId[propIdPayload.value],
+            unitId,
+            propName,
             propValuePayload,
-            deviceStorageId,
-            scanProgressService
+            deviceStorageId
         );
+
+        switch (PropIdValue) {
+            case BACNet.Enums.PropertyId.objectName:
+            scanProgressService.reportDatapointReceived(deviceStorageId, unitId);
+                break;
+
+            case BACNet.Enums.PropertyId.description:
+                scanProgressService.reportPropertyProcessed(deviceStorageId, unitId, BACNet.Enums.PropertyId.description);
+                    break;
+
+            default:
+                break;
+        }
 
         return Bluebird.resolve();
     }
@@ -342,29 +357,16 @@ export class EDEService {
             const objId = reqOpts.objId.value;
             const prop = reqOpts.prop;
             const propId = prop.id.value;
+            const index = _.get(prop, 'index.value');
             const deviceId = reqService.deviceId;
+
             let logMessage = `Failed readProperty #${invokeId}: (${BACNet.Enums.ObjectType[deviceId.type]},${deviceId.instance}): `
                 + `(${BACNet.Enums.ObjectType[objId.type]},${objId.instance}) - ${BACNet.Enums.PropertyId[propId]}`;
             if (prop.index) {
                 logMessage += `[${prop.index.value}]`
             }
             logger.error(logMessage);
-            switch (propId) {
-                case BACNet.Enums.PropertyId.objectList: {
-                        const index = prop.index.value;
-                        if (index === 0) {
-                            scanProgressService.reportObjectListLength(deviceStorageId, 0)
-                        } else {
-                            scanProgressService.reportObjectListItemProcessed(deviceStorageId, index)
-                        }
-                        break;
-                    }
-
-                default: {
-                    scanProgressService.reportPropertyProcessed(deviceStorageId, objId, BACNet.Enums.PropertyId[propId])
-                    break;
-                }
-            }
+            scanProgressService.reportPropertyRequestFailed(deviceStorageId, objId, {id: propId, index: index});
         }
     }
 
@@ -444,7 +446,7 @@ export class EDEService {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.objectName)
                 }
             }, outputSoc, npduOpts, reqService, () => {
-                scanProgressService.reportPropertyProcessed(deviceStorageId, device.objId, 'objectName')
+                scanProgressService.reportPropertyRequestFailed(deviceStorageId, device.objId, { id: BACNet.Enums.PropertyId.objectName})
             });
 
             this.sendReadProperty({
@@ -454,7 +456,7 @@ export class EDEService {
                     id: new BACNet.Types.BACnetEnumerated(BACNet.Enums.PropertyId.description)
                 },
             }, outputSoc, npduOpts, reqService, () => {
-                scanProgressService.reportPropertyProcessed(deviceStorageId, device.objId, 'description')
+                scanProgressService.reportPropertyRequestFailed(deviceStorageId, device.objId, { id: BACNet.Enums.PropertyId.description })
             });
 
             this.sendReadProperty({
@@ -465,7 +467,7 @@ export class EDEService {
                     index: new BACNet.Types.BACnetUnsignedInteger(0)
                 },
             }, outputSoc, npduOpts, reqService, () => {
-                scanProgressService.reportObjectListLength(deviceStorageId, 0);
+                scanProgressService.reportPropertyRequestFailed(deviceStorageId, device.objId, {id: BACNet.Enums.PropertyId.objectList, index: 0});
             });
         }
         if (this.scanStage < 4) {
@@ -494,7 +496,7 @@ export class EDEService {
 
             for (let itemIndex = 1; itemIndex <= device.objectListLength; itemIndex++) {
                 const timeoutAction = () => {
-                    scanProgressService.reportObjectListItemProcessed(deviceStorageId, itemIndex)
+                    scanProgressService.reportPropertyRequestFailed(deviceStorageId, device.objId, {id: BACNet.Enums.PropertyId.objectList, index: itemIndex})
                 }
                 this.sendReadProperty({
                     segAccepted: true,

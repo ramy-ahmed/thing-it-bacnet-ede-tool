@@ -1,6 +1,12 @@
 import { BehaviorSubject, Subject, Observable, Subscription } from 'rxjs';
 
-import { IScanStatus, IDeviceProgress, IUnitProgress, IUnitPropsProgress } from '../core/interfaces';
+import {
+    IScanStatus,
+    IDeviceProgress,
+    IUnitProgress,
+    IUnitPropsProgress,
+    IPropertyReference
+} from '../core/interfaces';
 import { logger } from '../core/utils';
 import { IBACnetObjectIdentifier } from '../core/interfaces';
 import * as _ from 'lodash';
@@ -171,10 +177,10 @@ export class ScanProgressService {
 
     reportDatapointReceived(deviceMapId: string, unitId: IBACnetObjectIdentifier) {
         this.scanStatus.datapointsReceived += 1;
-        this.reportPropertyProcessed(deviceMapId, unitId, 'objectName')
+        this.reportPropertyProcessed(deviceMapId, unitId, Enums.PropertyId.objectName)
     }
 
-    reportPropertyProcessed(deviceMapId: string, objId: IBACnetObjectIdentifier, propName: string) {
+    reportPropertyProcessed(deviceMapId: string, objId: IBACnetObjectIdentifier, propId: Enums.PropertyId) {
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
         deviceStatus.requestsPerformed += 1;
         this.calcScanStatus();
@@ -183,13 +189,34 @@ export class ScanProgressService {
         const unitId = this.getUnitId(objId);
 
         const unitStatus = deviceStatus.units.get(unitId);
-        switch (propName) {
-            case 'objectName':
+        switch (propId) {
+            case Enums.PropertyId.objectName:
                 unitStatus.props.objectName.next(true)
                 break;
 
-            case 'description':
+            case Enums.PropertyId.description:
                 unitStatus.props.description.next(true)
+                break;
+            default:
+                break;
+        }
+    }
+
+    reportPropertyRequestFailed(deviceMapId: string, objId: IBACnetObjectIdentifier, prop: IPropertyReference) {
+
+        switch (prop.id) {
+            case Enums.PropertyId.objectName:
+            case Enums.PropertyId.description:
+                this.reportPropertyProcessed(deviceMapId, objId, prop.id)
+                break;
+
+            case Enums.PropertyId.objectList:
+                const index = prop.index;
+                if (index === 0) {
+                    this.reportObjectListLength(deviceMapId, 0)
+                } else if (_.isFinite(index)) {
+                    this.reportObjectListItemProcessed(deviceMapId, index);
+                }
                 break;
             default:
                 break;

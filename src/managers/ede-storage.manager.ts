@@ -123,26 +123,13 @@ export class EDEStorageManager {
      * @return {void}
      */
     public setUnitProp (unitId: IBACnetObjectIdentifier,
-            propName: string, propValue: any, deviceStorageId: string, scanProgressService: ScanProgressService): void {
+            propName: string, propValue: any, deviceStorageId: string): void {
         const device = this.devices.get(deviceStorageId);
 
         const id = this.getObjId(unitId.type, unitId.instance);
         const unit = device.units.get(id);
 
         const newUnit = this.setObjectProperty(unit, propName, propValue);
-
-        switch (propName) {
-            case 'objectName':
-            scanProgressService.reportDatapointReceived(deviceStorageId, unitId);
-                break;
-
-            case 'description':
-                scanProgressService.reportPropertyProcessed(deviceStorageId, unitId, 'description');
-                    break;
-
-            default:
-                break;
-        }
 
         device.units.set(id, newUnit);
     }
