@@ -225,7 +225,7 @@ export class EDEService {
 
 
     /**
-     * readPropertyAll - handles the "readProperty" requests.
+     * readPropertyMultiple - handles the "readPropertyMultiple" requests.
      *
      * @param  {IUnconfirmReqWhoIsOptions} opts - request options
      * @param  {OutputSocket} output - output socket
@@ -402,7 +402,7 @@ export class EDEService {
 
         let logMessage;
         switch (reqInfo.choice) {
-            case 'readProperty': {
+            case BACNet.Enums.ConfirmedServiceChoice.ReadProperty: {
                 const reqOpts = reqInfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
                 const objId = reqOpts.objId.value;
                 const prop = reqOpts.prop;
@@ -417,7 +417,7 @@ export class EDEService {
                 scanProgressService.reportPropertyRequestFailed(deviceStorageId, objId, {id: propId, index: index});
                 break;
             }
-            case 'readPropertyMultiple': {
+            case BACNet.Enums.ConfirmedServiceChoice.ReadPropertyMultiple: {
                 deviceService.disableReadPropertyMultiple();
                 const reqOpts = reqInfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple;
                 const readAccessSpec = reqOpts.readPropertyList[0];

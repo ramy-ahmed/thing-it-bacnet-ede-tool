@@ -102,7 +102,7 @@ type ConfirmedRequestOptions = BACNet.Interfaces.ConfirmedRequest.Write.ReadProp
 
 export type IBACNetRequestTimeoutHandler = (opts: ConfirmedRequestOptions) => void;
 export interface IBACnetRequestInfo {
-    choice: string
+    choice: BACNet.Enums.ConfirmedServiceChoice
     opts: ConfirmedRequestOptions;
     method: Function;
     retriesCounter?: number;

@@ -71,7 +71,7 @@ export class RequestsService {
             } else {
                 let logMessage, reqOpts;
                 switch (rinfo.choice) {
-                    case 'readProperty': {
+                    case Enums.ConfirmedServiceChoice.ReadProperty: {
                         reqOpts = rinfo.opts as Interfaces.ConfirmedRequest.Write.ReadProperty;
                         const objId = reqOpts.objId.value;
                         const prop = reqOpts.prop;
@@ -82,7 +82,7 @@ export class RequestsService {
                         }
                         break;
                     }
-                    case 'readPropertyMultiple': {
+                    case Enums.ConfirmedServiceChoice.ReadPropertyMultiple: {
                         reqOpts = rinfo.opts as Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple;
                         const readAccessSpec = reqOpts.readPropertyList[0];
                         const objId = readAccessSpec.objId.value;

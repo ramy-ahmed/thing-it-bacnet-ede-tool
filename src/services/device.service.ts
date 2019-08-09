@@ -60,7 +60,7 @@ export class DeviceService {
         timeoutAction?: IBACNetRequestTimeoutHandler): Bluebird<any> {
 
         return this.reqService.registerRequest({
-            choice: 'readProperty',
+            choice: BACNet.Enums.ConfirmedServiceChoice.ReadProperty,
             opts,
             timeoutAction,
             method: (serviceData) => {
@@ -86,7 +86,7 @@ export class DeviceService {
         timeoutAction?: IBACNetRequestTimeoutHandler): Bluebird<any> {
 
         return this.reqService.registerRequest({
-            choice: 'readPropertyMultiple',
+            choice: BACNet.Enums.ConfirmedServiceChoice.ReadPropertyMultiple,
             opts,
             timeoutAction,
             method: (serviceData) => {
@@ -153,7 +153,7 @@ export class DeviceService {
                     index: index
                 };
             });
-            this.sendReadPropertyMultiple({
+            return this.sendReadPropertyMultiple({
                 invokeId: 1,
                 readPropertyList: [{
                     objId,
