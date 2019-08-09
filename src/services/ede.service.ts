@@ -12,7 +12,7 @@ import { unconfirmedReqService } from './bacnet';
 import { ScanProgressService } from './scan-pogress.service';
 import { RequestsService } from './requests.service';
 import { DeviceService } from './device.service';
-import { IBACnetWhoIsOptions, IEDEServiceConfig } from '../core/interfaces';
+import { IBACnetWhoIsOptions, IEDEServiceConfig, IPropertyReference } from '../core/interfaces';
 
 export class EDEService {
     constructor(
@@ -223,6 +223,99 @@ export class EDEService {
         return Bluebird.resolve();
     }
 
+
+    /**
+     * readPropertyAll - handles the "readProperty" requests.
+     *
+     * @param  {IUnconfirmReqWhoIsOptions} opts - request options
+     * @param  {OutputSocket} output - output socket
+     * @return {type}
+     */
+    public readPropertyMultiple (
+        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
+    const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
+    const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+    const apduService = apduMessage.service as BACNet.Interfaces.ComplexACK.Service.ReadPropertyMultiple;
+    const readResult = apduService.readResultsList[0];
+
+    const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
+    const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
+
+    // Get object identifier
+    const objId = readResult.objId;
+    const objIdPayload = objId.getValue() as BACNet.Interfaces.Type.ObjectId;
+    const objType = objIdPayload.type;
+    const objInst = objIdPayload.instance;
+
+    const props = readResult.props;
+
+    props.forEach((prop) => {
+        // Get prop identifier
+        const propId = prop.id;
+        const propIdPayload = propId as BACNet.Types.BACnetEnumerated;
+        const PropIdValue = propIdPayload.value;
+        // Get prop value
+        const propValuePayload = _.get(prop, 'values[0]') as BACNet.Types.BACnetTypeBase;
+        const propValue = _.get(propValuePayload, 'value');
+
+        const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
+        const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
+        const propName = BACNet.Enums.PropertyId[PropIdValue];
+        const unitId = { type: objType, instance: objInst };
+
+        switch (PropIdValue) {
+            case BACNet.Enums.PropertyId.objectName:
+                scanProgressService.reportDatapointReceived(deviceStorageId, unitId);
+                break;
+            case BACNet.Enums.PropertyId.description:
+                scanProgressService.reportPropertyProcessed(deviceStorageId, unitId, BACNet.Enums.PropertyId.description);
+                    break;
+
+            case BACNet.Enums.PropertyId.objectList: {
+                if (prop.index.value === 0) {
+                    scanProgressService.reportObjectListLength(deviceStorageId, propValue);
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        switch (PropIdValue) {
+            case BACNet.Enums.PropertyId.objectName:
+            case BACNet.Enums.PropertyId.description: {
+                logger.info(`EDEService - readPropertyMultiple: (${objType}:${objInst}) Property (${BACNet.Enums.PropertyId[PropIdValue]}): ${propValue}`);
+                edeStorage.setUnitProp(
+                    unitId,
+                    propName,
+                    propValuePayload,
+                    deviceStorageId
+                );
+                break;
+            }
+            case BACNet.Enums.PropertyId.objectList: {
+                if (prop.index.value === 0) {
+                    logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValue}`);
+                    const deviceService = this.deviceServicesMap.get(deviceStorageId);
+                    scanProgressService.reportObjectListLength(deviceStorageId, propValue);
+                    deviceService.reportObjectListLength(propValue);
+
+                    if (this.scanStage === 3) {
+                        deviceService.getDatapoints();
+                    }
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+    });
+
+
+    return Bluebird.resolve();
+}
+
     /**
      * getNpduOptions - transforms 'src' params from incoming messsage to 'dest' params for message to sent.
      *
@@ -306,22 +399,52 @@ export class EDEService {
 
         const invokeId = apduMessage.invokeId;
         const reqInfo = reqService.getRequestInfo(invokeId);
-        if (reqInfo.choice === 'readProperty') {
-            const reqOpts = reqInfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
-            const objId = reqOpts.objId.value;
-            const prop = reqOpts.prop;
-            const propId = prop.id.value;
-            const index = _.get(prop, 'index.value');
-            const deviceId = reqService.deviceId;
+        const deviceId = reqService.deviceId;
 
-            let logMessage = `Failed readProperty #${invokeId}: (${BACNet.Enums.ObjectType[deviceId.type]},${deviceId.instance}): `
-                + `(${BACNet.Enums.ObjectType[objId.type]},${objId.instance}) - ${BACNet.Enums.PropertyId[propId]}`;
-            if (prop.index) {
-                logMessage += `[${prop.index.value}]`
+        let logMessage;
+        switch (reqInfo.choice) {
+            case 'readProperty': {
+                const reqOpts = reqInfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
+                const objId = reqOpts.objId.value;
+                const prop = reqOpts.prop;
+                const propId = prop.id.value;
+                const index = _.get(prop, 'index.value');
+
+                logMessage = `Failed readProperty #${invokeId}: (${BACNet.Enums.ObjectType[deviceId.type]},${deviceId.instance}): `
+                    + `(${BACNet.Enums.ObjectType[objId.type]},${objId.instance}) - ${BACNet.Enums.PropertyId[propId]}`;
+                if (prop.index) {
+                    logMessage += `[${prop.index.value}]`
+                }
+                scanProgressService.reportPropertyRequestFailed(deviceStorageId, objId, {id: propId, index: index});
+                break;
             }
-            logger.error(logMessage);
-            scanProgressService.reportPropertyRequestFailed(deviceStorageId, objId, {id: propId, index: index});
+            case 'readPropertyMultiple': {
+                deviceService.disableReadPropertyMultiple();
+                const reqOpts = reqInfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple;
+                const readAccessSpec = reqOpts.readPropertyList[0];
+                const objId = readAccessSpec.objId;
+                const props = readAccessSpec.props;
+
+                logMessage = `Failed readPropertyMultiple #${invokeId}: (${BACNet.Enums.ObjectType[deviceId.type]},${deviceId.instance}): `
+                    + `(${BACNet.Enums.ObjectType[objId.value.type]},${objId.value.instance}) - switching to regular ReadProperty`;
+
+                const propsList: IPropertyReference[] = props.map((prop) => {
+                    let index;
+                    if (!_.isNil(prop.index)) {
+                        index = prop.index.value;
+                    }
+                    return {
+                        id: prop.id.value,
+                        index: index
+                    };
+                });
+                deviceService.requestObjectProperties(objId, propsList);
+                break;
+            }
+            default:
+                break;
         }
+        logger.error(logMessage);
     }
 
     /**

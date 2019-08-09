@@ -29,9 +29,9 @@ export function mainRouter (
             return ComplexACKRouter(inputSoc, outputSoc, serviceSocket);
         case BACNet.Enums.ServiceType.ErrorPDU:
             return ErrorRouter(inputSoc, outputSoc, serviceSocket);
-        case BACNet.Enums.ServiceType.AbortPDU:
-            return RejectRouter(inputSoc, outputSoc, serviceSocket);
         case BACNet.Enums.ServiceType.RejectPDU:
+            return RejectRouter(inputSoc, outputSoc, serviceSocket);
+        case BACNet.Enums.ServiceType.AbortPDU:
             return AbortRouter(inputSoc, outputSoc, serviceSocket);
     }
     return;

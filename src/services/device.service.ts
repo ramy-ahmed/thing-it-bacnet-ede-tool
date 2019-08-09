@@ -17,7 +17,9 @@ export class DeviceService {
         private outputSoc: OutputSocket,
         public reqService: RequestsService,
         private scanProgressService: ScanProgressService
-    ) {}
+    ) {
+        this.config.supportReadPropertyMultiple = true;
+    }
 
      /**
      * destroys device service
@@ -38,6 +40,15 @@ export class DeviceService {
         this.config.objectListLength = length
     }
 
+     /**
+     * disables ReadPropertyMultiple requests
+     *
+     * @return {void}
+     */
+    public disableReadPropertyMultiple (): void {
+        this.config.supportReadPropertyMultiple = false;
+    }
+
     /**
      * sendReadProperty - gets invokeId from req store and sends requests via confirmedReqService
      *
@@ -55,6 +66,32 @@ export class DeviceService {
             method: (serviceData) => {
                     opts.invokeId = serviceData.invokeId;
                     return confirmedReqService.readProperty(
+                        opts,
+                        this.outputSoc,
+                        this.config.npduOpts,
+                        serviceData.msgSentFlow
+                    );
+            }
+        });
+    }
+
+    /**
+     * sendReadProperty - gets invokeId from req store and sends requests via confirmedReqService
+     *
+     * @param  {BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty} opts - request options
+     * @param  {IBACNetRequestTimeoutHandler} timeoutAction - handler for the requests with expired timeout
+     * @return {Bluebird<any>}
+     */
+    public sendReadPropertyMultiple (opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadPropertyMultiple,
+        timeoutAction?: IBACNetRequestTimeoutHandler): Bluebird<any> {
+
+        return this.reqService.registerRequest({
+            choice: 'readPropertyMultiple',
+            opts,
+            timeoutAction,
+            method: (serviceData) => {
+                    opts.invokeId = serviceData.invokeId;
+                    return confirmedReqService.readPropertyMultiple(
                         opts,
                         this.outputSoc,
                         this.config.npduOpts,
@@ -105,10 +142,34 @@ export class DeviceService {
     public requestObjectProperties (objId: BACNet.Types.BACnetObjectId,
         propsList: IPropertyReference[]): Bluebird<any> {
 
-        const reqObjectPropList = propsList.map((prop) => {
-            return this.requestObjectProperty(objId, prop)
-        });
-        return Bluebird.all(reqObjectPropList);
+        if (this.config.supportReadPropertyMultiple) {
+            const props = propsList.map((prop) => {
+                let index;
+                if (_.isFinite(prop.index)) {
+                    index = new BACNet.Types.BACnetUnsignedInteger(prop.index);
+                }
+                return {
+                    id: new BACNet.Types.BACnetEnumerated(prop.id),
+                    index: index
+                };
+            });
+            this.sendReadPropertyMultiple({
+                invokeId: 1,
+                readPropertyList: [{
+                    objId,
+                    props
+                }]
+            }, () => {
+                propsList.forEach((prop) => {
+                    this.scanProgressService.reportPropertyRequestFailed(this.config.storageId, objId.value, prop);
+                });
+            });
+        } else {
+            const reqObjectPropList = propsList.map((prop) => {
+                return this.requestObjectProperty(objId, prop)
+            });
+            return Bluebird.all(reqObjectPropList);
+        }
     }
 
     /**
