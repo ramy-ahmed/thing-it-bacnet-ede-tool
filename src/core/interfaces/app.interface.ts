@@ -19,6 +19,14 @@ export interface IEDEServiceConfig {
     requests: IReqServiceConfig
 }
 
+export interface IDeviceServiceConfig {
+    deviceId: BACNet.Types.BACnetObjectId;
+    storageId: string;
+    npduOpts: BACNet.Interfaces.NPDU.Write.Layer,
+    objectListLength?: number;
+    supportReadPropertyMultiple?: boolean
+}
+
 export interface IReqServiceConfig {
     timeout: number;
     thread: number;
@@ -90,11 +98,11 @@ export interface IReqServiceRegisterData {
 }
 
 
-type ConfirmedRequestOptions = BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
+type ConfirmedRequestOptions = BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty|BACNet.Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple;
 
 export type IBACNetRequestTimeoutHandler = (opts: ConfirmedRequestOptions) => void;
 export interface IBACnetRequestInfo {
-    choice: string
+    choice: BACNet.Enums.ConfirmedServiceChoice
     opts: ConfirmedRequestOptions;
     method: Function;
     retriesCounter?: number;

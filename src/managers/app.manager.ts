@@ -84,12 +84,12 @@ export class AppManager {
                 }
                 return AsyncUtil.setTimeout(this.appConfig.discoveryTimeout)
             }).then(() => {
-                this.edeService.getDeviceProps(this.edeStorageManager, this.scanProgressService);
+                this.edeService.getDeviceProps();
                 this.scanProgressService.scanStage = 2;
                 return this.scanProgressService.getDevicesPropsReceivedPromise()
             }).then(() => {
                 logger.info('DEVICE DISCOVERY COMPLETED');
-                this.edeService.getDatapoints(this.edeStorageManager, this.scanProgressService);
+                this.edeService.getDatapoints();
                 this.scanProgressService.scanStage = 3;
                 return this.scanProgressService.getScanCompletePromise();
             });

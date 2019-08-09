@@ -4,6 +4,7 @@ import * as BACNet from '@thing-it/bacnet-logic';
 
 import { InputSocket, OutputSocket, ServiceSocket } from '../core/sockets';
 import { ReadPropertyRouter } from './complex-ack/read-property.route';
+import { ReadPropertyMultipleRouter } from './complex-ack/read-property-multiple.route';
 
 export function ComplexACKRouter (
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket): any {
@@ -15,6 +16,8 @@ export function ComplexACKRouter (
     switch (serviceChoice) {
         case BACNet.Enums.ConfirmedServiceChoice.ReadProperty:
             return ReadPropertyRouter(inputSoc, outputSoc, serviceSocket);
+        case BACNet.Enums.ConfirmedServiceChoice.ReadPropertyMultiple:
+            return ReadPropertyMultipleRouter(inputSoc, outputSoc, serviceSocket);
     }
     return;
 }

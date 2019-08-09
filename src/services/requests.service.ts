@@ -65,17 +65,41 @@ export class RequestsService {
             delay(this.config.timeout),
             first()
         ).subscribe(() => {
-            const reqOpts = rinfo.opts as Interfaces.ConfirmedRequest.Write.ReadProperty;
             if (rinfo.retriesCounter < this.config.retriesNumber) {
                 rinfo.retriesCounter += 1;
                 this.performRequest(id, rinfo);
             } else {
-                const objId = reqOpts.objId.value;
-                const prop = reqOpts.prop;
-                let logMessage = `Timeout has exceeded for readProperty #${id}: (${Enums.ObjectType[this.deviceId.type]},${this.deviceId.instance}): `
-                    + `(${Enums.ObjectType[objId.type]},${objId.instance}) - ${Enums.PropertyId[prop.id.value]}`;
-                if (prop.index) {
-                    logMessage += `[${prop.index.value}]`
+                let logMessage, reqOpts;
+                switch (rinfo.choice) {
+                    case Enums.ConfirmedServiceChoice.ReadProperty: {
+                        reqOpts = rinfo.opts as Interfaces.ConfirmedRequest.Write.ReadProperty;
+                        const objId = reqOpts.objId.value;
+                        const prop = reqOpts.prop;
+                        logMessage = `Timeout has exceeded for readProperty #${id}: (${Enums.ObjectType[this.deviceId.type]},${this.deviceId.instance}): `
+                            + `(${Enums.ObjectType[objId.type]},${objId.instance}) - ${Enums.PropertyId[prop.id.value]}`;
+                        if (prop.index) {
+                            logMessage += `[${prop.index.value}]`
+                        }
+                        break;
+                    }
+                    case Enums.ConfirmedServiceChoice.ReadPropertyMultiple: {
+                        reqOpts = rinfo.opts as Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple;
+                        const readAccessSpec = reqOpts.readPropertyList[0];
+                        const objId = readAccessSpec.objId.value;
+                        const propsList = readAccessSpec.props.map((prop) => {
+                            let propsStrValue = `${Enums.PropertyId[prop.id.value]}`;
+                            if (prop.index) {
+                                propsStrValue += `[${prop.index.value}]`
+                            }
+                            return propsStrValue;
+                        });
+                        logMessage = `Timeout has exceeded for readPropertyMultiple #${id}: (${Enums.ObjectType[this.deviceId.type]},${this.deviceId.instance}): `
+                            + `(${Enums.ObjectType[objId.type]},${objId.instance}) - [ ${propsList.join(', ')} ] `;
+
+                        break;
+                    }
+                    default:
+                        break;
                 }
                 logger.error(logMessage);
                 rinfo.timeoutAction && rinfo.timeoutAction(reqOpts);

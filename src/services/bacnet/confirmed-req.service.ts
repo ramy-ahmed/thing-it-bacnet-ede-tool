@@ -20,6 +20,22 @@ export class ConfirmedReqService {
         const msgBACnet = BACNet.Services.ConfirmedReqService.readProperty(opts, npduOpts)
         return output.send(msgBACnet, `readProperty #${opts.invokeId}`, msgSentFlow);
     }
+
+    /**
+     * readPropertyMultiple - sends the "readPropertyMultiple" confirmed request.
+     *
+     * @param  {InputSocket} req - request object (socket)
+     * @param  {OutputSocket} resp - response object (socket)
+     * @return {type}
+     */
+    public readPropertyMultiple (
+        opts: BACNet.Interfaces.ConfirmedRequest.Service.ReadPropertyMultiple,
+        output: OutputSocket, npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {},
+        msgSentFlow: Subject<number>): void {
+
+        const msgBACnet = BACNet.Services.ConfirmedReqService.readPropertyMultiple(opts, npduOpts)
+        return output.send(msgBACnet, `readPropertyMultiple #${opts.invokeId}`, msgSentFlow);
+    }
 }
 
 export const confirmedReqService: ConfirmedReqService = new ConfirmedReqService();

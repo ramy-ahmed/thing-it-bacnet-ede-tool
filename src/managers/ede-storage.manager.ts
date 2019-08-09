@@ -20,7 +20,6 @@ import {
     logger,
 } from '../core/utils';
 
-import { ScanProgressService } from '../services';
 import { Interfaces } from '@thing-it/bacnet-logic';
 
 export class EDEStorageManager {
@@ -42,15 +41,6 @@ export class EDEStorageManager {
      */
     public getObjId (objType: number, objInst: number): string {
         return `${objType}:${objInst}`;
-    }
-
-    /**
-     * getDeviceList -
-     *
-     * @return {IEDEDevice[]}
-     */
-    public getDeviceList (): IEDEDevice[] {
-        return Array.from(this.devices.values());
     }
 
     /**
@@ -83,18 +73,6 @@ export class EDEStorageManager {
     }
 
     /**
-     * addObjectListLength
-     *
-     * @param  {IBACnetObjectIdentifier} deviceId - BACnet device identifier
-     * @param  {IBACnetObjectIdentifier} unitId - BACnet unit identifier
-     * @return {void}
-     */
-    public addObjectListLength (deviceStorageId: string, length: number): void {
-        const device = this.devices.get(deviceStorageId);
-
-        device.objectListLength = length;
-    }
-    /**
      * addUnit - adds the EDE unit into internal units storage.
      *
      * @param  {IBACnetObjectIdentifier} deviceId - BACnet device identifier
@@ -123,26 +101,13 @@ export class EDEStorageManager {
      * @return {void}
      */
     public setUnitProp (unitId: IBACnetObjectIdentifier,
-            propName: string, propValue: any, deviceStorageId: string, scanProgressService: ScanProgressService): void {
+            propName: string, propValue: any, deviceStorageId: string): void {
         const device = this.devices.get(deviceStorageId);
 
         const id = this.getObjId(unitId.type, unitId.instance);
         const unit = device.units.get(id);
 
         const newUnit = this.setObjectProperty(unit, propName, propValue);
-
-        switch (propName) {
-            case 'objectName':
-            scanProgressService.reportDatapointReceived(deviceStorageId, unitId);
-                break;
-
-            case 'description':
-                scanProgressService.reportPropertyProcessed(deviceStorageId, unitId, 'description');
-                    break;
-
-            default:
-                break;
-        }
 
         device.units.set(id, newUnit);
     }
