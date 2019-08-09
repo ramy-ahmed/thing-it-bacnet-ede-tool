@@ -297,7 +297,6 @@ export class EDEService {
                 if (prop.index.value === 0) {
                     logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValue}`);
                     const deviceService = this.deviceServicesMap.get(deviceStorageId);
-                    scanProgressService.reportObjectListLength(deviceStorageId, propValue);
                     deviceService.reportObjectListLength(propValue);
 
                     if (this.scanStage === 3) {
