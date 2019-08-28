@@ -182,9 +182,9 @@ export class DeviceService {
     public getDeviceProps (): void {
 
         this.requestObjectProperties(this.config.deviceId, [
+            { id: BACNet.Enums.PropertyId.objectList, index: 0 },
             { id: BACNet.Enums.PropertyId.objectName },
-            { id: BACNet.Enums.PropertyId.description },
-            { id: BACNet.Enums.PropertyId.objectList, index: 0 }
+            { id: BACNet.Enums.PropertyId.description }
         ]);
     }
 
