@@ -18,6 +18,7 @@ export class RequestsService {
     private releaseIdSubs: Subscription[] = [];
     private sumRespTime: number = 0;
     private requestsNumber: number = 0;
+    public avRespTimeReportFlow = new Subject<number>();
 
     constructor (
         private config: IReqServiceConfig,
@@ -66,6 +67,7 @@ export class RequestsService {
             first()
         ).subscribe(() => {
             if (rinfo.retriesCounter < this.config.retriesNumber) {
+                this.reportAvRespTime(rinfo.timestamp);
                 rinfo.retriesCounter += 1;
                 this.performRequest(id, rinfo);
             } else {
@@ -115,11 +117,10 @@ export class RequestsService {
      * @param {number} id - id to release
      * @return {number}
      */
-    public releaseInvokeId(id: number): number {
+    public releaseInvokeId(id: number): void {
         const thisRequest = this.activeRequestsStore[id] as IBACnetRequestInfo;
         const reqStart = thisRequest.timestamp;
-        const thisMoment = Date.now();
-        const respTime = thisMoment - reqStart;
+        this.reportAvRespTime(reqStart);
 
         const nextRequest = this.requestsQueue.shift();
         const curReleaseSub = this.releaseIdSubs[id];
@@ -131,11 +132,35 @@ export class RequestsService {
         } else {
             this.activeRequestsStore[id] = undefined;
         }
-        return this.calcAvRespTime(respTime);
     }
 
     /**
-     * Releases used id for future use and updates requests queue.
+     * Calculates response time.
+     *
+     * @param {number} id - id to release
+     * @return {number}
+     */
+    public calcRespTime(reqStart: number): number {
+        const thisMoment = Date.now();
+        const respTime = thisMoment - reqStart;
+
+        return respTime;
+    }
+
+    /**
+     * Reports average response time to report flow.
+     *
+     * @param {number} id - id to release
+     * @return {number}
+     */
+    public reportAvRespTime(reqStart: number) {
+        const respTime = this.calcRespTime(reqStart);
+        const avRespTime = this.calcAvRespTime(respTime);
+        this.avRespTimeReportFlow.next(avRespTime);
+    }
+
+    /**
+     * Calculates average response time
      *
      * @param {number} id - id to release
      * @return {number}
@@ -143,8 +168,10 @@ export class RequestsService {
     public calcAvRespTime(respTime: number): number {
         if (respTime < this.config.timeout) {
             this.sumRespTime += respTime;
-            this.requestsNumber += 1;
+        } else {
+            this.sumRespTime += this.config.timeout;
         }
+        this.requestsNumber += 1;
         return this.getAvRespTime()
     }
 
