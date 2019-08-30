@@ -22,7 +22,6 @@ export class DeviceService {
         this.reqService.avRespTimeReportFlow.subscribe((avRespTime) => {
             this.scanProgressService.reportAvRespTime(this.config.storageId, avRespTime);
             const delay = this.outputSoc.adjustDelay(avRespTime);
-            console.log(avRespTime, delay)
             const flowId = this.outputSoc.getFlowId();
             this.scanProgressService.reportReqDelay(flowId, delay);
 
