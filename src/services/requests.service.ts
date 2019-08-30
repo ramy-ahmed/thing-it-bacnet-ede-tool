@@ -33,9 +33,9 @@ export class RequestsService {
      * @return {Bluebird<number>} - free Invoke Id
      */
     public registerRequest (rinfo: IBACnetRequestInfo): Bluebird<void> {
-        rinfo.retriesCounter = 0
+            rinfo.retriesCounter = 0
         const id = this.getInvokeId();
-        if (_.isNil(id)) {
+        if (!_.isNil(id)) {
             this.performRequest(id, rinfo)
             return Bluebird.resolve();
         }
