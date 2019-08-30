@@ -1,4 +1,5 @@
 import * as Bluebird from 'bluebird';
+import * as _ from 'lodash';
 import { Subscription, Subject, BehaviorSubject} from 'rxjs';
 import { delay, first, tap } from 'rxjs/operators';
 import {
@@ -32,9 +33,9 @@ export class RequestsService {
      * @return {Bluebird<number>} - free Invoke Id
      */
     public registerRequest (rinfo: IBACnetRequestInfo): Bluebird<void> {
-        const id = this.activeRequestsStore.findIndex(storedItem => !storedItem);
         rinfo.retriesCounter = 0
-        if ((id !== -1) && (!this.config.thread || (this.activeRequestsStore.filter(item => item).length < this.config.thread))) {
+        const id = this.getInvokeId();
+        if (_.isNil(id)) {
             this.performRequest(id, rinfo)
             return Bluebird.resolve();
         }
@@ -46,6 +47,14 @@ export class RequestsService {
     private performRequest(id, rinfo) {
         const msgSentFlow = this.reserveInvokeId(id, rinfo);
         rinfo.method({ msgSentFlow, invokeId: id });
+    }
+
+    private getInvokeId() {
+        const id = this.activeRequestsStore.findIndex(storedItem => !storedItem);
+        if ((id !== -1) && (!this.config.thread || (this.activeRequestsStore.filter(item => item).length < this.config.thread))) {
+            return id;
+        }
+        return null;
     }
 
      /**
