@@ -33,7 +33,9 @@ export class RequestsService {
      * @return {Bluebird<number>} - free Invoke Id
      */
     public registerRequest (rinfo: IBACnetRequestInfo): Bluebird<void> {
+        if (!rinfo.retriesCounter) {
             rinfo.retriesCounter = 0
+        }
         const id = this.getInvokeId();
         if (!_.isNil(id)) {
             this.performRequest(id, rinfo)
@@ -76,9 +78,8 @@ export class RequestsService {
             first()
         ).subscribe(() => {
             if (rinfo.retriesCounter < this.config.retriesNumber) {
-                this.reportAvRespTime(rinfo.timestamp);
                 rinfo.retriesCounter += 1;
-                this.performRequest(id, rinfo);
+                this.registerRequest(rinfo);
             } else {
                 let logMessage, reqOpts;
                 switch (rinfo.choice) {
@@ -114,8 +115,8 @@ export class RequestsService {
                 }
                 logger.error(logMessage);
                 rinfo.timeoutAction && rinfo.timeoutAction(reqOpts);
-                this.releaseInvokeId(id);
             }
+            this.releaseInvokeId(id);
         });
         return msgSentFlow;
     }
