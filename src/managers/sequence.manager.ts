@@ -93,7 +93,7 @@ export class SequenceManager {
         if (avRespTime / this.config.timeout <= 0.2) {
             this.decreaseDelay(flowId);
         }
-        const flow = this.flows.get(flowId)
+        const flow = this.flows.get(flowId);
         return flow.delay
     }
 
