@@ -54,7 +54,7 @@ export class Flow <T> {
      * @return {void}
      */
     public decreaseDelay() {
-        if (!this.isDelayAdjusted) {
+        if (!this.isDelayAdjusted && this.delay !== this.minDelay) {
             this.delay -= 5;
             this.blockDelayAdjustment();
         }
@@ -64,7 +64,7 @@ export class Flow <T> {
         this.isDelayAdjusted = true;
         setTimeout(() => {
             this.isDelayAdjusted = false;
-        }, this.delay * 500);
+        }, this.delay * 100);
     }
 
     /**

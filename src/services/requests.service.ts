@@ -1,4 +1,5 @@
 import * as Bluebird from 'bluebird';
+import * as _ from 'lodash';
 import { Subscription, Subject, BehaviorSubject} from 'rxjs';
 import { delay, first, tap } from 'rxjs/operators';
 import {
@@ -32,9 +33,11 @@ export class RequestsService {
      * @return {Bluebird<number>} - free Invoke Id
      */
     public registerRequest (rinfo: IBACnetRequestInfo): Bluebird<void> {
-        const id = this.activeRequestsStore.findIndex(storedItem => !storedItem);
-        rinfo.retriesCounter = 0
-        if ((id !== -1) && (!this.config.thread || (this.activeRequestsStore.filter(item => item).length < this.config.thread))) {
+        if (!rinfo.retriesCounter) {
+            rinfo.retriesCounter = 0
+        }
+        const id = this.getInvokeId();
+        if (!_.isNil(id)) {
             this.performRequest(id, rinfo)
             return Bluebird.resolve();
         }
@@ -46,6 +49,18 @@ export class RequestsService {
     private performRequest(id, rinfo) {
         const msgSentFlow = this.reserveInvokeId(id, rinfo);
         rinfo.method({ msgSentFlow, invokeId: id });
+    }
+
+    private getInvokeId() {
+        const id = this.activeRequestsStore.findIndex(storedItem => !storedItem);
+        if (
+            (id !== -1) &&
+            (!this.config.thread ||
+            (this.activeRequestsStore.filter(item => item).length < this.config.thread))
+        ) {
+            return id;
+        }
+        return null;
     }
 
      /**
@@ -67,9 +82,8 @@ export class RequestsService {
             first()
         ).subscribe(() => {
             if (rinfo.retriesCounter < this.config.retriesNumber) {
-                this.reportAvRespTime(rinfo.timestamp);
                 rinfo.retriesCounter += 1;
-                this.performRequest(id, rinfo);
+                this.registerRequest(rinfo);
             } else {
                 let logMessage, reqOpts;
                 switch (rinfo.choice) {
@@ -105,8 +119,8 @@ export class RequestsService {
                 }
                 logger.error(logMessage);
                 rinfo.timeoutAction && rinfo.timeoutAction(reqOpts);
-                this.releaseInvokeId(id);
             }
+            this.releaseInvokeId(id);
         });
         return msgSentFlow;
     }
