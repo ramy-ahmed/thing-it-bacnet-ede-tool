@@ -191,8 +191,8 @@ export class ScanProgressService {
         const unitStatus = deviceStatus.units.get(unitId);
         switch (propId) {
             case Enums.PropertyId.objectName:
-                if (!unitStatus.props.isObjNameReceived) {
-                    unitStatus.props.isObjNameReceived = true;
+                if (!unitStatus.props.isObjNameProcessed) {
+                    unitStatus.props.isObjNameProcessed = true;
                     this.scanStatus.datapointsReceived += 1;
                     deviceStatus.requestsPerformed += 1;
                     unitStatus.props.objectNameFlow.next(true);
@@ -200,8 +200,8 @@ export class ScanProgressService {
                 break;
 
             case Enums.PropertyId.description:
-                if (!unitStatus.props.isDescriptionReceived) {
-                    unitStatus.props.isDescriptionReceived = true;
+                if (!unitStatus.props.isDescriptionProcessed) {
+                    unitStatus.props.isDescriptionProcessed = true;
                     deviceStatus.requestsPerformed += 1;
                     unitStatus.props.descriptionFlow.next(true);
                 }

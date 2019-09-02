@@ -72,8 +72,8 @@ export interface IScanStatus {
 }
 
 export interface IUnitPropsProgress {
-    isObjNameReceived?: boolean;
-    isDescriptionReceived?: boolean;
+    isObjNameProcessed?: boolean;
+    isDescriptionProcessed?: boolean;
     objectNameFlow?: Subject<any>;
     descriptionFlow?: Subject<any>;
 }
