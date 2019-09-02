@@ -368,13 +368,15 @@ export class EDEService {
             let reqObjId: BACNet.Types.BACnetObjectId, reqProps: BACNet.Interfaces.PropertyReference[];
             switch (rinfo.choice) {
                 case BACNet.Enums.ConfirmedServiceChoice.ReadProperty: {
-                    let reqOpts: BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty = rinfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
+                    let reqOpts: BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
+                    reqOpts = rinfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty;
                     reqObjId = reqOpts.objId;
                     reqProps = [reqOpts.prop]
                     break;
             }
             case BACNet.Enums.ConfirmedServiceChoice.ReadPropertyMultiple: {
-                let reqOpts: BACNet.Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple = rinfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple;
+                let reqOpts: BACNet.Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple;
+                reqOpts = rinfo.opts as BACNet.Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple;
                 reqObjId = reqOpts.readPropertyList[0].objId;
                 reqProps = reqOpts.readPropertyList[0].props;
                 break;
@@ -386,7 +388,11 @@ export class EDEService {
                 !respObjId ||
                 respObjId && !respObjId.isEqual(reqObjId) ||
                 !reqProps.every((prop, i) => {
-                    return prop.id.value === respProps[i].id.value && _.get(prop, 'index.value') === _.get(respProps[i], 'index.value')
+                    const reqPropId = prop.id.value;
+                    const respPropId = respProps[i].id.value;
+                    const reqPropIndex = _.get(prop, 'index.value');
+                    const respPropIndex = _.get(respProps[i], 'index.value');
+                    return reqPropId === respPropId && reqPropIndex === respPropIndex;
                 })
             ) {
                 return;

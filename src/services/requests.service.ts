@@ -53,7 +53,11 @@ export class RequestsService {
 
     private getInvokeId() {
         const id = this.activeRequestsStore.findIndex(storedItem => !storedItem);
-        if ((id !== -1) && (!this.config.thread || (this.activeRequestsStore.filter(item => item).length < this.config.thread))) {
+        if (
+            (id !== -1) &&
+            (!this.config.thread ||
+            (this.activeRequestsStore.filter(item => item).length < this.config.thread))
+        ) {
             return id;
         }
         return null;
