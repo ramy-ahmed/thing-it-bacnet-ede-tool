@@ -96,24 +96,26 @@ export class ScanProgressService {
 
     reportObjectListLength(deviceMapId: string, length: number) {
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
-        deviceStatus.requestsPerformed += 1;
+        if (!deviceStatus.isLengthReceived) {
+            deviceStatus.isLengthReceived = true;
+            deviceStatus.requestsPerformed += 1;
 
+            const oListLengthReceived = deviceStatus.objectsList[0];
+            const objectsList =  new Array(length).fill(null).map(() => new BehaviorSubject(false));
+            deviceStatus.objectsList = _.concat(oListLengthReceived, objectsList);
+            deviceStatus.requestsTotal += (deviceStatus.objectsList.length - 1) * 3;
+            this.calcScanStatus();
 
-        const oListLengthReceived = deviceStatus.objectsList[0];
-        const objectsList =  new Array(length).fill(null).map(() => new BehaviorSubject(false));
-        deviceStatus.objectsList = _.concat(oListLengthReceived, objectsList);
-        deviceStatus.requestsTotal += (deviceStatus.objectsList.length - 1) * 3;
-        this.calcScanStatus();
-
-        Observable.combineLatest(deviceStatus.objectsList)
-            .pipe(
-                filter((isObjListReadyArr) => isObjListReadyArr.every(ready => ready)),
-                first()
-            ).subscribe(() => {
-                deviceStatus.processed.next(true);
-                deviceStatus.avRespTime = 0;
-            });
-        oListLengthReceived.next(true);
+            Observable.combineLatest(deviceStatus.objectsList)
+                .pipe(
+                    filter((isObjListReadyArr) => isObjListReadyArr.every(ready => ready)),
+                    first()
+                ).subscribe(() => {
+                    deviceStatus.processed.next(true);
+                    deviceStatus.avRespTime = 0;
+                });
+            oListLengthReceived.next(true);
+        }
     }
 
     reportDatapointDiscovered(deviceMapId: string, objId: IBACnetObjectIdentifier, objectListIndex?: number) {
@@ -127,14 +129,14 @@ export class ScanProgressService {
             this.scanStatus.datapointsDiscovered += 1;
 
             const unitPropsStatus: IUnitPropsProgress = {
-                objectName: new Subject(),
-                description: new Subject()
+                objectNameFlow: new Subject(),
+                descriptionFlow: new Subject()
             };
             unitStatus = {
                 processed: new BehaviorSubject(false),
                 props: unitPropsStatus
             };
-            Observable.zip(unitPropsStatus.objectName, unitPropsStatus.description)
+            Observable.zip(unitPropsStatus.objectNameFlow, unitPropsStatus.descriptionFlow)
                 .pipe(first())
                 .subscribe(() => {
                     unitStatus.processed.next(true)
@@ -144,14 +146,17 @@ export class ScanProgressService {
             unitStatus = deviceStatus.units.get(unitId);
         }
 
-
         if (_.isFinite(objectListIndex)) {
-            // increase performed requests amount only when we reseive objectList entry
-            deviceStatus.requestsPerformed += 1;
-            if (objId.type === Enums.ObjectType.Device) {
-                //remove requests related to 'device' datapoint properties from total amount - already counted as 'device' requests and received
-                deviceStatus.requestsTotal -= 2;
+            if (!unitStatus.isDatapointDiscovered) {
+                unitStatus.isDatapointDiscovered = true;
+                // increase performed requests amount only when we reseive objectList entry
+                deviceStatus.requestsPerformed += 1;
+                if (objId.type === Enums.ObjectType.Device) {
+                    //remove requests related to 'device' datapoint properties from total amount - already counted as 'device' requests and received
+                    deviceStatus.requestsTotal -= 2;
+                }
             }
+
             this.calcScanStatus();
             unitStatus.processed
                 .pipe(
@@ -165,41 +170,47 @@ export class ScanProgressService {
         this.logScanProgress();
     }
 
-    reportObjectListItemProcessed(deviceMapId: string, index: number) {
+    reportObjectListItemProcessed(deviceMapId: string, objId: IBACnetObjectIdentifier, index: number) {
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
-        deviceStatus.requestsPerformed += 1;
-        this.calcScanStatus();
-        this.logScanProgress();
+        const unitId = this.getUnitId(objId);
+        if (!deviceStatus.units.has(unitId)) {
+            deviceStatus.requestsPerformed += 1;
+            this.calcScanStatus();
+            this.logScanProgress();
 
-        const oLEntryStatus = deviceStatus.objectsList[index];
-        oLEntryStatus.next(true);
-    }
-
-    reportDatapointReceived(deviceMapId: string, unitId: IBACnetObjectIdentifier) {
-        this.scanStatus.datapointsReceived += 1;
-        this.reportPropertyProcessed(deviceMapId, unitId, Enums.PropertyId.objectName)
+            const oLEntryStatus = deviceStatus.objectsList[index];
+            oLEntryStatus.next(true);
+        }
     }
 
     reportPropertyProcessed(deviceMapId: string, objId: IBACnetObjectIdentifier, propId: Enums.PropertyId) {
         const deviceStatus = this.devicesProgressMap.get(deviceMapId);
-        deviceStatus.requestsPerformed += 1;
-        this.calcScanStatus();
-        this.logScanProgress();
 
         const unitId = this.getUnitId(objId);
 
         const unitStatus = deviceStatus.units.get(unitId);
         switch (propId) {
             case Enums.PropertyId.objectName:
-                unitStatus.props.objectName.next(true)
+                if (!unitStatus.props.isObjNameReceived) {
+                    unitStatus.props.isObjNameReceived = true;
+                    this.scanStatus.datapointsReceived += 1;
+                    deviceStatus.requestsPerformed += 1;
+                    unitStatus.props.objectNameFlow.next(true);
+                }
                 break;
 
             case Enums.PropertyId.description:
-                unitStatus.props.description.next(true)
+                if (!unitStatus.props.isDescriptionReceived) {
+                    unitStatus.props.isDescriptionReceived = true;
+                    deviceStatus.requestsPerformed += 1;
+                    unitStatus.props.descriptionFlow.next(true);
+                }
                 break;
             default:
                 break;
         }
+        this.calcScanStatus();
+        this.logScanProgress();
     }
 
     reportPropertyRequestFailed(deviceMapId: string, objId: IBACnetObjectIdentifier, prop: IPropertyReference) {
@@ -215,7 +226,7 @@ export class ScanProgressService {
                 if (index === 0) {
                     this.reportObjectListLength(deviceMapId, 0)
                 } else if (_.isFinite(index)) {
-                    this.reportObjectListItemProcessed(deviceMapId, index);
+                    this.reportObjectListItemProcessed(deviceMapId, objId, index);
                 }
                 break;
             default:

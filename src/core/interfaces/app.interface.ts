@@ -72,18 +72,22 @@ export interface IScanStatus {
 }
 
 export interface IUnitPropsProgress {
-    objectName?: Subject<any>;
-    description?: Subject<any>;
+    isObjNameReceived?: boolean;
+    isDescriptionReceived?: boolean;
+    objectNameFlow?: Subject<any>;
+    descriptionFlow?: Subject<any>;
 }
 
 export interface IUnitProgress {
     props: IUnitPropsProgress;
     processed: BehaviorSubject<any>;
+    isDatapointDiscovered?: boolean;
 }
 
 export interface IDeviceProgress {
     units: Map<string, IUnitProgress>;
     objectsList: BehaviorSubject<any>[];
+    isLengthReceived?: boolean;
     processed: BehaviorSubject<any>;
     propsReceived: BehaviorSubject<any>;
     avRespTime?: number;
