@@ -45,7 +45,7 @@
         "lodash": "^4.17.5",
         "moment": "^2.20.1",
         "rxjs": "^5.5.6",
-        "@thing-it/bacnet-logic": "^1.1.19",
+        "@thing-it/bacnet-logic": "^1.1.21",
         "winston": "^2.4.0",
         "yargs": "^11.0.0"
     }

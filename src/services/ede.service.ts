@@ -434,10 +434,8 @@ export class EDEService {
                 const index = _.get(prop, 'index.value');
 
                 logMessage = `Failed readProperty #${invokeId}: (${BACNet.Enums.ObjectType[deviceId.type]},${deviceId.instance}): `
-                    + `(${BACNet.Enums.ObjectType[objId.type]},${objId.instance}) - ${BACNet.Enums.PropertyId[propId]}`;
-                if (prop.index) {
-                    logMessage += `[${prop.index.value}]`
-                }
+                    + BACNet.Helpers.Logger.logReadProperty(reqOpts);
+
                 scanProgressService.reportPropertyRequestFailed(deviceStorageId, objId, {id: propId, index: index});
                 break;
             }

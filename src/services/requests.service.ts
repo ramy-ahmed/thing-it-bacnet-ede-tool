@@ -10,7 +10,8 @@ import {
     IReqServiceRegisterData
 } from '../core/interfaces';
 import { logger } from '../core/utils';
-import { Enums, Interfaces } from '@thing-it/bacnet-logic';
+import { Enums, Interfaces, Helpers } from '@thing-it/bacnet-logic';
+
 
 export class RequestsService {
 
@@ -85,40 +86,23 @@ export class RequestsService {
                 rinfo.retriesCounter += 1;
                 this.registerRequest(rinfo);
             } else {
-                let logMessage, reqOpts;
+                let logMessage;
                 switch (rinfo.choice) {
                     case Enums.ConfirmedServiceChoice.ReadProperty: {
-                        reqOpts = rinfo.opts as Interfaces.ConfirmedRequest.Write.ReadProperty;
-                        const objId = reqOpts.objId.value;
-                        const prop = reqOpts.prop;
                         logMessage = `Timeout has exceeded for readProperty #${id}: (${Enums.ObjectType[this.deviceId.type]},${this.deviceId.instance}): `
-                            + `(${Enums.ObjectType[objId.type]},${objId.instance}) - ${Enums.PropertyId[prop.id.value]}`;
-                        if (prop.index) {
-                            logMessage += `[${prop.index.value}]`
-                        }
+                            + Helpers.Logger.logReadProperty(rinfo.opts);
                         break;
                     }
                     case Enums.ConfirmedServiceChoice.ReadPropertyMultiple: {
-                        reqOpts = rinfo.opts as Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple;
-                        const readAccessSpec = reqOpts.readPropertyList[0];
-                        const objId = readAccessSpec.objId.value;
-                        const propsList = readAccessSpec.props.map((prop) => {
-                            let propsStrValue = `${Enums.PropertyId[prop.id.value]}`;
-                            if (prop.index) {
-                                propsStrValue += `[${prop.index.value}]`
-                            }
-                            return propsStrValue;
-                        });
                         logMessage = `Timeout has exceeded for readPropertyMultiple #${id}: (${Enums.ObjectType[this.deviceId.type]},${this.deviceId.instance}): `
-                            + `(${Enums.ObjectType[objId.type]},${objId.instance}) - [ ${propsList.join(', ')} ] `;
-
+                            + Helpers.Logger.logReadPropertyMultiple(rinfo.opts);
                         break;
                     }
                     default:
                         break;
                 }
                 logger.error(logMessage);
-                rinfo.timeoutAction && rinfo.timeoutAction(reqOpts);
+                rinfo.timeoutAction && rinfo.timeoutAction(rinfo.opts);
             }
             this.releaseInvokeId(id);
         });
