@@ -13,6 +13,7 @@ import { OutputSocket } from './output.socket';
 import { ServiceSocket } from './service.socket';
 
 import { SequenceManager } from '../../managers/sequence.manager';
+import * as BACNet from '@thing-it/bacnet-logic';
 
 export class Server {
     private className: string = 'Server';
@@ -68,10 +69,20 @@ export class Server {
                     macAddress: srcInfo.macAddress
                 }
             }
+            let addrInfo = _.clone(rinfo);
+            const bvlcFunc = _.get(inputSoc, 'bvlc.func');
+            if (bvlcFunc === BACNet.Enums.BLVCFunction.forwardedNPDU) {
+                const address = _.get(inputSoc, 'bvlc.srcAddr', rinfo.address);
+                const port = _.get(inputSoc, 'bvlc.srcPort', rinfo.port);
+                addrInfo = {
+                    address,
+                    port
+                }
+            }
             // Generate Response instance
             const outputSoc = this.genOutputSocket({
-                port: rinfo.port,
-                address: rinfo.address,
+                port: addrInfo.port,
+                address: addrInfo.address,
                 dest
             });
             // Handle request
