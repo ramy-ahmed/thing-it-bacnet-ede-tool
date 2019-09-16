@@ -72,8 +72,8 @@ export class Server {
             let addrInfo = _.clone(rinfo);
             const bvlcFunc = _.get(inputSoc, 'bvlc.func');
             if (bvlcFunc === BACNet.Enums.BLVCFunction.forwardedNPDU) {
-                const address = _.get(inputSoc, 'bvlc.srcAddr', rinfo.address);
-                const port = _.get(inputSoc, 'bvlc.srcPort', rinfo.port);
+                const address = _.get(inputSoc, 'blvc.srcAddr', rinfo.address);
+                const port = _.get(inputSoc, 'blvc.srcPort', rinfo.port);
                 addrInfo = {
                     address,
                     port
