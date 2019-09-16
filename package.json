@@ -1,6 +1,6 @@
 {
     "name": "@thing-it/bacnet-ede-tool",
-    "version": "1.3.3",
+    "version": "1.3.4",
     "description": "@thing-it/bacnet-ede-tool",
     "main": "./dist/index.js",
     "scripts": {
