@@ -216,7 +216,7 @@ export class ScanProgressService {
                 break;
 
             case Enums.PropertyId.covIncrement:
-                if (!unitStatus.props.isCOVInrementProcessed) {
+                if (unitStatus.props.covIncrementFlow && !unitStatus.props.isCOVInrementProcessed) {
                     unitStatus.props.isCOVInrementProcessed = true;
                     deviceStatus.requestsPerformed += 1;
                     unitStatus.props.covIncrementFlow.next(true)

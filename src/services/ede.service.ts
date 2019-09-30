@@ -245,14 +245,14 @@ export class EDEService {
         const PropIdValue = propIdPayload.value;
         // Get prop value
         const propValuePayload = _.get(prop, 'values[0]') as BACNet.Types.BACnetTypeBase;
+
+        const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
+        const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
+        const propName = BACNet.Enums.PropertyId[PropIdValue];
+        const unitId = { type: objType, instance: objInst };
+
         if (propValuePayload) {
             const propValue = _.get(propValuePayload, 'value');
-
-            const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
-            const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
-            const propName = BACNet.Enums.PropertyId[PropIdValue];
-            const unitId = { type: objType, instance: objInst };
-
             switch (PropIdValue) {
                 case BACNet.Enums.PropertyId.covIncrement:
                 case BACNet.Enums.PropertyId.objectName:
@@ -285,8 +285,13 @@ export class EDEService {
             }
         }
 
-    });
+        const propErr = _.get(prop, 'error') as BACNet.Interfaces.BACnetError;
+        if (propErr) {
+            logger.info(`EDEService - readPropertyMultiple: (${objType}:${objInst}) Failed to receive (${BACNet.Enums.PropertyId[PropIdValue]})`);
+            scanProgressService.reportPropertyRequestFailed(deviceStorageId, unitId, { id: PropIdValue })
+        }
 
+    });
 
     return Bluebird.resolve();
 }
