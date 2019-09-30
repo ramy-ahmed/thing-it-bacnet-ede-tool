@@ -74,8 +74,10 @@ export interface IScanStatus {
 export interface IUnitPropsProgress {
     isObjNameProcessed?: boolean;
     isDescriptionProcessed?: boolean;
+    isCOVInrementProcessed?: boolean;
     objectNameFlow?: Subject<any>;
     descriptionFlow?: Subject<any>;
+    covIncrementFlow?: Subject<any>;
 }
 
 export interface IUnitProgress {

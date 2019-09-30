@@ -14,7 +14,6 @@ import * as moment from 'moment';
 import { first, filter, tap } from 'rxjs/operators';
 import { Enums } from '@thing-it/bacnet-logic';
 
-
 export class ScanProgressService {
     constructor(
         private reqDelay: number
@@ -132,11 +131,20 @@ export class ScanProgressService {
                 objectNameFlow: new Subject(),
                 descriptionFlow: new Subject()
             };
+            if (
+                objId.type === Enums.ObjectType.AnalogInput
+                || objId.type === Enums.ObjectType.AnalogValue
+                || objId.type === Enums.ObjectType.AnalogOutput
+                ) {
+                    unitPropsStatus.covIncrementFlow = new Subject();
+                    deviceStatus.requestsTotal += 1;
+            }
             unitStatus = {
                 processed: new BehaviorSubject(false),
                 props: unitPropsStatus
             };
-            Observable.zip(unitPropsStatus.objectNameFlow, unitPropsStatus.descriptionFlow)
+            const objPropsFlows = _.values(unitPropsStatus).filter(prop => prop instanceof Subject) as Subject<any>[];
+            Observable.zip(...objPropsFlows)
                 .pipe(first())
                 .subscribe(() => {
                     unitStatus.processed.next(true)
@@ -206,6 +214,14 @@ export class ScanProgressService {
                     unitStatus.props.descriptionFlow.next(true);
                 }
                 break;
+
+            case Enums.PropertyId.covIncrement:
+                if (!unitStatus.props.isCOVInrementProcessed) {
+                    unitStatus.props.isCOVInrementProcessed = true;
+                    deviceStatus.requestsPerformed += 1;
+                    unitStatus.props.covIncrementFlow.next(true)
+                }
+                break;
             default:
                 break;
         }
@@ -218,6 +234,7 @@ export class ScanProgressService {
         switch (prop.id) {
             case Enums.PropertyId.objectName:
             case Enums.PropertyId.description:
+            case Enums.PropertyId.covIncrement:
                 this.reportPropertyProcessed(deviceMapId, objId, prop.id)
                 break;
 

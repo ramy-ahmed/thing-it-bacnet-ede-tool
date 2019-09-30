@@ -156,7 +156,8 @@ export class EDEService {
 
             deviceService.requestObjectProperties(unitId, [
                 {id: BACNet.Enums.PropertyId.objectName},
-                {id: BACNet.Enums.PropertyId.description}
+                {id: BACNet.Enums.PropertyId.description},
+                {id: BACNet.Enums.PropertyId.covIncrement}
             ]);
         }
 
@@ -244,41 +245,44 @@ export class EDEService {
         const PropIdValue = propIdPayload.value;
         // Get prop value
         const propValuePayload = _.get(prop, 'values[0]') as BACNet.Types.BACnetTypeBase;
-        const propValue = _.get(propValuePayload, 'value');
+        if (propValuePayload) {
+            const propValue = _.get(propValuePayload, 'value');
 
-        const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
-        const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
-        const propName = BACNet.Enums.PropertyId[PropIdValue];
-        const unitId = { type: objType, instance: objInst };
+            const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
+            const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
+            const propName = BACNet.Enums.PropertyId[PropIdValue];
+            const unitId = { type: objType, instance: objInst };
 
-        switch (PropIdValue) {
-            case BACNet.Enums.PropertyId.objectName:
-            case BACNet.Enums.PropertyId.description: {
-                scanProgressService.reportPropertyProcessed(deviceStorageId, unitId, PropIdValue);
-                logger.info(`EDEService - readPropertyMultiple: (${objType}:${objInst}) Property (${BACNet.Enums.PropertyId[PropIdValue]}): ${propValue}`);
-                edeStorage.setUnitProp(
-                    unitId,
-                    propName,
-                    propValuePayload,
-                    deviceStorageId
-                );
-                break;
-            }
-            case BACNet.Enums.PropertyId.objectList: {
-                if (prop.index.value === 0) {
-                    scanProgressService.reportObjectListLength(deviceStorageId, propValue);
-                    logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValue}`);
-                    const deviceService = this.deviceServicesMap.get(deviceStorageId);
-                    deviceService.reportObjectListLength(propValue);
-
-                    if (this.scanStage === 3) {
-                        deviceService.getDatapoints();
-                    }
+            switch (PropIdValue) {
+                case BACNet.Enums.PropertyId.covIncrement:
+                case BACNet.Enums.PropertyId.objectName:
+                case BACNet.Enums.PropertyId.description: {
+                    scanProgressService.reportPropertyProcessed(deviceStorageId, unitId, PropIdValue);
+                    logger.info(`EDEService - readPropertyMultiple: (${objType}:${objInst}) Property (${BACNet.Enums.PropertyId[PropIdValue]}): ${propValue}`);
+                    edeStorage.setUnitProp(
+                        unitId,
+                        propName,
+                        propValuePayload,
+                        deviceStorageId
+                    );
+                    break;
                 }
-                break;
+                case BACNet.Enums.PropertyId.objectList: {
+                    if (prop.index.value === 0) {
+                        scanProgressService.reportObjectListLength(deviceStorageId, propValue);
+                        logger.info(`EDEService - readPropertyObjectListLenght: ${objType}:${objInst}, Length ${propValue}`);
+                        const deviceService = this.deviceServicesMap.get(deviceStorageId);
+                        deviceService.reportObjectListLength(propValue);
+
+                        if (this.scanStage === 3) {
+                            deviceService.getDatapoints();
+                        }
+                    }
+                    break;
+                }
+                default:
+                    break;
             }
-            default:
-                break;
         }
 
     });

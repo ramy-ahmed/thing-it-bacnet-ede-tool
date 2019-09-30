@@ -81,6 +81,7 @@ export class EDETableManager {
         hints.setCellValue('state-text-reference', 'optional');
         hints.setCellValue('unit-code', 'optional');
         hints.setCellValue('vendor-specific-address', 'optional');
+        hints.setCellValue('cov-increment', 'optional');
 
         const titles = this.addDataPointRow();
         titles.setCellValue('keyname', '# keyname');
@@ -99,6 +100,7 @@ export class EDETableManager {
         titles.setCellValue('state-text-reference', 'state-text-reference');
         titles.setCellValue('unit-code', 'unit-code');
         titles.setCellValue('vendor-specific-address', 'vendor-specific-address');
+        titles.setCellValue('cov-increment', 'cov-increment');
     }
 
     /**
@@ -140,6 +142,7 @@ export class EDETableManager {
         dataPointRow.setCellAlias(13, 'state-text-reference');
         dataPointRow.setCellAlias(14, 'unit-code');
         dataPointRow.setCellAlias(15, 'vendor-specific-address');
+        dataPointRow.setCellAlias(16, 'cov-increment');
         return dataPointRow;
     }
 
@@ -168,6 +171,8 @@ export class EDETableManager {
             unitProps.objId.instance);
         dataPointRow.setCellValue('description',
             _.get(unitProps, 'description.value', ''));
+        dataPointRow.setCellValue('cov-increment',
+            _.get(unitProps, 'covIncrement.value', ''));
     }
 
     /**

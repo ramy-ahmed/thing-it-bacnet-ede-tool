@@ -33,4 +33,5 @@ export interface IEDEUnitProps {
     deviceId: BACNet.Interfaces.Type.ObjectId;
     objectName?: BACNet.Types.BACnetCharacterString;
     description?: BACNet.Types.BACnetCharacterString;
+    covIncrement?: BACNet.Types.BACnetReal;
 }
