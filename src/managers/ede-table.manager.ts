@@ -171,6 +171,8 @@ export class EDETableManager {
             unitProps.objId.instance);
         dataPointRow.setCellValue('description',
             _.get(unitProps, 'description.value', ''));
+        dataPointRow.setCellValue('supports-COV',
+            unitProps.supportsCOV ? 'Y' : 'N');
         dataPointRow.setCellValue('cov-increment',
             _.get(unitProps, 'covIncrement.value', ''));
     }

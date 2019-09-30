@@ -115,6 +115,42 @@ export class DeviceService {
      * @param  {IBACNetRequestTimeoutHandler} timeoutAction - handler for the requests with expired timeout
      * @return {Bluebird<any>}
      */
+    public getSupportsCOV (objId: BACNet.Types.BACnetObjectId): Bluebird<any> {
+            const opts: BACNet.Interfaces.ConfirmedRequest.Service.SubscribeCOV = {
+                invokeId: 1,
+                objId: objId,
+                subProcessId: new BACNet.Types.BACnetUnsignedInteger(1),
+                issConfNotif: new BACNet.Types.BACnetBoolean(false),
+                lifetime: new BACNet.Types.BACnetUnsignedInteger(1)
+            }
+        return this.reqService.registerRequest({
+            choice: BACNet.Enums.ConfirmedServiceChoice.SubscribeCOV,
+            opts,
+            timeoutAction : () => {
+                this.scanProgressService.reportSubscribeCOV(
+                    this.config.storageId,
+                    objId.value
+                );
+            },
+            method: (serviceData) => {
+                    opts.invokeId = serviceData.invokeId;
+                    return confirmedReqService.subscribeCOV(
+                        opts,
+                        this.outputSoc,
+                        this.config.npduOpts,
+                        serviceData.msgSentFlow
+                    );
+            }
+        });
+    }
+
+    /**
+     * sendReadProperty - gets invokeId from req store and sends requests via confirmedReqService
+     *
+     * @param  {BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty} opts - request options
+     * @param  {IBACNetRequestTimeoutHandler} timeoutAction - handler for the requests with expired timeout
+     * @return {Bluebird<any>}
+     */
     public requestObjectProperty (objId: BACNet.Types.BACnetObjectId,
         prop: IPropertyReference): Bluebird<any> {
             let indexInt;

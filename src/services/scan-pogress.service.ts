@@ -131,13 +131,16 @@ export class ScanProgressService {
                 objectNameFlow: new Subject(),
                 descriptionFlow: new Subject()
             };
-            if (
-                objId.type === Enums.ObjectType.AnalogInput
-                || objId.type === Enums.ObjectType.AnalogValue
-                || objId.type === Enums.ObjectType.AnalogOutput
-                ) {
-                    unitPropsStatus.covIncrementFlow = new Subject();
-                    deviceStatus.requestsTotal += 1;
+            if (objId.type !== Enums.ObjectType.Device) {
+                unitPropsStatus.supportsCOVFlow = new Subject();
+                deviceStatus.requestsTotal += 1;
+                if (
+                    objId.type === Enums.ObjectType.AnalogInput
+                    || objId.type === Enums.ObjectType.AnalogValue
+                    || objId.type === Enums.ObjectType.AnalogOutput
+                    ) {
+                        unitPropsStatus.covIncrementFlow = new Subject();
+                }
             }
             unitStatus = {
                 processed: new BehaviorSubject(false),
@@ -221,6 +224,10 @@ export class ScanProgressService {
                     deviceStatus.requestsPerformed += 1;
                     unitStatus.props.covIncrementFlow.next(true)
                 }
+                if (!unitStatus.props.isSupportsCOVProcessed) {
+                    unitStatus.props.isSupportsCOVProcessed = true;
+                    unitStatus.props.supportsCOVFlow.next(true);
+                }
                 break;
             default:
                 break;
@@ -248,6 +255,19 @@ export class ScanProgressService {
                 break;
             default:
                 break;
+        }
+    }
+
+    reportSubscribeCOV(deviceMapId: string, objId: IBACnetObjectIdentifier) {
+        const deviceStatus = this.devicesProgressMap.get(deviceMapId);
+
+        const unitId = this.getUnitId(objId);
+
+        const unitStatus = deviceStatus.units.get(unitId);
+        if (!unitStatus.props.isSupportsCOVProcessed) {
+            unitStatus.props.isSupportsCOVProcessed = true;
+            unitStatus.props.supportsCOVFlow.next(true);
+            deviceStatus.requestsPerformed += 1;
         }
     }
 

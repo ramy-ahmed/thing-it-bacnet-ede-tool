@@ -2,7 +2,6 @@ import { IEDEManagerConfig } from './ede.interface';
 import { Subject, BehaviorSubject } from 'rxjs';
 import * as Bluebird from 'bluebird';
 import * as BACNet from '@thing-it/bacnet-logic';
-
 export interface IAppConfig {
     server: IServerConfig;
     ede: IEDEConfig;
@@ -75,9 +74,11 @@ export interface IUnitPropsProgress {
     isObjNameProcessed?: boolean;
     isDescriptionProcessed?: boolean;
     isCOVInrementProcessed?: boolean;
+    isSupportsCOVProcessed?: boolean;
     objectNameFlow?: Subject<any>;
     descriptionFlow?: Subject<any>;
     covIncrementFlow?: Subject<any>;
+    supportsCOVFlow?: Subject<any>;
 }
 
 export interface IUnitProgress {
@@ -104,7 +105,10 @@ export interface IReqServiceRegisterData {
 }
 
 
-type ConfirmedRequestOptions = BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty|BACNet.Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple;
+type ConfirmedRequestOptions =
+    BACNet.Interfaces.ConfirmedRequest.Write.ReadProperty
+    |BACNet.Interfaces.ConfirmedRequest.Write.ReadPropertyMultiple
+    |BACNet.Interfaces.ConfirmedRequest.Write.SubscribeCOV;
 
 export type IBACNetRequestTimeoutHandler = (opts: ConfirmedRequestOptions) => void;
 export interface IBACnetRequestInfo {
