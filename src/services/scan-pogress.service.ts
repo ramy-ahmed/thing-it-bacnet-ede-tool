@@ -102,7 +102,7 @@ export class ScanProgressService {
             const oListLengthReceived = deviceStatus.objectsList[0];
             const objectsList =  new Array(length).fill(null).map(() => new BehaviorSubject(false));
             deviceStatus.objectsList = _.concat(oListLengthReceived, objectsList);
-            deviceStatus.requestsTotal += (deviceStatus.objectsList.length - 1) * 3;
+            deviceStatus.requestsTotal += (deviceStatus.objectsList.length - 1) * 4;
             this.calcScanStatus();
 
             Observable.combineLatest(deviceStatus.objectsList)
@@ -133,7 +133,6 @@ export class ScanProgressService {
             };
             if (objId.type !== Enums.ObjectType.Device) {
                 unitPropsStatus.supportsCOVFlow = new Subject();
-                deviceStatus.requestsTotal += 1;
                 if (
                     objId.type === Enums.ObjectType.AnalogInput
                     || objId.type === Enums.ObjectType.AnalogValue
@@ -163,8 +162,10 @@ export class ScanProgressService {
                 // increase performed requests amount only when we reseive objectList entry
                 deviceStatus.requestsPerformed += 1;
                 if (objId.type === Enums.ObjectType.Device) {
-                    //remove requests related to 'device' datapoint properties from total amount - already counted as 'device' requests and received
-                    deviceStatus.requestsTotal -= 2;
+                    //remove requests related to 'Device' datapoint properties from total amount
+                    // 'objectName' and 'description' - already counted as 'device' requests and received
+                    // 'subscribeCOV'/'covIncrement' - not supported by Device object
+                    deviceStatus.requestsTotal -= 3;
                 }
             }
 

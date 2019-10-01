@@ -109,10 +109,9 @@ export class DeviceService {
     }
 
     /**
-     * sendReadProperty - gets invokeId from req store and sends requests via confirmedReqService
+     * getSupportsCOV - sends 'SubscribeCOV' request to check if datapoint supports COV reporting
      *
-     * @param  {BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty} opts - request options
-     * @param  {IBACNetRequestTimeoutHandler} timeoutAction - handler for the requests with expired timeout
+     * @param  {BACNet.Types.BACnetObjectId} objId - datapoint's object Id
      * @return {Bluebird<any>}
      */
     public getSupportsCOV (objId: BACNet.Types.BACnetObjectId): Bluebird<any> {
@@ -145,10 +144,10 @@ export class DeviceService {
     }
 
     /**
-     * sendReadProperty - gets invokeId from req store and sends requests via confirmedReqService
+     * requestObjectProperty - send requests to get datapoint's property
      *
-     * @param  {BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty} opts - request options
-     * @param  {IBACNetRequestTimeoutHandler} timeoutAction - handler for the requests with expired timeout
+     * @param  {BACNet.Types.BACnetObjectId} objId - datapoint's object Id
+     * @param  {IPropertyReference} prop - requested property
      * @return {Bluebird<any>}
      */
     public requestObjectProperty (objId: BACNet.Types.BACnetObjectId,
@@ -176,10 +175,10 @@ export class DeviceService {
     }
 
     /**
-     * sendReadProperty - gets invokeId from req store and sends requests via confirmedReqService
+     * requestObjectProperties - send request(s) to get datapoint's properties
      *
-     * @param  {BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty} opts - request options
-     * @param  {IBACNetRequestTimeoutHandler} timeoutAction - handler for the requests with expired timeout
+     * @param  {BACNet.Types.BACnetObjectId} objId - datapoint's object Id
+     * @param  {IPropertyReference[]} propsList - requested properties list
      * @return {Bluebird<any>}
      */
     public requestObjectProperties (objId: BACNet.Types.BACnetObjectId,
