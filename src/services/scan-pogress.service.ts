@@ -5,7 +5,8 @@ import {
     IDeviceProgress,
     IUnitProgress,
     IUnitPropsProgress,
-    IPropertyReference
+    IPropertyReference,
+    IUnitPropsProgressFlows
 } from '../core/interfaces';
 import { logger } from '../core/utils';
 import { IBACnetObjectIdentifier } from '../core/interfaces';
@@ -127,25 +128,28 @@ export class ScanProgressService {
 
             this.scanStatus.datapointsDiscovered += 1;
 
-            const unitPropsStatus: IUnitPropsProgress = {
+            const unitPropsFlows: IUnitPropsProgressFlows = {
                 objectNameFlow: new Subject(),
                 descriptionFlow: new Subject()
             };
             if (objId.type !== Enums.ObjectType.Device) {
-                unitPropsStatus.supportsCOVFlow = new Subject();
+                unitPropsFlows.supportsCOVFlow = new Subject();
                 if (
                     objId.type === Enums.ObjectType.AnalogInput
                     || objId.type === Enums.ObjectType.AnalogValue
                     || objId.type === Enums.ObjectType.AnalogOutput
                     ) {
-                        unitPropsStatus.covIncrementFlow = new Subject();
+                        unitPropsFlows.covIncrementFlow = new Subject();
                 }
             }
             unitStatus = {
                 processed: new BehaviorSubject(false),
-                props: unitPropsStatus
+                props: {
+                    flows: unitPropsFlows,
+                    flags: {}
+                }
             };
-            const objPropsFlows = _.values(unitPropsStatus).filter(prop => prop instanceof Subject) as Subject<any>[];
+            const objPropsFlows = _.values(unitPropsFlows);
             Observable.zip(...objPropsFlows)
                 .pipe(first())
                 .subscribe(() => {
@@ -200,34 +204,35 @@ export class ScanProgressService {
 
         const unitId = this.getUnitId(objId);
 
-        const unitStatus = deviceStatus.units.get(unitId);
+        const unitPropsStatus = deviceStatus.units.get(unitId).props;
+
         switch (propId) {
             case Enums.PropertyId.objectName:
-                if (!unitStatus.props.isObjNameProcessed) {
-                    unitStatus.props.isObjNameProcessed = true;
+                if (!unitPropsStatus.flags.isObjNameProcessed) {
+                    unitPropsStatus.flags.isObjNameProcessed = true;
                     this.scanStatus.datapointsReceived += 1;
                     deviceStatus.requestsPerformed += 1;
-                    unitStatus.props.objectNameFlow.next(true);
+                    unitPropsStatus.flows.objectNameFlow.next(true);
                 }
                 break;
 
             case Enums.PropertyId.description:
-                if (!unitStatus.props.isDescriptionProcessed) {
-                    unitStatus.props.isDescriptionProcessed = true;
+                if (!unitPropsStatus.flags.isDescriptionProcessed) {
+                    unitPropsStatus.flags.isDescriptionProcessed = true;
                     deviceStatus.requestsPerformed += 1;
-                    unitStatus.props.descriptionFlow.next(true);
+                    unitPropsStatus.flows.descriptionFlow.next(true);
                 }
                 break;
 
             case Enums.PropertyId.covIncrement:
-                if (unitStatus.props.covIncrementFlow && !unitStatus.props.isCOVInrementProcessed) {
-                    unitStatus.props.isCOVInrementProcessed = true;
+                if (unitPropsStatus.flows.covIncrementFlow && !unitPropsStatus.flags.isCOVInrementProcessed) {
+                    unitPropsStatus.flags.isCOVInrementProcessed = true;
                     deviceStatus.requestsPerformed += 1;
-                    unitStatus.props.covIncrementFlow.next(true)
+                    unitPropsStatus.flows.covIncrementFlow.next(true)
                 }
-                if (!unitStatus.props.isSupportsCOVProcessed) {
-                    unitStatus.props.isSupportsCOVProcessed = true;
-                    unitStatus.props.supportsCOVFlow.next(true);
+                if (!unitPropsStatus.flags.isSupportsCOVProcessed) {
+                    unitPropsStatus.flags.isSupportsCOVProcessed = true;
+                    unitPropsStatus.flows.supportsCOVFlow.next(true);
                 }
                 break;
             default:
@@ -264,10 +269,10 @@ export class ScanProgressService {
 
         const unitId = this.getUnitId(objId);
 
-        const unitStatus = deviceStatus.units.get(unitId);
-        if (!unitStatus.props.isSupportsCOVProcessed) {
-            unitStatus.props.isSupportsCOVProcessed = true;
-            unitStatus.props.supportsCOVFlow.next(true);
+        const unitPropsStatus = deviceStatus.units.get(unitId).props;
+        if (!unitPropsStatus.flags.isSupportsCOVProcessed) {
+            unitPropsStatus.flags.isSupportsCOVProcessed = true;
+            unitPropsStatus.flows.supportsCOVFlow.next(true);
             deviceStatus.requestsPerformed += 1;
         }
     }

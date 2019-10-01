@@ -71,10 +71,18 @@ export interface IScanStatus {
 }
 
 export interface IUnitPropsProgress {
+    flags: IUnitPropsProgressFlags;
+    flows: IUnitPropsProgressFlows;
+}
+
+export interface IUnitPropsProgressFlags {
     isObjNameProcessed?: boolean;
     isDescriptionProcessed?: boolean;
     isCOVInrementProcessed?: boolean;
     isSupportsCOVProcessed?: boolean;
+}
+
+export interface IUnitPropsProgressFlows {
     objectNameFlow?: Subject<any>;
     descriptionFlow?: Subject<any>;
     covIncrementFlow?: Subject<any>;
