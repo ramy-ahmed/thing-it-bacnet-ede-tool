@@ -109,10 +109,45 @@ export class DeviceService {
     }
 
     /**
-     * sendReadProperty - gets invokeId from req store and sends requests via confirmedReqService
+     * getSupportsCOV - sends 'SubscribeCOV' request to check if datapoint supports COV reporting
      *
-     * @param  {BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty} opts - request options
-     * @param  {IBACNetRequestTimeoutHandler} timeoutAction - handler for the requests with expired timeout
+     * @param  {BACNet.Types.BACnetObjectId} objId - datapoint's object Id
+     * @return {Bluebird<any>}
+     */
+    public getSupportsCOV (objId: BACNet.Types.BACnetObjectId): Bluebird<any> {
+            const opts: BACNet.Interfaces.ConfirmedRequest.Service.SubscribeCOV = {
+                invokeId: 1,
+                objId: objId,
+                subProcessId: new BACNet.Types.BACnetUnsignedInteger(1),
+                issConfNotif: new BACNet.Types.BACnetBoolean(false),
+                lifetime: new BACNet.Types.BACnetUnsignedInteger(1)
+            }
+        return this.reqService.registerRequest({
+            choice: BACNet.Enums.ConfirmedServiceChoice.SubscribeCOV,
+            opts,
+            timeoutAction : () => {
+                this.scanProgressService.reportSubscribeCOV(
+                    this.config.storageId,
+                    objId.value
+                );
+            },
+            method: (serviceData) => {
+                    opts.invokeId = serviceData.invokeId;
+                    return confirmedReqService.subscribeCOV(
+                        opts,
+                        this.outputSoc,
+                        this.config.npduOpts,
+                        serviceData.msgSentFlow
+                    );
+            }
+        });
+    }
+
+    /**
+     * requestObjectProperty - send requests to get datapoint's property
+     *
+     * @param  {BACNet.Types.BACnetObjectId} objId - datapoint's object Id
+     * @param  {IPropertyReference} prop - requested property
      * @return {Bluebird<any>}
      */
     public requestObjectProperty (objId: BACNet.Types.BACnetObjectId,
@@ -140,10 +175,10 @@ export class DeviceService {
     }
 
     /**
-     * sendReadProperty - gets invokeId from req store and sends requests via confirmedReqService
+     * requestObjectProperties - send request(s) to get datapoint's properties
      *
-     * @param  {BACNet.Interfaces.ConfirmedRequest.Service.ReadProperty} opts - request options
-     * @param  {IBACNetRequestTimeoutHandler} timeoutAction - handler for the requests with expired timeout
+     * @param  {BACNet.Types.BACnetObjectId} objId - datapoint's object Id
+     * @param  {IPropertyReference[]} propsList - requested properties list
      * @return {Bluebird<any>}
      */
     public requestObjectProperties (objId: BACNet.Types.BACnetObjectId,

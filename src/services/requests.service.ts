@@ -98,6 +98,11 @@ export class RequestsService {
                             + Helpers.Logger.logReadPropertyMultiple(rinfo.opts);
                         break;
                     }
+                    case Enums.ConfirmedServiceChoice.SubscribeCOV: {
+                        logMessage = `Timeout has exceeded for subscribeCOV #${id}: (${Enums.ObjectType[this.deviceId.type]},${this.deviceId.instance}): `
+                            + Helpers.Logger.logSubscribeCOV(rinfo.opts);
+                        break;
+                    }
                     default:
                         break;
                 }

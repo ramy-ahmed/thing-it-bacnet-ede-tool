@@ -15,7 +15,11 @@ export function UnconfirmedReqRouter (
     logger.debug(`MainRouter - Request Service: ${BACNet.Enums.UnconfirmedServiceChoice[serviceChoice]}`);
     switch (serviceChoice) {
         case BACNet.Enums.UnconfirmedServiceChoice.iAm:
-            return edeService.iAm(inputSoc, outputSoc, serviceSocket);
+            edeService.iAm(inputSoc, outputSoc, serviceSocket);
+            break;
+        case BACNet.Enums.UnconfirmedServiceChoice.covNotification:
+            edeService.covNotification(inputSoc, outputSoc, serviceSocket);
+            break;
     }
     return;
 }

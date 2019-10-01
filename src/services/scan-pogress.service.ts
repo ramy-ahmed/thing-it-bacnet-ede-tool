@@ -5,7 +5,8 @@ import {
     IDeviceProgress,
     IUnitProgress,
     IUnitPropsProgress,
-    IPropertyReference
+    IPropertyReference,
+    IUnitPropsProgressFlows
 } from '../core/interfaces';
 import { logger } from '../core/utils';
 import { IBACnetObjectIdentifier } from '../core/interfaces';
@@ -13,7 +14,6 @@ import * as _ from 'lodash';
 import * as moment from 'moment';
 import { first, filter, tap } from 'rxjs/operators';
 import { Enums } from '@thing-it/bacnet-logic';
-
 
 export class ScanProgressService {
     constructor(
@@ -103,7 +103,7 @@ export class ScanProgressService {
             const oListLengthReceived = deviceStatus.objectsList[0];
             const objectsList =  new Array(length).fill(null).map(() => new BehaviorSubject(false));
             deviceStatus.objectsList = _.concat(oListLengthReceived, objectsList);
-            deviceStatus.requestsTotal += (deviceStatus.objectsList.length - 1) * 3;
+            deviceStatus.requestsTotal += (deviceStatus.objectsList.length - 1) * 4;
             this.calcScanStatus();
 
             Observable.combineLatest(deviceStatus.objectsList)
@@ -128,15 +128,29 @@ export class ScanProgressService {
 
             this.scanStatus.datapointsDiscovered += 1;
 
-            const unitPropsStatus: IUnitPropsProgress = {
+            const unitPropsFlows: IUnitPropsProgressFlows = {
                 objectNameFlow: new Subject(),
                 descriptionFlow: new Subject()
             };
+            if (objId.type !== Enums.ObjectType.Device) {
+                unitPropsFlows.supportsCOVFlow = new Subject();
+                if (
+                    objId.type === Enums.ObjectType.AnalogInput
+                    || objId.type === Enums.ObjectType.AnalogValue
+                    || objId.type === Enums.ObjectType.AnalogOutput
+                    ) {
+                        unitPropsFlows.covIncrementFlow = new Subject();
+                }
+            }
             unitStatus = {
                 processed: new BehaviorSubject(false),
-                props: unitPropsStatus
+                props: {
+                    flows: unitPropsFlows,
+                    flags: {}
+                }
             };
-            Observable.zip(unitPropsStatus.objectNameFlow, unitPropsStatus.descriptionFlow)
+            const objPropsFlows = _.values(unitPropsFlows);
+            Observable.zip(...objPropsFlows)
                 .pipe(first())
                 .subscribe(() => {
                     unitStatus.processed.next(true)
@@ -152,8 +166,10 @@ export class ScanProgressService {
                 // increase performed requests amount only when we reseive objectList entry
                 deviceStatus.requestsPerformed += 1;
                 if (objId.type === Enums.ObjectType.Device) {
-                    //remove requests related to 'device' datapoint properties from total amount - already counted as 'device' requests and received
-                    deviceStatus.requestsTotal -= 2;
+                    //remove requests related to 'Device' datapoint properties from total amount
+                    // 'objectName' and 'description' - already counted as 'device' requests and received
+                    // 'subscribeCOV'/'covIncrement' - not supported by Device object
+                    deviceStatus.requestsTotal -= 3;
                 }
             }
 
@@ -188,22 +204,35 @@ export class ScanProgressService {
 
         const unitId = this.getUnitId(objId);
 
-        const unitStatus = deviceStatus.units.get(unitId);
+        const unitPropsStatus = deviceStatus.units.get(unitId).props;
+
         switch (propId) {
             case Enums.PropertyId.objectName:
-                if (!unitStatus.props.isObjNameProcessed) {
-                    unitStatus.props.isObjNameProcessed = true;
+                if (!unitPropsStatus.flags.isObjNameProcessed) {
+                    unitPropsStatus.flags.isObjNameProcessed = true;
                     this.scanStatus.datapointsReceived += 1;
                     deviceStatus.requestsPerformed += 1;
-                    unitStatus.props.objectNameFlow.next(true);
+                    unitPropsStatus.flows.objectNameFlow.next(true);
                 }
                 break;
 
             case Enums.PropertyId.description:
-                if (!unitStatus.props.isDescriptionProcessed) {
-                    unitStatus.props.isDescriptionProcessed = true;
+                if (!unitPropsStatus.flags.isDescriptionProcessed) {
+                    unitPropsStatus.flags.isDescriptionProcessed = true;
                     deviceStatus.requestsPerformed += 1;
-                    unitStatus.props.descriptionFlow.next(true);
+                    unitPropsStatus.flows.descriptionFlow.next(true);
+                }
+                break;
+
+            case Enums.PropertyId.covIncrement:
+                if (unitPropsStatus.flows.covIncrementFlow && !unitPropsStatus.flags.isCOVInrementProcessed) {
+                    unitPropsStatus.flags.isCOVInrementProcessed = true;
+                    deviceStatus.requestsPerformed += 1;
+                    unitPropsStatus.flows.covIncrementFlow.next(true)
+                }
+                if (!unitPropsStatus.flags.isSupportsCOVProcessed) {
+                    unitPropsStatus.flags.isSupportsCOVProcessed = true;
+                    unitPropsStatus.flows.supportsCOVFlow.next(true);
                 }
                 break;
             default:
@@ -218,6 +247,7 @@ export class ScanProgressService {
         switch (prop.id) {
             case Enums.PropertyId.objectName:
             case Enums.PropertyId.description:
+            case Enums.PropertyId.covIncrement:
                 this.reportPropertyProcessed(deviceMapId, objId, prop.id)
                 break;
 
@@ -231,6 +261,19 @@ export class ScanProgressService {
                 break;
             default:
                 break;
+        }
+    }
+
+    reportSubscribeCOV(deviceMapId: string, objId: IBACnetObjectIdentifier) {
+        const deviceStatus = this.devicesProgressMap.get(deviceMapId);
+
+        const unitId = this.getUnitId(objId);
+
+        const unitPropsStatus = deviceStatus.units.get(unitId).props;
+        if (!unitPropsStatus.flags.isSupportsCOVProcessed) {
+            unitPropsStatus.flags.isSupportsCOVProcessed = true;
+            unitPropsStatus.flows.supportsCOVFlow.next(true);
+            deviceStatus.requestsPerformed += 1;
         }
     }
 

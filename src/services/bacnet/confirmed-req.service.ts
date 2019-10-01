@@ -36,6 +36,22 @@ export class ConfirmedReqService {
         const msgBACnet = BACNet.Services.ConfirmedReqService.readPropertyMultiple(opts, npduOpts)
         return output.send(msgBACnet, `readPropertyMultiple #${opts.invokeId}`, msgSentFlow);
     }
+
+    /**
+     * subscribeCOV - sends the "subscribeCOV" confirmed request.
+     *
+     * @param  {InputSocket} req - request object (socket)
+     * @param  {OutputSocket} resp - response object (socket)
+     * @return {type}
+     */
+    public subscribeCOV (
+        opts: BACNet.Interfaces.ConfirmedRequest.Service.SubscribeCOV,
+        output: OutputSocket, npduOpts: BACNet.Interfaces.NPDU.Write.Layer = {},
+        msgSentFlow: Subject<number>): void {
+
+        const msgBACnet = BACNet.Services.ConfirmedReqService.subscribeCOV(opts, npduOpts)
+        return output.send(msgBACnet, `subscribeCOV #${opts.invokeId}`, msgSentFlow);
+    }
 }
 
 export const confirmedReqService: ConfirmedReqService = new ConfirmedReqService();
