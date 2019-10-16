@@ -24,7 +24,7 @@ export class OutputSocket {
      * @param  {string} reqMethodName - name of the BACnet service
      * @return {Bluebird<any>}
      */
-    private _send (msg: Buffer, reqMethodName: string, msgSentFlow: Subject<number>): Bluebird<any> {
+    private _send (msg: Buffer, reqMethodName: string, msgSentFlow?: Subject<number>): Bluebird<any> {
         const ucAddress = this.rinfo.address;
         const ucPort = this.rinfo.port;
 
@@ -34,7 +34,7 @@ export class OutputSocket {
                 if (error) {
                     return reject(error);
                 }
-                msgSentFlow.next(Date.now())
+                msgSentFlow && msgSentFlow.next(Date.now())
                 resolve(data);
             });
         });
@@ -47,7 +47,7 @@ export class OutputSocket {
      * @param  {string} reqMethodName - name of the BACnet service
      * @return {Bluebird<any>}
      */
-    public send (msg: Buffer, reqMethodName: string, msgSentFlow: Subject<number>): void {
+    public send (msg: Buffer, reqMethodName: string, msgSentFlow?: Subject<number>): void {
         let id = this.getFlowId();
         this.sequenceManager.next(id, {
             object: this,

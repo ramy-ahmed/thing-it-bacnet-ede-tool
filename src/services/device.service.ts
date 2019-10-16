@@ -1,17 +1,21 @@
 import { confirmedReqService } from './bacnet/confirmed-req.service';
-import { OutputSocket } from '../core/sockets';
+import { OutputSocket, InputSocket, ServiceSocket } from '../core/sockets';
 import { RequestsService } from './requests.service';
 import {
     IDeviceServiceConfig,
     IBACNetRequestTimeoutHandler,
-    IPropertyReference
+    IPropertyReference,
+    ISegmentsStore
 } from '../core/interfaces';
 import { ScanProgressService } from './scan-pogress.service';
 import * as BACNet from '@thing-it/bacnet-logic';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
+import { ComplexACKRouter } from '../routes/complex-ack.route';
 
 export class DeviceService {
+    private segmentStoresMap = new Map<number, ISegmentsStore>();
+
     constructor(
         private config: IDeviceServiceConfig,
         private outputSoc: OutputSocket,
@@ -80,6 +84,94 @@ export class DeviceService {
                     );
             }
         });
+    }
+
+    /**
+     * sendSegmentACK - sends SegmentACK message
+     *
+     * @param  {BACNet.Interfaces.SegmentACK.Service.Layer} opts - request options
+     * @return {void}
+     */
+    public sendSegmentACK (opts: BACNet.Interfaces.SegmentACK.Service.Layer): void {
+
+        const msg = BACNet.Services.SegmentACKService.writeSegmentACKResponse(opts, this.config.npduOpts);
+        this.outputSoc.send(msg, `segmentACK#${opts.invokeId}`)
+    }
+
+    /**
+     * processSegmentedMessage - stores segmented messages and reassembles initial one when all pieces are receive
+     *
+     * @param  {InputSocket} inputSoc - incoming message
+     * @param  {ServiceSocket} serviceSoc - services socket
+     * @return {void}
+     */
+    public processSegmentedMessage (inputSoc: InputSocket, serviceSoc: ServiceSocket): void {
+        const apdu = inputSoc.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+
+        const seqNumber = apdu.sequenceNumber;
+        const invokeId = apdu.invokeId;
+        const moreFollows = apdu.mor;
+        let segmentsStore = this.segmentStoresMap.get(invokeId);
+        if (!segmentsStore) {
+            segmentsStore = {
+                messagesWindowCounter: 0,
+                nextSeqNumber: 0,
+                segments: [],
+                windowSize: apdu.proposedWindowSize
+            };
+            this.segmentStoresMap.set(invokeId, segmentsStore)
+        }
+
+        if (seqNumber === segmentsStore.nextSeqNumber) {
+            segmentsStore.segments[seqNumber] = apdu;
+            segmentsStore.nextSeqNumber += 1;
+            if (seqNumber > 0) {
+                segmentsStore.messagesWindowCounter += 1;
+            }
+            if (
+                seqNumber === 0
+                || segmentsStore.messagesWindowCounter === segmentsStore.windowSize
+                || !moreFollows
+            ) {
+                this.sendSegmentACK({
+                    type: BACNet.Enums.ServiceType.SegmentACKPDU,
+                    server: false,
+                    negativeACK: false,
+                    invokeId: invokeId,
+                    seqNumber: seqNumber,
+                    actualWindowSize: segmentsStore.windowSize
+                });
+                segmentsStore.messagesWindowCounter = 0;
+            }
+        } else {
+            this.sendSegmentACK({
+                type: BACNet.Enums.ServiceType.SegmentACKPDU,
+                server: false,
+                negativeACK: true,
+                invokeId: invokeId,
+                seqNumber: (segmentsStore.nextSeqNumber - 1),
+                actualWindowSize: segmentsStore.windowSize
+            });
+        }
+
+        if (!moreFollows) {
+            const segments = segmentsStore.segments;
+            const initialMessage = segments.shift();
+            const initialReader = initialMessage.reader;
+            const parserFn = initialMessage.serviceParser;
+            const readers = segments.map(apduSegment => apduSegment.reader)
+            initialReader.reassemble(readers);
+            initialMessage.service = parserFn(initialReader, initialMessage.parserOpts);
+            initialMessage.reader = null;
+            initialMessage.serviceParser = null;
+            initialMessage.parserOpts = null;
+            initialMessage.seg = false;
+            _.set(inputSoc, 'npdu.apdu', initialMessage);
+            _.set(inputSoc, 'apdu', initialMessage);
+            this.segmentStoresMap.set(invokeId, null);
+
+            ComplexACKRouter(inputSoc, this.outputSoc, serviceSoc)
+        }
     }
 
     /**

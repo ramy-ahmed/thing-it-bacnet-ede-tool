@@ -132,3 +132,10 @@ export interface IBACnetDelayedRequest {
     idDefer: Bluebird.Resolver<any>;
     rinfo: IBACnetRequestInfo;
 }
+
+export interface ISegmentsStore {
+    messagesWindowCounter: number;
+    nextSeqNumber: number;
+    segments: BACNet.Interfaces.ComplexACK.Read.Layer[];
+    windowSize: number;
+}

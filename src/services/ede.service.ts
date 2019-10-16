@@ -358,6 +358,25 @@ export class EDEService {
 
 
     /**
+     * complexACKSegmented - process segmented response
+     *
+     * @param  {IUnconfirmReqWhoIsOptions} opts - request options
+     * @param  {OutputSocket} output - output socket
+     * @return {type}
+     */
+    public complexACKSegmented (
+        inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
+    const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
+    const apduMessage = npduMessage.apdu as BACNet.Interfaces.ComplexACK.Read.Layer;
+
+    logger.info(`EDEService - semenent #${apduMessage.sequenceNumber} of ${BACNet.Enums.ConfirmedServiceChoice[apduMessage.serviceChoice]} #${apduMessage.invokeId}`);
+    const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
+    const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
+    const deviceService = this.deviceServicesMap.get(deviceStorageId);
+    deviceService.processSegmentedMessage(inputSoc, serviceSocket)
+}
+
+    /**
      * getNpduOptions - transforms 'src' params from incoming messsage to 'dest' params for message to sent.
      *
      * @param  {BACNet.Interfaces.NPDU.Read.Layer} npduMessage - incoming message's NPDU Layer
