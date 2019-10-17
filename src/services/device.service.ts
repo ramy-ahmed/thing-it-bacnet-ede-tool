@@ -125,6 +125,7 @@ export class DeviceService {
         if (seqNumber === segmentsStore.nextSeqNumber) {
             segmentsStore.segments[seqNumber] = apdu;
             segmentsStore.nextSeqNumber += 1;
+            this.reqService.updateInvokeIdReservation(invokeId);
             if (seqNumber > 0) {
                 segmentsStore.messagesWindowCounter += 1;
             }
