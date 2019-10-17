@@ -137,6 +137,21 @@ export class RequestsService {
         }
     }
 
+
+    /**
+     * updates invokeId reservation.
+     *
+     * @param {number} id - invokeId
+     * @return {void}
+     */
+    public updateInvokeIdReservation(id: number): void {
+        const rinfo = this.activeRequestsStore[id] as IBACnetRequestInfo;
+
+        const curReleaseSub = this.releaseIdSubs[id];
+        curReleaseSub.unsubscribe();
+        const msgFlow = this.reserveInvokeId(id, rinfo);
+        msgFlow.next();
+    }
     /**
      * Calculates response time.
      *
