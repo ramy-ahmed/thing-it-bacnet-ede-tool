@@ -331,7 +331,7 @@ export class EDEService {
         inputSoc: InputSocket, outputSoc: OutputSocket, serviceSocket: ServiceSocket) {
     const npduMessage = inputSoc.npdu as BACNet.Interfaces.NPDU.Read.Layer;
     const apduMessage = npduMessage.apdu as BACNet.Interfaces.UnconfirmedRequest.Read.Layer;
-    const apduService = apduMessage.service as BACNet.Interfaces.UnconfirmedRequest.Service.COVNotification;
+    const apduService = apduMessage.service as BACNet.Interfaces.UnconfirmedRequest.Read.COVNotification
     const edeStorage: EDEStorageManager = serviceSocket.getService('edeStorage');
     const scanProgressService: ScanProgressService = serviceSocket.getService('scanProgressService');
 
@@ -341,19 +341,25 @@ export class EDEService {
     const objType = objIdPayload.type;
     const objInst = objIdPayload.instance;
 
-    logger.info(`EDEService - covNotification: (${objType}:${objInst}) supports COV subscriptions`);
+    const deviceId =  apduService.devId.value;
+
+    logger.info(`EDEService - covNotification: (${objType}:${objInst}) of (${deviceId.type}:${deviceId.instance}) supports COV subscriptions`);
 
     const npduOpts: BACNet.Interfaces.NPDU.Write.Layer = this.getNpduOptions(npduMessage);
     const deviceStorageId = this.getDeviceStorageId(outputSoc, npduOpts);
     const unitId = { type: objType, instance: objInst };
 
-    edeStorage.setUnitProp(
-        unitId,
-        'supportsCOV',
-        true,
-        deviceStorageId
-    );
-    scanProgressService.reportSubscribeCOV(deviceStorageId, unitId);
+    try {
+        edeStorage.setUnitProp(
+            unitId,
+            'supportsCOV',
+            true,
+            deviceStorageId
+        );
+        scanProgressService.reportSubscribeCOV(deviceStorageId, unitId);
+    } catch (error) {
+        logger.warn(`EDEService - covNotification has been received too early!`)
+    }
 }
 
 
