@@ -294,7 +294,15 @@ export class ScanProgressService {
         let requestsTotal = 0;
         let requestsPerformed = 0;
         let timeRemaining = 0;
-        this.devicesProgressMap.forEach((deviceStatus) => {
+        this.devicesProgressMap.forEach((deviceStatus, deviceStorageId) => {
+            if (this.scanStatus.progress >= 90 && deviceStatus.requestsPerformed !== deviceStatus.requestsTotal) {
+                logger.info(`Not finished Device (${deviceStorageId}) requests progress: ${deviceStatus.requestsPerformed}/${deviceStatus.requestsTotal}`);
+                const unitsArr = Array.from(deviceStatus.units.values());
+                const notFinishedUnitsArr = unitsArr.filter(unit => !unit.props.flags.isSupportsCOVProcessed || !unit.props.flags.isCOVInrementProcessed)
+                notFinishedUnitsArr.forEach((unit, unitId) => {
+                    logger.info(`Unit (${unitId}) of (${deviceStorageId}) not finished: ${unit.props.flags}`)
+                })
+            }
             requestsTotal += deviceStatus.requestsTotal;
             requestsPerformed += deviceStatus.requestsPerformed;
             let deviceReqRemaining = Math.max(deviceStatus.requestsTotal - deviceStatus.requestsPerformed, 0);
@@ -304,7 +312,6 @@ export class ScanProgressService {
         this.scanStatus.requestsTotal = requestsTotal;
         this.scanStatus.timeRemaining = moment(timeRemaining).utc().format('HH:mm:ss.SSS');
     }
-
 
     getProgressNotificationsFlow() {
         return this.statusNotificationsFlow;
